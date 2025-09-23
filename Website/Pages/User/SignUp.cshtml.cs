@@ -50,7 +50,7 @@ namespace Website.Pages.User
         public required string MapboxAddressJSON { get; set; }
 
         [ValidateNever]
-        public SelectList? AddressTypeOptions { get; set; }
+        public SelectList AddressTypeOptions { get; set; } = new(Enumerable.Empty<SelectListItem>());
 
         [ViewData]
         public string? MapboxPublicToken { get; set; }
@@ -58,7 +58,10 @@ namespace Website.Pages.User
         public void OnGet()
         {
             MapboxPublicToken = App.Settings.MapboxToken;
-            LoadAddressTypes();
+
+            var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
+            AddressTypeOptions = list;
+            ErrorMessage = error;
         }
         public IActionResult OnPost()
         {
@@ -66,7 +69,9 @@ namespace Website.Pages.User
 
             if (!ModelState.IsValid)
             {
-                LoadAddressTypes();
+                var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
+                AddressTypeOptions = list;
+                ErrorMessage = error;
 
                 // Repopulate AddressSearch if we still have MapboxAddressJSON
                 if (!string.IsNullOrWhiteSpace(MapboxAddressJSON))
@@ -184,36 +189,16 @@ namespace Website.Pages.User
                 {
                     // Log the error and show a generic message
                     ErrorMessage = "An unexpected error occurred: " + ex.Message;
-                    LoadAddressTypes();
+
+                    var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
+                    AddressTypeOptions = list;
+                    ErrorMessage = error;
+
                     return Page();
 
                 }
             }
         }
-        private void LoadAddressTypes()
-        {
-            try
-            {
-                using App.Helper.Connection locationConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
-                using DataTable dt = App.Database.Shared.GetDataTable(locationConnection, App.Database.Schema.Locations.Tables.AddressType);
 
-                var items = dt.Rows
-                    .Cast<DataRow>()
-                    .Select(r => new
-                    {
-                        ID = Convert.ToInt32(r.Field<long>("ID")),
-                        NAME = r.Field<string>("NAME") ?? string.Empty
-                    })
-                    .ToList();
-
-                AddressTypeOptions = new SelectList(items, "ID", "NAME");
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = "AddressType load error: " + ex.Message;
-                AddressTypeOptions = new SelectList(Enumerable.Empty<object>());
-            }
-        }
     }
 }
-
