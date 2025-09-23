@@ -1,0 +1,85 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Data;
+using System.Text.Json;
+using Website.App.Security;
+
+namespace Website.Pages.User.Address
+{
+    [IgnoreAntiforgeryToken]
+    public class AddFromLocationModel : PageModel
+    {
+        private const string NamespaceClass = "Website.Pages.User.Address.AddFromLocationModel.";
+        private readonly IHttpContextAccessor? HttpContextAccessor;
+        private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
+
+        public AddFromLocationModel(IHttpContextAccessor httpContextAccessor)
+        {
+            HttpContextAccessor = httpContextAccessor;
+        }
+
+        public sealed class Req
+        {
+            public int AddressTypeID { get; set; }
+            public string JSonpayload { get; set; } = "";
+        }
+
+        [BindProperty]
+        public Req Input { get; set; } = new();
+
+        public IActionResult OnGet() => NotFound(); // API-only
+
+        public async Task<IActionResult> OnPostAsync()
+        {
+            if (!User.IsAuthorised()) { return Unauthorized(); }
+            if (Request.Body == null || Request.ContentLength == 0)
+                return BadRequest(new { ok = false, message = "Empty body" });
+
+            int userId = User.Id();
+
+            // Shallow-parse for fields we need (type + payload). userId is NOT trusted from client.
+            Req? req;
+            try
+            {
+                req = await Request.ReadFromJsonAsync<Req>(JsonOpts);
+            }
+            catch
+            {
+                return BadRequest(new { ok = false, message = "Malformed JSON" });
+            }
+            if (req is null)
+                return BadRequest(new { ok = false, message = "Invalid body" });
+
+            if (req.AddressTypeID < 1 || req.AddressTypeID > 7)
+                return BadRequest(new { ok = false, message = "Invalid address type" });
+
+            // Get userId from session; do NOT trust client-provided userId
+
+            if (userId <= 0)
+                return new UnauthorizedObjectResult(new { ok = false, message = "User not authenticated" });
+
+            // Save using your existing pipeline
+            using App.Helper.Connection connection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
+            var cAddressValidation = new App.Validation.AddressValidation(req.AddressTypeID, userId, true);
+
+            int newId;
+            string label;
+            try
+            {
+                newId = cAddressValidation.SaveAddressAndGetId(req.JSonpayload);
+                DataTable dt = Website.App.Database.Shared.GetDataTable(connection, "USER_ADDRESS", $"USER_ID = {userId} AND ISDEFAULT=1");
+                if (dt.Rows.Count == 0) return NotFound(new { ok = false, msg = "Address not found." });
+
+                label = dt.Rows[0]["LABEL"] == DBNull.Value ? "Select Address" : dt.Rows[0]["LABEL"].ToString()?.Trim() ?? "Select Address";
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = NamespaceClass + ex.Message;
+                Website.App.Bootstrap.Logger?.Add(errorMessage, App.Helper.Logger.LogLevel.Error);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, new { ok = false, message = "Address not found" });
+            }
+
+            return new JsonResult(new { ok = true, addressId = newId, label });
+        }
+    }
+}

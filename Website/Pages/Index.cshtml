@@ -1,0 +1,46 @@
+﻿@page
+@model Website.Pages.IndexModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Home";
+}
+<section style="position: relative; width: 100%; min-height: 60vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #fff;">
+    <picture>
+        <source media="(max-width: 768px)" srcset="/assets/images/Hero1-768x512.webp" type="image/webp">
+        <source media="(max-width: 1024px)" srcset="/assets/images/Hero1-1200x800.webp" type="image/webp">
+        <img src="/assets/images/Hero1-1536x1024.webp" alt="Hero Image" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; z-index: -1;">
+    </picture>
+
+    <div style="position: relative; z-index: 1;">
+        <h1 style="font-size: 3rem; margin: 0 0 0.5rem;">Fast, Reliable, Transparent Deliveries</h1>
+        <p style="font-size: 1.25rem; margin: 0 0 1rem;">Order from your favorite restaurants or schedule a pickup — all in seconds.</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+            <a asp-page="/Customer/Home" class="btn btn-outline">Order with Us</a>
+            <a asp-page="/User/SignUp" class="btn btn-outline">Partner with Us</a>
+            <a asp-page="/Driver/SignUp" class="btn btn-outline">Drive with Us</a>
+        </div>
+    </div>
+</section>
+<section class="features" style="margin:0 2px; padding:4rem 0; background:var(--color-bg-alt); text-align: center">
+    <h2 style="text-align:center; margin:0 0 1rem; color:var(--color-text); font-weight:600;">
+        Why Choose Us?
+    </h2>
+    <div style="display:flex; flex-wrap:wrap; gap:2rem; width:80%; margin:0 auto;">
+        <div style="flex:1 1 240px; background:var(--color-bg); padding:1.5rem; border-radius:12px; box-shadow:0 2px 4px var(--shadow-light);">
+            <h3 style="margin:0 0 0.5rem; color:var(--color-primary);">Instant Rebook</h3>
+            <p style="margin:0; color:var(--color-text);">Repeat past services instantly with one tap.</p>
+        </div>
+        <div style="flex:1 1 240px; background:var(--color-bg); padding:1.5rem; border-radius:12px; box-shadow:0 2px 4px var(--shadow-light);">
+            <h3 style="margin:0 0 0.5rem; color:var(--color-primary);">Real-Time Updates</h3>
+            <p style="margin:0; color:var(--color-text);">Know exactly when and where your task is happening.</p>
+        </div>
+        <div style="flex:1 1 240px; background:var(--color-bg); padding:1.5rem; border-radius:12px; box-shadow:0 2px 4px var(--shadow-light);">
+            <h3 style="margin:0 0 0.5rem; color:var(--color-primary);">Secure Handover</h3>
+            <p style="margin:0; color:var(--color-text);">PIN or verified delivery for all services.</p>
+        </div>
+        <div style="flex:1 1 240px; background:var(--color-bg); padding:1.5rem; border-radius:12px; box-shadow:0 2px 4px var(--shadow-light);">
+            <h3 style="margin:0 0 0.5rem; color:var(--color-primary);">Scheduled Work</h3>
+            <p style="margin:0; color:var(--color-text);">Plan your work; we show up on time.</p>
+        </div>
+    </div>
+</section>

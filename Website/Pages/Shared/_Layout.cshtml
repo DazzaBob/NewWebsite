@@ -1,0 +1,54 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    bool IsDashboard = App.Helper.Shared.IsDashboard(HttpContextAccessor.HttpContext?.Request.Path.Value?.ToLower() ?? "");
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] - That's Handy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/theme.css" />
+    <link rel="stylesheet" href="~/css/layout.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    @if (IsDashboard)
+    {
+        <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+        <meta name="Website-mapbox-token" content="@App.Settings.MapboxToken" />
+    }
+</head>
+<body>
+    <header class="site-header">
+        <partial name="~/Pages/Shared/_Header.cshtml" />
+    </header>
+
+    @* Dashboard modals outside header, only if on dashboard *@
+    @if (IsDashboard)
+    {
+        <partial name="~/Pages/Shared/Partials/_AddressModal.cshtml" />
+        <partial name="~/Pages/Shared/Partials/_LocationModal.cshtml" />
+    }
+
+    <main role="main" class="@(IsDashboard ? "dashboard-content" : "container")">
+        @RenderSection("StatusStrip", required: false)
+        @RenderBody()
+    </main>
+
+    <div id="globalSpinner" class="spinner-overlay" hidden>
+        <div class="spinner spinner--lg" aria-hidden="true"></div>
+    </div>
+
+    <partial name="_Footer" />
+
+    <script src="~/js/Site.js" defer asp-append-version="true"></script>
+    @* Dashboard JS only if dashboard *@
+    @if (IsDashboard)
+    {
+        <script src="~/js/dashboard.js" defer asp-append-version="true"></script>
+    }
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

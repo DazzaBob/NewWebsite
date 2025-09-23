@@ -1,0 +1,421 @@
+﻿@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
+
+/* ─────────────────────────── Core tokens ─────────────────────────── */
+:root {
+    --top-bar-height: 3.5rem;
+    --pill-bar-height: 2.5rem;
+    --dash-header-height: calc(var(--top-bar-height)+var(--pill-bar-height));
+    --dash-footer-height: 3.5rem;
+    --spacing-small: .5rem;
+    --spacing-medium: 1rem;
+    --spacing-large: 2rem;
+}
+
+/* ───────────────────────────── Reset ─────────────────────────────── */
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--color-bg);
+}
+
+/* ─────────────────────────── Top red bar ─────────────────────────── */
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--top-bar-height);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-small) var(--spacing-medium);
+    z-index: 300;
+}
+
+    .top-bar .menu-btn,
+    .top-bar .settings-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: inherit;
+        cursor: pointer;
+    }
+
+    .top-bar .title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+/* ──────────────────────── Pill-bar beneath top bar ───────────────── */
+.pill-bar {
+    position: fixed;
+    top: var(--top-bar-height);
+    left: 0;
+    right: 0;
+    height: var(--pill-bar-height);
+    background: var(--color-bg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-medium);
+    padding: 0 var(--spacing-medium);
+    z-index: 299;
+}
+
+    .pill-bar .pill:last-child {
+        margin-left: auto;
+    }
+
+/* Pill look */
+.pill {
+    display: inline-flex;
+    align-items: center;
+    height: var(--pill-bar-height);
+    padding: 0 var(--spacing-medium);
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--color-on-primary);
+    font-size: .9rem;
+    border: 1px solid rgba(255,255,255,.7);
+    white-space: nowrap;
+    transition: background .2s,color .2s;
+    text-decoration: none;
+}
+
+    .pill i {
+        margin-right: .5rem;
+    }
+
+    .pill:hover {
+        background: var(--color-on-primary);
+        color: var(--color-primary);
+    }
+
+    .pill.pill-disabled {
+        opacity: .5;
+        pointer-events: none;
+    }
+
+/* ───────────────────────────── Sidebar ───────────────────────────── */
+.side-menu {
+    position: fixed;
+    top: var(--top-bar-height);
+    bottom: 0;
+    left: -280px; /* was -260 */
+    width: 280px; /* was 240 */
+    background: var(--color-bg-alt);
+    box-shadow: 2px 0 8px rgba(0,0,0,.2);
+    transition: left .3s ease;
+    z-index: 1001;
+    padding-top: var(--spacing-medium);
+}
+
+body.menu-open .side-menu {
+    left: 0;
+}
+
+.menu-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+    z-index: 1000; /* just under .side-menu (1001) */
+}
+
+body.menu-open .menu-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* NEW: lock scroll while menu is open */
+body.menu-open {
+    overflow: hidden;
+}
+
+.side-menu ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.side-menu li {
+    margin: var(--spacing-small) 0;
+}
+
+.side-menu a {
+    display: flex;
+    align-items: center;
+    padding: .75rem 1rem;
+    text-decoration: none;
+    color: var(--color-text);
+}
+
+    .side-menu a i {
+        width: 1.25rem;
+        text-align: center;
+        margin-right: .75rem;
+    }
+
+    .side-menu a:hover {
+        background: rgba(255,255,255,.1);
+    }
+
+/* ───────────────────────── Content area ──────────────────────────── */
+.dashboard-content {
+    position: relative;
+    z-index: 1;
+    padding-top: 55px;
+    padding-bottom: var(--dash-footer-height);
+    overflow-y: auto;
+    padding-left: var(--spacing-medium);
+    padding-right: var(--spacing-medium);
+}
+
+/* ─────────────────────────── Cards & grid ────────────────────────── */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(240px,1fr));
+    gap: var(--spacing-medium);
+}
+
+.dashboard-card {
+    background: var(--color-bg-alt);
+    border: 2px solid var(--color-primary);
+    border-radius: 16px;
+    box-shadow: 0 2px 4px var(--shadow-light);
+    padding: var(--spacing-large);
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--spacing-medium);
+}
+
+    .dashboard-card h3 {
+        margin: 0 0 var(--spacing-small);
+        color: var(--color-primary);
+    }
+
+    .dashboard-card p,
+    .dashboard-card ul,
+    .dashboard-card blockquote {
+        margin: 0;
+        color: var(--color-text);
+    }
+
+    .dashboard-card ul {
+        padding-left: 1rem;
+        margin-bottom: var(--spacing-small);
+    }
+
+/* Role pills */
+.roles-card .role-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-small);
+    margin-top: var(--spacing-small);
+}
+
+.roles-card .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: .5rem 1rem;
+    border-radius: 9999px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
+    font-size: .9rem;
+    text-decoration: none;
+}
+
+    .roles-card .pill i {
+        margin: 0 .5rem;
+    }
+
+    .roles-card .pill:hover {
+        background: var(--color-primary);
+        color: var(--color-on-primary);
+    }
+
+/* ────────────────────────── Bottom nav ──────────────────────────── */
+.dashboard-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 300;
+    background: var(--color-bg-alt);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: var(--spacing-small) 0;
+    box-shadow: 0 -1px 2px rgba(0,0,0,.2);
+}
+
+.nav-btn {
+    flex: 1;
+    text-align: center;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    padding: var(--spacing-small) 0 .25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background: none;
+    border: none;
+}
+
+    .nav-btn i {
+        font-size: 1.25rem;
+        margin-bottom: .25rem;
+    }
+
+        .nav-btn i::before {
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+        }
+
+.icon-home::before {
+    content: "\f015";
+}
+
+.icon-list::before {
+    content: "\f03a";
+}
+
+.icon-briefcase::before {
+    content: "\f0b1";
+}
+
+.icon-user::before {
+    content: "\f007";
+}
+
+.icon-wrench::before {
+    content: "\f0ad";
+}
+
+.icon-compass::before {
+    content: "\f14e";
+}
+
+.nav-btn.active {
+    color: var(--color-primary);
+}
+
+.nav-btn.disabled {
+    opacity: .4;
+    pointer-events: none;
+}
+
+    .nav-btn.disabled i {
+        color: var(--color-text-disabled);
+    }
+
+/* ───────────────────────── Centered modal ────────────────────────── */
+.custom-modal {
+    position: fixed;
+    inset: 0;
+    display: block;
+    background: rgba(0,0,0,.6);
+    z-index: 400;
+}
+
+.custom-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: 90vw;
+    max-width: 320px;
+    background: var(--color-bg-alt);
+    border: 2px solid var(--color-primary);
+    border-radius: 16px;
+    padding: var(--spacing-large);
+    box-shadow: 0 4px 14px rgba(0,0,0,.45);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-medium);
+}
+
+@media (min-width:600px) {
+    .custom-modal-content {
+        max-width: 360px;
+    }
+}
+
+.custom-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+    .custom-modal-header h5 {
+        margin: 0;
+        font-size: 1rem;
+        flex: 1;
+        color: var(--color-on-primary);
+    }
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: var(--color-on-primary);
+    cursor: pointer;
+}
+
+.custom-modal-body {
+    max-height: 50vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-medium);
+}
+
+/* ───────────────────────── Address cards ─────────────────────────── */
+.address-card {
+    padding: var(--spacing-medium);
+    border: 2px solid var(--color-primary);
+    border-radius: 16px;
+    display: block; /* stack rows naturally */
+}
+
+.address-option-row {
+    display: grid; /* radio | label */
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: .5rem;
+}
+
+.address-radio {
+    margin: 0; /* no default margins */
+    inline-size: 1em;
+    block-size: 1em;
+    transform: scale(1.1);
+}
+
+.address-label {
+    font-size: .95rem;
+    font-weight: 600;
+    cursor: pointer;
+    word-break: break-word; /* handles very long labels */
+}
+
+.address-line {
+    font-size: .85rem;
+    color: var(--color-text-secondary);
+    margin-top: .25rem;
+}
+
+/* ───────────────────────── Modal footer ──────────────────────────── */
+.custom-modal-footer {
+    display: flex;
+    gap: var(--spacing-medium);
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}

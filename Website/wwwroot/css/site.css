@@ -1,0 +1,321 @@
+﻿@import url('theme.css');
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+    background: var(--color-bg);
+}
+
+body {
+    font-family: var(--font-family-base);
+    color: var(--color-text);
+    line-height: 1.6;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 30px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px var(--shadow-light);
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+    .btn-primary:hover {
+        background: var(--color-primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px var(--shadow-strong);
+    }
+
+.btn-outline {
+    background: transparent;
+    color: #fff;
+    border: 2px solid #fff;
+}
+
+    .btn-outline:hover {
+        background: rgba(255,255,255,0.2);
+        transform: translateY(-2px);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+    }
+
+a.btn-login,
+a.btn-signup {
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--color-primary);
+    background: transparent;
+    color: var(--color-primary);
+    border-radius: 24px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+    a.btn-login:hover,
+    a.btn-signup:hover {
+        background: var(--color-primary);
+        color: #fff !important;
+    }
+
+.error-msg {
+    color: var(--color-primary);
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+mapbox-address-autofill {
+    display: block;
+    height: auto;
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+    mapbox-address-autofill:focus-within {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 2px rgba(255, 90, 95, 0.2);
+        outline: none;
+    }
+
+    /* Inner input if exposed (shadow DOM) */
+    mapbox-address-autofill::part(input) {
+        all: unset;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        font-family: inherit;
+        box-sizing: border-box;
+        background: transparent;
+        color: var(--color-text);
+    }
+
+/* Inputs */
+input,
+textarea,
+select {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    width: 100%;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 2px rgba(255, 90, 95, 0.2);
+    }
+
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+    .password-wrapper .input-text {
+        width: 100%;
+    }
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 3.3rem;
+    color: var(--color-text);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    z-index: 10;
+    opacity: 0.9;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+    transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+    .password-toggle:hover {
+        color: var(--color-primary);
+    }
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+}
+
+    .modal.hidden {
+        display: none;
+    }
+
+.modal-content {
+    background: var(--color-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+}
+
+.legal-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: 1rem;
+    line-height: 1.75;
+}
+
+    .legal-container h1,
+    .legal-container h2,
+    .legal-container h3 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+
+    .legal-container p {
+        margin-bottom: 1.25rem;
+    }
+
+    .legal-container ul,
+    .legal-container ol {
+        padding-left: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .legal-container li {
+        margin-bottom: 0.75rem;
+    }
+
+input[type="password"]::-ms-reveal,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+    display: none !important;
+}
+
+.autocomplete-list {
+    /* Darker, 1px primary-coloured border */
+    border: 1px solid var(--color-primary) !important;
+    /* Lift it above other elements */
+    z-index: 1001 !important;
+}
+
+    .autocomplete-list li {
+        /* Match your text colour */
+        color: var(--color-text) !important;
+        /* White background (in both light & dark modes) */
+        background: var(--color-bg) !important;
+    }
+
+        .autocomplete-list li:hover,
+        .autocomplete-list li:focus {
+            /* Primary-hover for visible feedback */
+            background: var(--color-primary-hover) !important;
+            color: #fff !important;
+        }
+
+@media (max-width: 600px) {
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+}
+@keyframes mava-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    border: .15em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: mava-spin .8s linear infinite;
+}
+
+/* Sizes */
+.spinner--sm {
+    width: .9em;
+    height: .9em;
+    border-width: .12em;
+}
+
+.spinner--md {
+    width: 1.25em;
+    height: 1.25em;
+}
+
+.spinner--lg {
+    width: 2em;
+    height: 2em;
+    border-width: .2em;
+}
+
+/* Button helper */
+.btn.is-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: .75;
+}
+
+.btn .spinner {
+    margin-left: .5rem;
+    vertical-align: -0.15em;
+}
+
+/* Overlay (screen/block) */
+.spinner-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,.35);
+    z-index: 9999;
+}
+
+    .spinner-overlay[hidden] {
+        display: none;
+    }

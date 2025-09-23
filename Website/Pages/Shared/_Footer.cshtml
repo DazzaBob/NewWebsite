@@ -1,0 +1,63 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    string path = HttpContextAccessor.HttpContext?.Request.Path.Value?.ToLower() ?? "";
+    bool IsDashboard = App.Helper.Shared.IsDashboard(path);
+}
+
+@if (IsDashboard)
+{
+<footer class="dashboard-footer">
+    <!-- 1. Home -->
+    <a asp-page="/User/Dashboard" class="nav-btn @(path == "/user/dashboard" ? "active" : "")">
+        <i class="icon-home"></i>
+        <span>Home</span>
+    </a>
+
+    <!-- 2. Dynamic center slot -->
+    @if (Model.HasOrders)
+    {
+        <a asp-page="/User/Orders" class="nav-btn @(path == "/user/orders" ? "active" : "")">
+            <i class="icon-list"></i>
+            <span>Orders</span>
+        </a>
+    }
+    else if (Model.HasDefaultIntent)
+    {
+        <a asp-page="@Model.DefaultIntentDashboard" class="nav-btn">
+            <i class="icon-briefcase"></i>
+            <span>@Model.DefaultIntentLabel</span>
+        </a>
+    }
+    else
+    {
+        <button class="nav-btn disabled">
+            <i class="icon-compass"></i>
+            <span>Select Intent</span>
+        </button>
+    }
+
+    <!-- 3. Profile -->
+    <a asp-page="/User/Profile" class="nav-btn @(path == "/user/profile" ? "active" : "")">
+        <i class="icon-user"></i>
+        <span>Profile</span>
+    </a>
+
+    <!-- 4. Tools -->
+    <a asp-page="/User/Tools" class="nav-btn @(path == "/user/tools" ? "active" : "")">
+        <i class="icon-wrench"></i>
+        <span>Tools</span>
+    </a>
+</footer>
+}
+else
+{
+<footer class="site-footer">
+    <p>
+        <a asp-page="/Legal/Privacy" style="margin-right:1rem; color:var(--color-text-muted); text-decoration:underline;">Privacy Policy</a>
+        <a asp-page="/Legal/Terms" style="color:var(--color-text-muted); text-decoration:underline;">Terms & Conditions</a>
+    </p>
+    <p>&copy; 2025 That's Handy. All rights reserved.</p>
+</footer>
+}
