@@ -4,6 +4,16 @@
 Website.CurrentLocation = (function () {
     const btnId = 'useCurrentLocation';
 
+    // local fallback for fetchJson (keeps original behavior)
+    async function fetchJson(url, options = {}) {
+        if (window.fetchJson && typeof window.fetchJson === 'function') {
+            return window.fetchJson(url, options);
+        }
+        const res = await fetch(url, options);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+    }
+
     async function fetchMapboxAddress(lat, lon) {
         const token = document.querySelector('meta[name="Website-mapbox-token"]')?.content?.trim();
         if (!token) throw new Error('Mapbox token missing');
@@ -28,6 +38,9 @@ Website.CurrentLocation = (function () {
             if (!('geolocation' in navigator)) throw new Error('Geolocation not supported');
             if (location.protocol !== 'https:' && location.hostname !== 'localhost') throw new Error('Geolocation requires HTTPS');
 
+            // open modal if present (replicates original behavior)
+            if (Website.LocationModal?.open) Website.LocationModal.open();
+
             const pos = await new Promise((res, rej) =>
                 navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 })
             );
@@ -35,29 +48,31 @@ Website.CurrentLocation = (function () {
             const { latitude: lat, longitude: lon, accuracy } = pos.coords;
 
             const { feature, label } = await fetchMapboxAddress(lat, lon);
+            const mapbox = { feature, label };
 
             // POST to server
             try {
                 // geolocation, Mapbox, server POST
-                const respData = await fetchJson('/User/Address/AddFromLocation', {
-                    method: 'POST',
-                    body: JSON.stringify({ lat, lon, accuracy, mapbox })
-                });
+            const respData = await fetchJson('/User/Address/AddFromLocation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lat, lon, accuracy, mapbox })
+            });
 
                 const label = (respData?.label || 'Select Address').trim();
 
                 // Update the toggle regardless of modal state
-                const toggle = document.getElementById('addressToggle');
+            const toggle = document.getElementById('addressToggle');
                 if (toggle) {
                     toggle.innerHTML = `<i class="fa-solid fa-home"></i> ${label}&nbsp;<i class="fa-solid fa-chevron-down dropdown-icon"></i>`;
                 }
 
                 // Only close if the modal exists and is open
-                if (Website.LocationModal && typeof Website.LocationModal.close === 'function') {
-                    Website.LocationModal.close();
-                }
-            } catch (err) {
-                console.log('geo/mapbox/server error:', err?.message || err);
+            if (Website.LocationModal && typeof Website.LocationModal.close === 'function') {
+                Website.LocationModal.close();
+            }
+        } catch (err) {
+            console.log('geo/mapbox/server error:', err?.message || err);
             }
         } catch (err) {
             console.log('geo/mapbox/server error:', err?.message || err);

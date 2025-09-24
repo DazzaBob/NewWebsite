@@ -36,35 +36,57 @@ else
         </div>
     }
 }
-<div id="add-address-section" class="mt-3">
-    <a id="add-address-link" href="#" role="button" tabindex="0" onclick="showNewAddressCard();">+ Add New Address</a>
-</div>
-
-<div id="address-modal">
-    <div id="new-address-card" class="card address-card" style="display:none;">
-        <div class="address-option-row">
-            <label><b>New Address</b></label>
+        <div id="add-address-section" class="mt-3">
+            <a href="javascript:void(0)" id="add-address-link" class="btn btn-link">+ Add New Address</a>
         </div>
+        <div id="new-address-card" class="card address-card" style="display:none;">
+            <div class="address-option-row">
+                <label><b>New Address</b></label>
+            </div>
 
         <div class="form-group mt-2">
             <label for="newLabel">Label</label>
             <input type="text" id="newLabel" class="form-control" placeholder="Home, Work, etc." />
         </div>
 
-        <div class="form-field" style="position:relative;">
-            <label for="NewAddressSearch">Search Address</label>
-            <input id="NewAddressSearch"
-                   class="input-text"
-                   autocomplete="off"
-                   placeholder="Start typing your address…"
-                   required />
-            <ul id="NewAutocompleteList" class="autocomplete-list" hidden></ul>
-            <input id="NewMapboxAddressJSON" type="hidden" />
+            <div class="form-group mt-2">
+                <label for="newStreet">Street</label>
+                <input type="text" id="newStreet" class="form-control" placeholder="Start typing address..." />
+            </div>
+
+            <div class="form-group mt-2">
+                <label>
+                    <input type="checkbox" id="newIsDefault" /> Set as default
+                </label>
+            </div>
+
+            <div class="mt-3 d-flex gap-2">
+                <button id="saveNewAddress" type="button" class="btn btn-primary">Save</button>
+                <button id="cancelNewAddress" type="button" class="btn btn-secondary">Cancel</button>
+            </div>
         </div>
 
-        <div class="mt-3 d-flex gap-2">
-            <button id="saveNewAddress" type="button" class="btn btn-primary">Save</button>
-            <button id="cancelNewAddress" type="button" class="btn btn-secondary">Cancel</button>
-        </div>
-    </div>
-</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const addLink = document.getElementById("add-address-link");
+        const newCard = document.getElementById("new-address-card");
+        const cancelBtn = document.getElementById("cancelNewAddress");
+
+        if (addLink) {
+            addLink.addEventListener("click", function (e) {
+                e.preventDefault();
+                addLink.style.display = "none";
+                newCard.style.display = "block";
+                console.log("Add Address clicked"); // debug
+            });
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener("click", function () {
+                newCard.style.display = "none";
+                addLink.style.display = "inline-block";
+                console.log("Cancel clicked"); // debug
+            });
+        }
+    });
+</script>

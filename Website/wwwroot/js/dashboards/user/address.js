@@ -22,7 +22,7 @@
         return (...args) => {
             clearTimeout(timeout);
             timeout = setTimeout(() => fn(...args), delay);
-        };
+    };
     }
 
     const fetchSuggestions = debounce(async () => {
@@ -52,9 +52,9 @@
             li.textContent = feat.place_name;
             li.addEventListener('mousedown', () => selectFeature(feat));
             list.appendChild(li);
-        });
+            });
         list.hidden = false;
-    }
+        }
 
     function selectFeature(feat) {
         input.value = feat.place_name;
