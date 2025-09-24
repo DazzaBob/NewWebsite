@@ -11,7 +11,7 @@
 };
 
 (function () {
-    const token = '@Html.Raw(ViewData["MapboxPublicToken"])';
+    const token = window.mapboxToken;
     const input = document.getElementById('NewAddressSearch');
     const list = document.getElementById('NewAutocompleteList');
     const hidden = document.getElementById('NewMapboxAddressJSON');
