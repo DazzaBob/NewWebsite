@@ -10,7 +10,12 @@
 <form id="addressForm">
     <div id="addressModal" class="custom-modal">
         <div class="custom-modal-content" role="dialog" aria-modal="true" aria-labelledby="addressModalTitle" tabindex="-1">
-            <div class="custom-modal-header"><h5 id="addressModalTitle">Select Current Address</h5><button id="addressClose" class="btn-close" aria-label="Close">×</button></div>
+            <div class="custom-modal-header">
+                <h5 id="addressModalTitle">Select Current Address</h5>
+                    <button id="addressClose" class="btn-close" aria-label="Close" onclick="closeAddressModal(); document.getElementById('addressModal').classList.remove('show');">
+                        ×
+                    </button>
+            </div>
             <div class="custom-modal-body">
             @if (dt == null || dt.Rows.Count == 0)
             {
@@ -80,7 +85,7 @@
                                         <button id="saveNewAddress" type="button" class="btn btn-primary">Save</button>
                                     </div>
                                     <div style="text-align: right;">
-                                        <button id="cancelNewAddress" type="button" class="btn btn-secondary">Cancel</button>
+                                        <button id="cancelNewAddress" type="button" class="btn btn-secondary" onclick="CloseNewAddressCard()">Cancel</button>
                                     </div>
                                 </div>
                             </div>
@@ -207,11 +212,8 @@
         </div>
     </div>
     <script>
-        window.mapboxToken = '@App.Settings.MapboxToken';
+        @Html.Raw(App.Scripts.Pages.User.Dashboard.Index.CloseCurrentAddressModal())
+        @Html.Raw(App.Scripts.Pages.User.Dashboard.Index.ResetNewAddressInputs())
+        @Html.Raw(App.Scripts.Pages.User.Dashboard.Index.CloseNewAddressCard())
+        @Html.Raw(App.Scripts.Mapbox.AutoCompleteScript(App.Settings.MapboxToken))
     </script>
-
-
-
-
-
-

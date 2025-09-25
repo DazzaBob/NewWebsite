@@ -412,6 +412,15 @@ body.menu-open {
     margin-top: .25rem;
 }
 
+.custom-modal {
+    display: none;
+    /* other modal styles */
+}
+
+.custom-modal.show {
+    display: block;
+}
+
 /* ───────────────────────── Modal footer ──────────────────────────── */
 .custom-modal-footer {
     display: flex;

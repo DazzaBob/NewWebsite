@@ -43,6 +43,8 @@ namespace Website.Pages.User.Dashboard
         public int UserId { get; private set; } = 0;
         public DataTable UserRolesDT { get; private set; } = new DataTable();
         public string? ErrorMessage { get; set; } = string.Empty;
+        [ViewData]
+        public string MapboxPublicToken { get; set; } = string.Empty;
 
 
         [BindProperty]
@@ -67,6 +69,7 @@ namespace Website.Pages.User.Dashboard
             this.UserId = User?.Id() ?? 0;
             if (this.UserId == 0) return RedirectToPage("/Logout");
 
+            MapboxPublicToken = App.Settings.MapboxToken;
             var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
             AddressTypeOptions = list;
             ErrorMessage = error;
