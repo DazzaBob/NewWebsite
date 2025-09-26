@@ -4,7 +4,7 @@ using System.Data;
 using System.Text.Json;
 using Website.App.Security;
 
-namespace Website.Pages.User.Address
+namespace Website.Pages.User.Address.EndPoints
 {
     [IgnoreAntiforgeryToken]
     public class AddFromLocationModel : PageModel
@@ -67,7 +67,7 @@ namespace Website.Pages.User.Address
             try
             {
                 newId = cAddressValidation.SaveAddressAndGetId(req.JSonpayload);
-                DataTable dt = Website.App.Database.Shared.GetDataTable(connection, "USER_ADDRESS", $"USER_ID = {userId} AND ISDEFAULT=1");
+                DataTable dt = App.Database.Shared.GetDataTable(connection, "USER_ADDRESS", $"USER_ID = {userId} AND ISDEFAULT=1");
                 if (dt.Rows.Count == 0) return NotFound(new { ok = false, msg = "Address not found." });
 
                 label = dt.Rows[0]["LABEL"] == DBNull.Value ? "Select Address" : dt.Rows[0]["LABEL"].ToString()?.Trim() ?? "Select Address";
@@ -75,7 +75,7 @@ namespace Website.Pages.User.Address
             catch (Exception ex)
             {
                 string errorMessage = NamespaceClass + ex.Message;
-                Website.App.Bootstrap.Logger?.Add(errorMessage, App.Helper.Logger.LogLevel.Error);
+                App.Bootstrap.Logger?.Add(errorMessage, App.Helper.Logger.LogLevel.Error);
                 return StatusCode(StatusCodes.Status422UnprocessableEntity, new { ok = false, message = "Address not found" });
             }
 

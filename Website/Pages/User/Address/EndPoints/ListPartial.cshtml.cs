@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 using Website.App.Security;
 
-namespace Website.Pages.User.Address
+namespace Website.Pages.User.Address.EndPoints
 {
     public class ListPartialModel(IAddressService addressService) : PageModel
     {

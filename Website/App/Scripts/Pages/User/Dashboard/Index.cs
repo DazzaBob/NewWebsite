@@ -1,10 +1,4 @@
-﻿using Microsoft.Extensions.Primitives;
-using System.Collections.Generic;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Xml.Linq;
-using static System.Collections.Specialized.BitVector32;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using System.Text;
 
 namespace Website.App.Scripts.Pages.User.Dashboard
 {
@@ -13,6 +7,8 @@ namespace Website.App.Scripts.Pages.User.Dashboard
         private static string closecurrentaddressmodal = string.Empty;
         private static string closenewaddresscard = string.Empty;
         private static string resetnewaddressinputs = string.Empty;
+        private static string updatedefaultaddress = string.Empty;
+        private static string deleteaddresscard = string.Empty;
         public static string CloseCurrentAddressModal(bool forceReload = false)
         {
             if (closecurrentaddressmodal == string.Empty || forceReload)
@@ -74,6 +70,93 @@ namespace Website.App.Scripts.Pages.User.Dashboard
                 closenewaddresscard = sb.ToString();
             }
             return closenewaddresscard;
+        }
+        public static string UpdateDefaultAddress(bool forceReload = false)
+        {
+            if (string.IsNullOrEmpty(updatedefaultaddress) || forceReload)
+            {
+                StringBuilder sb = new();
+
+                sb.Append("function UpdateDefaultAddress(radio) {");
+                sb.Append("if (!radio) return; ");
+                sb.Append("const card = radio.closest('.address-card'); ");
+                sb.Append("if (!card) return; ");
+                sb.Append("const selectedId = parseInt(radio.value, 10); ");
+                sb.Append("if (!selectedId || isNaN(selectedId)) return; ");
+                sb.Append("toggleGlobalSpinner(true); "); // Start spinner
+
+                sb.Append("fetch('/User/Address/EndPoints/SetDefault', {");
+                sb.Append("method: 'POST', ");
+                sb.Append("headers: { 'Content-Type': 'application/json' }, ");
+                sb.Append("body: JSON.stringify({ Id: selectedId }) ");
+                sb.Append("}) ");
+                sb.Append(".then(resp => resp.json()) ");
+                sb.Append(".then(data => { ");
+                sb.Append("if (!data?.ok) throw new Error(data?.msg || 'Failed to save.'); ");
+                sb.Append("radio.checked = true; ");
+
+                sb.Append("document.querySelectorAll('.address-card').forEach(c => { ");
+                sb.Append("const r = c.querySelector('.address-radio'); ");
+                sb.Append("const delBtn = c.querySelector('.address-delete'); ");
+                sb.Append("if (!r || !delBtn) return; ");
+                sb.Append("delBtn.style.display = r.checked ? 'none' : 'block'; ");
+                sb.Append("}); ");
+
+                sb.Append("const labelText = card.querySelector('.address-label')?.textContent?.trim() || ''; ");
+                sb.Append("const lineText = card.querySelector('.address-line')?.textContent?.trim() || ''; ");
+                sb.Append("const preview = labelText ? labelText : (data.label || lineText); ");
+
+                sb.Append("const toggle = document.getElementById('addressToggle'); ");
+                sb.Append("if (toggle) { toggle.innerHTML = `<i class=\"fa-solid fa-home\"></i> ${preview}&nbsp;<i class=\"fa-solid fa-chevron-down dropdown-icon\"></i>`; } ");
+
+                sb.Append("}) "); // closes then block
+                sb.Append(".catch(err => { console.error(err); alert(err.message || 'Error saving default address.'); }) ");
+                sb.Append(".finally(() => { toggleGlobalSpinner(false); }); ");
+
+                sb.AppendLine("} "); // closes function
+
+                updatedefaultaddress = sb.ToString();
+            }
+
+            return updatedefaultaddress;
+        }
+        public static string DeleteAddressCard(bool forceReload = false)
+        {
+            if (string.IsNullOrEmpty(deleteaddresscard) || forceReload)
+            {
+                StringBuilder sb = new();
+
+                sb.Append("function DeleteAddressCard(button) { ");
+                sb.Append("if (!button) return; ");
+                sb.Append("const card = button.closest('.address-card'); ");
+                sb.Append("if (!card) return; ");
+                sb.Append("const radio = card.querySelector('.address-radio'); ");
+                sb.Append("if (!radio) return; ");
+                sb.Append("const addressId = parseInt(radio.value, 10); ");
+                sb.Append("const label = card.querySelector('.address-label')?.textContent?.trim() || 'this address'; ");
+                sb.Append("if (!window.confirm(`Are you sure you want to delete \"${label}\"?`)) { ");
+                sb.Append("card.scrollIntoView({ behavior: 'smooth', block: 'center' }); ");
+                sb.Append("radio.focus(); ");
+                sb.Append("return; } ");
+                sb.Append("toggleGlobalSpinner(true); ");
+                sb.Append("fetch('/User/Address/EndPoints/DeleteSelected', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Id: addressId }) }) ");
+                sb.Append(".then(resp => resp.json()) ");
+                sb.Append(".then(data => { ");
+                sb.Append("if (!data?.ok) throw new Error(data?.msg || 'Failed to delete address.'); ");
+                sb.Append("card.remove(); ");
+                sb.Append("}) ");
+                sb.Append(".catch(err => { ");
+                sb.Append("console.error(err); ");
+                sb.Append("alert(err.message || 'Error deleting address.'); ");
+                sb.Append("}) ");
+                sb.Append(".finally(() => { ");
+                sb.Append("toggleGlobalSpinner(false); ");
+                sb.Append("}); ");
+                sb.Append("} ");
+
+                deleteaddresscard = sb.ToString();
+            }
+            return deleteaddresscard;
         }
     }
 }

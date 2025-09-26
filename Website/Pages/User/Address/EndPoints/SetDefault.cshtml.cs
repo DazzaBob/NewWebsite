@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 using Website.App.Security;
 
-namespace Website.Pages.User.Address
+namespace Website.Pages.User.Address.EndPoints
 {
     [IgnoreAntiforgeryToken]
     public class SetDefaultModel : PageModel
@@ -21,9 +21,9 @@ namespace Website.Pages.User.Address
             int userId = User.Id();
 
             using App.Helper.Connection conn = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-            Website.App.Database.Shared.Update(conn, "USER_ADDRESS", "ISDEFAULT = 0", $"USER_ID = {userId}");
-            Website.App.Database.Shared.Update(conn, "USER_ADDRESS", "ISDEFAULT = 1", $"(USER_ID = {userId}) AND (ID = {input.Id})");
-            DataTable dt = Website.App.Database.Shared.GetDataTable(conn, "USER_ADDRESS", $"(USER_ID = {userId}) AND (ID = {input.Id})");
+            App.Database.Shared.Update(conn, "USER_ADDRESS", "ISDEFAULT = 0", $"USER_ID = {userId}");
+            App.Database.Shared.Update(conn, "USER_ADDRESS", "ISDEFAULT = 1", $"(USER_ID = {userId}) AND (ID = {input.Id})");
+            DataTable dt = App.Database.Shared.GetDataTable(conn, "USER_ADDRESS", $"(USER_ID = {userId}) AND (ID = {input.Id})");
             if (dt.Rows.Count == 0) return NotFound(new { ok = false, msg = "Address not found." });
 
             string label = dt.Rows[0]["LABEL"] == DBNull.Value ? "Select Address" : dt.Rows[0]["LABEL"].ToString()?.Trim() ?? "Select Address";

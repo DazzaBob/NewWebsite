@@ -66,8 +66,8 @@ namespace Website.Pages.User.Dashboard
         {
             if (!User?.Identity?.IsAuthenticated ?? false) return RedirectToPage("/User/Login");
 
-            this.UserId = User?.Id() ?? 0;
-            if (this.UserId == 0) return RedirectToPage("/Logout");
+            UserId = User?.Id() ?? 0;
+            if (UserId == 0) return RedirectToPage("/Logout");
 
             MapboxPublicToken = App.Settings.MapboxToken;
             var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
@@ -92,7 +92,7 @@ namespace Website.Pages.User.Dashboard
             using App.Helper.Connection connection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
             string sql = $@"SELECT ur.*, r.NAME, r.DESCRIPTION, r.ROUTE, r.ICONCLASS FROM USER_ROLES ur 
             INNER JOIN ROLES r ON ur.ROLE_ID = r.ID WHERE ur.USER_ID = @UserId AND ur.ISACTIVE = 1";
-            Microsoft.Data.Sqlite.SqliteParameter[] roleParams = [new Microsoft.Data.Sqlite.SqliteParameter("@UserId", this.UserId)];
+            Microsoft.Data.Sqlite.SqliteParameter[] roleParams = [new Microsoft.Data.Sqlite.SqliteParameter("@UserId", UserId)];
             UserRolesDT = connection.GetDataTable(sql, roleParams);
 
             return Page();
@@ -101,7 +101,7 @@ namespace Website.Pages.User.Dashboard
         {
             // 1. Fetch user addresses from Entities.db
             using App.Helper.Connection entityConn = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-            DataTable userAddresses = App.Database.Shared.GetDataTable(entityConn, App.Database.Schema.Entities.Tables.UserAddress, $"USER_ID={this.UserId}");
+            DataTable userAddresses = App.Database.Shared.GetDataTable(entityConn, App.Database.Schema.Entities.Tables.UserAddress, $"USER_ID={UserId}");
 
             if (userAddresses.Rows.Count == 0) return userAddresses; // nothing to join
 

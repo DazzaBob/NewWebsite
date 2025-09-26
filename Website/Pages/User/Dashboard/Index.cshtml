@@ -12,9 +12,7 @@
         <div class="custom-modal-content" role="dialog" aria-modal="true" aria-labelledby="addressModalTitle" tabindex="-1">
             <div class="custom-modal-header">
                 <h5 id="addressModalTitle">Select Current Address</h5>
-                    <button id="addressClose" class="btn-close" aria-label="Close" onclick="closeAddressModal(); document.getElementById('addressModal').classList.remove('show');">
-                        ×
-                    </button>
+                <button id="addressClose" class="btn-close" aria-label="Close" onclick="closeAddressModal(); document.getElementById('addressModal').classList.remove('show');">×</button>
             </div>
             <div class="custom-modal-body">
             @if (dt == null || dt.Rows.Count == 0)
@@ -38,14 +36,30 @@
                     var locality = row["LOCALITY_NAME"]?.ToString() ?? string.Empty;
                     var place = row["PLACE_NAME"]?.ToString() ?? string.Empty;
                     var placeLine = string.IsNullOrWhiteSpace(locality) ? place : $"{locality}, {place}";
-
-                <div class="card address-card">
-                    <div class="address-option-row">
-                        <input class="address-radio" name="selectedAddress" type="radio" id="addr_@id" value="@id" @(isDefault ? "checked" : null) />
-                        <label class="address-label" for="addr_@id"><b>@label</b></label>
+                    <div class="card address-card" style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 1rem;">
+                        <div class="address-content" style="flex:1;">
+                            <div class="address-option-row">
+                                <input class="address-radio" name="selectedAddress" onclick="UpdateDefaultAddress(this)" type="radio" id="addr_@id" value="@id" @(isDefault ? "checked" : null) />
+                                <label class="address-label" for="addr_@id"><b>@label</b></label>
+                            </div>
+                            <div class="address-line">@street,&nbsp;@placeLine</div>
+                        </div>
+                        <div class="address-actions" style="margin-left:1rem;">
+                            <button class="address-edit"><i class="fa-solid fa-pen"></i></button>
+                            @if (isDefault)
+                            {
+                                        <button class="address-delete" onclick="DeleteAddressCard(this)" style="display:none;">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            }
+                            else
+                            {
+                                        <button class="address-delete" onclick="DeleteAddressCard(this)" style="display:block;">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            }
+                        </div>
                     </div>
-                    <div class="address-line">@street,&nbsp;@placeLine</div>
-                </div>
                 }
             }
                 <div id="add-address-section" class="mt-3"><a id="add-address-link" href="#" role="button" tabindex="0" onclick="showaddaddresscard(); return false;">+ Add New Address</a></div>
@@ -59,11 +73,7 @@
                             <span>&nbsp;</span>
                             <div class="form-group mt-2" style="position:relative;">
                                 <label for="NewAddressSearch">Search Address</label>
-                                <input id="NewAddressSearch"
-                                        class="input-text"
-                                       autocomplete="off"
-                                       placeholder="Start typing your address…"
-                                        required />
+                                <input id="NewAddressSearch" class="input-text" autocomplete="off" placeholder="Start typing your address…" required />
                                 <ul id="NewAutocompleteList" class="autocomplete-list" hidden></ul>
                                 <input id="NewMapboxAddressJSON" type="hidden" />
                             </div>
@@ -215,5 +225,7 @@
         @Html.Raw(App.Scripts.Pages.User.Dashboard.Index.CloseCurrentAddressModal())
         @Html.Raw(App.Scripts.Pages.User.Dashboard.Index.ResetNewAddressInputs())
         @Html.Raw(App.Scripts.Pages.User.Dashboard.Index.CloseNewAddressCard())
+        @Html.Raw(App.Scripts.Pages.User.Dashboard.Index.UpdateDefaultAddress())
+        @Html.Raw(App.Scripts.Pages.User.Dashboard.Index.DeleteAddressCard())
         @Html.Raw(App.Scripts.Mapbox.AutoCompleteScript(App.Settings.MapboxToken))
     </script>

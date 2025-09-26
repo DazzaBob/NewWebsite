@@ -23,14 +23,6 @@ namespace Website.App.Helper
 
             return StartsWith;
         }
-        internal static string XMLDataTable(DataTable DT)
-        {
-            DT.TableName = "ENT_USER_ADDRESS";
-
-            using var sw = new StringWriter();
-            DT.WriteXml(sw, XmlWriteMode.WriteSchema);
-            return sw.ToString();
-        }
         internal static bool IsValidPhone(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return false;

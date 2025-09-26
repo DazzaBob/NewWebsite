@@ -29,7 +29,6 @@ namespace Website.App.Database
 
             return connection.ExecuteNonQuery(sql.ToString());
         }
-
         public static object? GetScalar(Website.App.Helper.Connection connection, string tableName, string field, string? whereClause = null, string? orderBy = null)
         {
             StringBuilder sql = new($"SELECT {field} FROM {tableName}");
@@ -41,7 +40,6 @@ namespace Website.App.Database
             sql.Append(" LIMIT 1;"); // only need one value
             return connection.ExecuteScalar(sql.ToString());
         }
-
         public static string SafeReplace(object? value)
         {
             if (value == null || value == DBNull.Value)

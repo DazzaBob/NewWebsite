@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.StaticFiles;
+using Website.Pages.User.Address.EndPoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,7 +56,7 @@ builder.Services.AddSession(o =>
 });
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<Website.Pages.User.Address.IAddressService, Website.Pages.User.Address.AddressService>();
+builder.Services.AddScoped<IAddressService, AddressService>();
 
 var app = builder.Build();
 
