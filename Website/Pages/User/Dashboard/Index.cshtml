@@ -38,34 +38,31 @@
                     var placeLine = string.IsNullOrWhiteSpace(locality) ? place : $"{locality}, {place}";
                     <div class="card address-card" style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 1rem;">
                         <div class="address-content" style="flex:1;">
-                            <div class="address-option-row">
+                            <div class="address-option-row" style="display:flex; align-items:center; gap:0.5rem;">
                                 <input class="address-radio" name="selectedAddress" onclick="UpdateDefaultAddress(this)" type="radio" id="addr_@id" value="@id" @(isDefault ? "checked" : null) />
                                 <label class="address-label" for="addr_@id"><b>@label</b></label>
+                                        <input type="text" class="address-edit-input" value="@label" style="display:none; flex:1;" />
                             </div>
                             <div class="address-line">@street,&nbsp;@placeLine</div>
                         </div>
-                        <div class="address-actions" style="margin-left:1rem;">
-                            <button class="address-edit"><i class="fa-solid fa-pen"></i></button>
+                        <div class="address-actions" style="margin-left:1rem; display:flex; flex-direction:column; gap:0.25rem;">
+                            <button type="button" class="address-edit" onclick="startEditAddress(this);"><i class="fa-solid fa-pen"></i></button>
                             @if (isDefault)
                             {
-                                        <button class="address-delete" onclick="DeleteAddressCard(this)" style="display:none;">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
+                            <button class="address-delete" onclick="DeleteAddressCard(this)" style="display:none;">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
                             }
                             else
                             {
-                                        <button class="address-delete" onclick="DeleteAddressCard(this)" style="display:block;">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
+                            <button class="address-delete" onclick="DeleteAddressCard(this)" style="display:block;">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
                             }
-                                    <button class="address-save" style="display:none;">
-                                        <i class="fa-solid fa-check"></i>
-                                    </button>
-
-                                    <!-- Cancel icon (hidden by default) -->
-                                    <button class="address-cancel" style="display:none;">
-                                        <i class="fa-solid fa-xmark"></i>
-                                    </button>
+                        </div>
+                                <div class="address-actions-edit" style="display:none;">
+                                    <button class="address-cancel" onclick="cancelEditAddress(this);"><i class="fa-solid fa-xmark"></i></button>
+                                    <button class="address-save" onclick="saveEditedAddress(this.closest('.address-card'), this.closest('.address-card').querySelector('.address-edit-input').value)"><i class="fa-solid fa-check"></i></button>
                         </div>
                     </div>
                 }
@@ -110,10 +107,7 @@
                         </div>
                 </div>
             </div>
-            <div class="custom-modal-footer">
-                <button id="addressCancel" class="btn btn-secondary">Cancel</button>
-                <button id="addressSave" type="submit" class="btn btn-primary">Set as current</button>
-            </div>
+            <div class="custom-modal-footer"><span>&nbsp;</span></div>
         </div>
     </div>
 </form>
@@ -235,5 +229,8 @@
         @Html.Raw(App.Scripts.Pages.User.Dashboard.Index.CloseNewAddressCard())
         @Html.Raw(App.Scripts.Pages.User.Dashboard.Index.UpdateDefaultAddress())
         @Html.Raw(App.Scripts.Pages.User.Dashboard.Index.DeleteAddressCard())
+        @Html.Raw(App.Scripts.Pages.User.Dashboard.Index.StartEditAddress())
+        @Html.Raw(App.Scripts.Pages.User.Dashboard.Index.CancelEditAddress())
+        @Html.Raw(App.Scripts.Pages.User.Dashboard.Index.SaveEditedAddress())
         @Html.Raw(App.Scripts.Mapbox.AutoCompleteScript(App.Settings.MapboxToken))
     </script>

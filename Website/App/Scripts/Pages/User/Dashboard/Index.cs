@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Microsoft.Extensions.Primitives;
+using System.Text;
 
 namespace Website.App.Scripts.Pages.User.Dashboard
 {
@@ -9,6 +10,9 @@ namespace Website.App.Scripts.Pages.User.Dashboard
         private static string resetnewaddressinputs = string.Empty;
         private static string updatedefaultaddress = string.Empty;
         private static string deleteaddresscard = string.Empty;
+        private static string starteditaddress = string.Empty;
+        private static string canceleditaddress = string.Empty;
+        private static string saveeditedaddress = string.Empty;
         public static string CloseCurrentAddressModal(bool forceReload = false)
         {
             if (closecurrentaddressmodal == string.Empty || forceReload)
@@ -152,11 +156,130 @@ namespace Website.App.Scripts.Pages.User.Dashboard
                 sb.Append(".finally(() => { ");
                 sb.Append("toggleGlobalSpinner(false); ");
                 sb.Append("}); ");
-                sb.Append("} ");
+                sb.AppendLine("} ");
 
                 deleteaddresscard = sb.ToString();
             }
             return deleteaddresscard;
+        }
+        public static string StartEditAddress(bool forceReload = false)
+        {
+            if (string.IsNullOrEmpty(starteditaddress) || forceReload)
+            {
+                StringBuilder sb = new();
+
+                sb.Append("function startEditAddress(button) { ");
+                sb.Append("const card = button.closest('.address-card'); ");
+
+                // Hide label and radio
+                sb.Append("const label = card.querySelector('.address-label'); ");
+                sb.Append("if(label){ label.style.display='none'; } ");
+                sb.Append("const radio = card.querySelector('.address-radio'); ");
+                sb.Append("if(radio){ radio.style.display='none'; } ");
+
+                // Show input
+                sb.Append("const input = card.querySelector('.address-edit-input'); ");
+                sb.Append("if(input){ input.style.display='inline-block'; width='90%'; input.focus(); ");
+                sb.Append("const valLength = input.value.length; ");
+                sb.Append("input.setSelectionRange(valLength, valLength); } ");
+
+                // Hide normal actions
+                sb.Append("const normalActions = card.querySelector('.address-actions'); ");
+                sb.Append("if(normalActions){ normalActions.style.display='none'; } ");
+
+                // Show edit actions
+                sb.Append("const editActions = card.querySelector('.address-actions-edit'); ");
+                sb.Append("if(editActions) { editActions.style.display='flex'; ");
+                sb.Append("editActions.style.flexDirection='column'; editActions.style.justifyContent = 'flex-start'; editActions.style.marginLeft = '1rem';");
+
+                sb.Append("const saveBtn = editActions.querySelector('.address-save'); if(saveBtn){ saveBtn.style.display='inline-block'; } ");
+                sb.Append("const cancelBtn = editActions.querySelector('.address-cancel'); if(cancelBtn){ cancelBtn.style.display='inline-block'; } } ");
+
+                sb.AppendLine("} "); // close function
+
+                starteditaddress = sb.ToString();
+            }
+            return starteditaddress;
+        }
+        public static string CancelEditAddress(bool forceReload = false)
+        {
+            if (string.IsNullOrEmpty(canceleditaddress) || forceReload)
+            {
+                StringBuilder sb = new();
+
+                sb.Append("function cancelEditAddress(button) { ");
+                sb.Append("const card = button.closest('.address-card'); ");
+                sb.Append("if(!card) return; ");
+
+                sb.Append("const normalActions = card.querySelector('.address-actions'); ");
+                sb.Append("if(normalActions) { normalActions.style.display = 'flex'; } ");
+
+                sb.Append("const editActions = card.querySelector('.address-actions-edit'); ");
+                sb.Append("if(editActions) { editActions.style.display = 'none'; } ");
+
+                sb.Append("const label = card.querySelector('.address-label'); ");
+                sb.Append("if(label) { label.style.display = 'inline-block'; } ");
+
+                sb.Append("const radio = card.querySelector('.address-radio'); ");
+                sb.Append("if(radio) { radio.style.display = 'inline-block'; } ");
+
+                sb.Append("const input = card.querySelector('.address-edit-input'); ");
+                sb.Append("if(input) { input.style.display = 'none'; } ");
+
+                // Set focus on the card itself
+                sb.Append("card.tabIndex = -1; "); // make focusable if not already
+                sb.Append("card.focus(); ");
+
+                sb.AppendLine("} "); // close function
+
+                canceleditaddress = sb.ToString();
+            }
+
+            return canceleditaddress;
+        }
+        public static string SaveEditedAddress(bool forceReload = false)
+        {
+            if (string.IsNullOrEmpty(saveeditedaddress) || forceReload)
+            {
+                StringBuilder sb = new();
+
+                sb.Append("function saveEditedAddress(card, newLabel) { ");
+                sb.Append("const radio = card.querySelector('.address-radio'); ");
+                sb.Append("const addressId = parseInt(radio?.value, 10); ");
+                sb.Append("if(!addressId || !newLabel.trim()) return; ");
+
+                sb.Append("window.alert('made it to spinner start'); ");
+                sb.Append("toggleGlobalSpinner(true); ");
+                sb.Append("window.alert('togglespinner called'); ");
+
+                sb.Append("fetch('/User/Address/EndPoints/EditLabel', { ");
+                sb.Append("method: 'POST', ");
+                sb.Append("headers: { 'Content-Type': 'application/json' }, ");
+                sb.Append("body: JSON.stringify({ Id: addressId, Label: newLabel.trim() }) ");
+                sb.Append("}) ");
+                sb.Append(".then(resp => resp.json()) ");
+                sb.Append(".then(data => { ");
+                sb.Append("if(!data?.ok) throw new Error(data?.msg || 'Failed to update label.'); ");
+
+                sb.Append("const label = card.querySelector('.address-label'); ");
+                sb.Append("if(label) label.textContent = newLabel.trim(); ");
+
+                sb.Append("if(radio?.checked) { ");
+                sb.Append("const toggle = document.getElementById('addressToggle'); ");
+                sb.Append("if(toggle) { toggle.innerHTML = `<i class=\"fa-solid fa-home\"></i> ${newLabel.trim()}&nbsp;<i class=\"fa-solid fa-chevron-down dropdown-icon\"></i>`; } ");
+                sb.Append("} ");
+
+                sb.Append("cancelEditAddress(card); "); // Clean up
+                sb.Append("}) ");
+                sb.Append(".catch(err => { console.error(err); alert(err.message || 'Error updating address label.'); }) ");
+                sb.Append(".finally(() => { toggleGlobalSpinner(false); }); ");
+
+                sb.AppendLine("} "); // close function
+
+                saveeditedaddress = sb.ToString();
+            }
+
+            return saveeditedaddress;
         }
     }
 }

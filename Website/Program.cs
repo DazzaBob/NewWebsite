@@ -84,9 +84,9 @@ app.Use(async (ctx, next) =>
     var needsAuth = endpoint?.Metadata.GetMetadata<Microsoft.AspNetCore.Authorization.IAuthorizeData>() != null;
     if (needsAuth)
     {
-        ctx.Response.Headers.CacheControl = "no-store, no-cache, must-revalidate, max-age=0";
-        ctx.Response.Headers.Pragma = "no-cache";
-        ctx.Response.Headers.Expires = "0";
+        //ctx.Response.Headers.CacheControl = "no-store, no-cache, must-revalidate, max-age=0";
+        //ctx.Response.Headers.Pragma = "no-cache";
+        //ctx.Response.Headers.Expires = "0";
     }
 });
 
