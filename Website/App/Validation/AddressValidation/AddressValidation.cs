@@ -2,7 +2,7 @@
 
 namespace Website.App.Validation
 {
-    internal partial class AddressValidation
+    public static partial class AddressValidation
     {
         internal class AddressRecord
         {

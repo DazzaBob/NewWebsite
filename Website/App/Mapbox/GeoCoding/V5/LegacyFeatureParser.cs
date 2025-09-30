@@ -4,30 +4,39 @@ namespace Website.App.Mapbox.GeoCoding.V5
 {
     internal static class LegacyFeatureParser
     {
-        internal static string ExtractFullAddress(string rawJson)
+        internal class ExtractedAddress
         {
-            if (string.IsNullOrWhiteSpace(rawJson)) return string.Empty;
+            internal ExtractedAddress() { }
+            internal string Locality { get; set; } = string.Empty;
+            internal string Place { get; set; } = string.Empty;
+            internal string Region { get; set; } = string.Empty;
+            internal string Country { get; set; } = string.Empty;
+            internal string Postcode { get; set; } = string.Empty;
+            internal string PlaceName { get; set; } = string.Empty;
+            internal string AddressNumber { get; set; } = string.Empty;
+            internal string AddressStreet { get; set; } = string.Empty;
+        }
+        internal static ExtractedAddress ExtractFullAddress(string rawJson)
+        {
+            if (string.IsNullOrWhiteSpace(rawJson)) return new();
+
+            ExtractedAddress NEA = new();
 
             try
             {
                 using JsonDocument doc = JsonDocument.Parse(rawJson);
                 JsonElement feature = doc.RootElement;
 
-                // Primary path: full address
+                // Primary path: use place_name if present (fast path)
                 if (feature.TryGetProperty("place_name", out var placeName) &&
                     placeName.ValueKind == JsonValueKind.String &&
                     !string.IsNullOrWhiteSpace(placeName.GetString()))
                 {
-                    return placeName.GetString()!;
+                    NEA.PlaceName = placeName.GetString()!;
                 }
 
-                string address = feature.TryGetProperty("address", out var addr) ? addr.GetString() ?? "" : "";
-                string street = feature.TryGetProperty("text", out var txt) ? txt.GetString() ?? "" : "";
-
-                string locality = "";
-                string place = "";
-                string region = "";
-                string country = "";
+                NEA.AddressNumber = feature.TryGetProperty("address", out var addr) ? addr.GetString() ?? "" : "";
+                NEA.AddressStreet = feature.TryGetProperty("text", out var txt) ? txt.GetString() ?? "" : "";
 
                 if (feature.TryGetProperty("context", out var context) && context.ValueKind == JsonValueKind.Array)
                 {
@@ -38,25 +47,23 @@ namespace Website.App.Mapbox.GeoCoding.V5
                             string id = idProp.GetString() ?? "";
 
                             if (id.StartsWith("locality.") && ctx.TryGetProperty("text", out var locText))
-                                locality = locText.GetString() ?? "";
+                                NEA.Locality = locText.GetString() ?? "";
                             else if (id.StartsWith("place.") && ctx.TryGetProperty("text", out var plcText))
-                                place = plcText.GetString() ?? "";
+                                NEA.Place = plcText.GetString() ?? "";
                             else if (id.StartsWith("region.") && ctx.TryGetProperty("text", out var regText))
-                                region = regText.GetString() ?? "";
+                                NEA.Region = regText.GetString() ?? "";
                             else if (id.StartsWith("country.") && ctx.TryGetProperty("text", out var cText))
-                                country = cText.GetString() ?? "";
+                                NEA.Country = cText.GetString() ?? "";
+                            else if (id.StartsWith("postcode.") && ctx.TryGetProperty("text", out var pcText))
+                                NEA.Postcode = pcText.GetString() ?? "";
                         }
                     }
                 }
-
-                string line1 = string.IsNullOrWhiteSpace(address) ? street : $"{address} {street}";
-                string line2 = string.Join(", ", new[] { locality, place, region, country }.Where(s => !string.IsNullOrWhiteSpace(s)));
-
-                return string.IsNullOrWhiteSpace(line2) ? line1 : $"{line1}, {line2}";
+                return NEA;
             }
             catch
             {
-                return String.Empty;
+                return new();
             }
         }
     }

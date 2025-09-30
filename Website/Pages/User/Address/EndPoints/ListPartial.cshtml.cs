@@ -11,7 +11,6 @@ namespace Website.Pages.User.Address.EndPoints
 
         // Combined data from Entities + Locations
         public DataTable Addresses { get; private set; } = new DataTable();
-
         public IActionResult OnGet()
         {
             if (!User.IsAuthorised()) return BadRequest();

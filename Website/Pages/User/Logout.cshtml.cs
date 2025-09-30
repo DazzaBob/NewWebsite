@@ -6,7 +6,7 @@ namespace Website.Pages.User
 {
     public class LogoutModel : PageModel
     {
-        public async Task<IActionResult> OnGet()
+        public IActionResult OnGet()
         {
             User.SignOut(HttpContext);
             Response.Cookies.Delete(".AspNetCore.Antiforgery", new CookieOptions { Path = "/" }); // optional

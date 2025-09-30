@@ -7,16 +7,11 @@ using Website.App.Security;
 namespace Website.Pages.User.Address.EndPoints
 {
     [IgnoreAntiforgeryToken]
-    public class AddFromLocationModel : PageModel
+    public class AddFromLocationModel(IHttpContextAccessor httpContextAccessor) : PageModel
     {
         private const string NamespaceClass = "Website.Pages.User.Address.AddFromLocationModel.";
-        private readonly IHttpContextAccessor? HttpContextAccessor;
+        private readonly IHttpContextAccessor? HttpContextAccessor = httpContextAccessor;
         private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
-
-        public AddFromLocationModel(IHttpContextAccessor httpContextAccessor)
-        {
-            HttpContextAccessor = httpContextAccessor;
-        }
 
         public sealed class Req
         {
@@ -26,9 +21,7 @@ namespace Website.Pages.User.Address.EndPoints
 
         [BindProperty]
         public Req Input { get; set; } = new();
-
-        public IActionResult OnGet() => NotFound(); // API-only
-
+        public IActionResult OnGet() => NotFound();
         public async Task<IActionResult> OnPostAsync()
         {
             if (!User.IsAuthorised()) { return Unauthorized(); }
@@ -39,6 +32,9 @@ namespace Website.Pages.User.Address.EndPoints
 
             // Shallow-parse for fields we need (type + payload). userId is NOT trusted from client.
             Req? req;
+            using App.Helper.Connection connection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
+            using App.Helper.Connection LocationConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
+
             try
             {
                 req = await Request.ReadFromJsonAsync<Req>(JsonOpts);
@@ -59,14 +55,11 @@ namespace Website.Pages.User.Address.EndPoints
                 return new UnauthorizedObjectResult(new { ok = false, message = "User not authenticated" });
 
             // Save using your existing pipeline
-            using App.Helper.Connection connection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-            var cAddressValidation = new App.Validation.AddressValidation(req.AddressTypeID, userId, true);
-
-            int newId;
+            long newId;
             string label;
             try
             {
-                newId = cAddressValidation.SaveAddressAndGetId(req.JSonpayload);
+                newId = App.Validation.AddressValidation.SaveAddressAndGetId(req.JSonpayload, LocationConnection, connection, Input.AddressTypeID, userId, true);
                 DataTable dt = App.Database.Shared.GetDataTable(connection, "USER_ADDRESS", $"USER_ID = {userId} AND ISDEFAULT=1");
                 if (dt.Rows.Count == 0) return NotFound(new { ok = false, msg = "Address not found." });
 

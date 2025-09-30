@@ -1,5 +1,4 @@
-﻿using System.Data;
-namespace Website.App.Helper
+﻿namespace Website.App.Helper
 {
     internal static class Shared
     {

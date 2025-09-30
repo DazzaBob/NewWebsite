@@ -41,11 +41,20 @@
 
     <partial name="_Footer" />
 
+    @* Global JS for all pages *@
+    <script src="~/js/GS.js" defer asp-append-version="true"></script>
+
     <script src="~/js/Site.js" defer asp-append-version="true"></script>
     @* Dashboard JS only if dashboard *@
     @if (IsDashboard)
     {
-        <script src="~/js/dashboards/user/address.js" defer asp-append-version="true"></script>
+        var currentPath = Context.Request.Path.Value?.ToLower() ?? "";
+        bool isDashboardIndex = currentPath == "/user/dashboard";
+        
+        if (isDashboardIndex)
+        {
+    <script src="~/js/DUAddress.js" defer asp-append-version="true"></script>
+        }
         <script src="~/js/dashboards/user/currentlocation.js" defer asp-append-version="true"></script>
         <script src="~/js/dashboard.js" defer asp-append-version="true"></script>
     }

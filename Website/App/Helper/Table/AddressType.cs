@@ -8,7 +8,7 @@ namespace Website.App.Helper.Table
         private static SelectList selectlist = new(Enumerable.Empty<SelectListItem>());
         private static readonly object lockAssignSelectListObj = new();
 
-        public static (SelectList List, string? Error) GetAddressTypeOptions()
+        public static (SelectList List, string? Error) GetAddressTypeOptions(App.Helper.Connection LocationConnection)
         {
             lock (lockAssignSelectListObj)
             {
@@ -17,8 +17,7 @@ namespace Website.App.Helper.Table
 
                 try
                 {
-                    using Connection connection = Database.Shared.Connection(Database.Schema.Locations.Database);
-                    using DataTable dt = Database.Shared.GetDataTable(connection, Database.Schema.Locations.Tables.AddressType);
+                    using DataTable dt = Database.Shared.GetDataTable(LocationConnection, Database.Schema.Locations.Tables.AddressType);
 
                     var items = dt.Rows
                         .Cast<DataRow>()

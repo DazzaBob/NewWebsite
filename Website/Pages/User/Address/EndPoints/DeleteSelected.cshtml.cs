@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Data;
 using Website.App;
 using Website.App.Security;
 
@@ -10,9 +9,7 @@ namespace Website.Pages.User.Address.EndPoints
     public class DeleteSelectedModel : PageModel
     {
         public class SetDefaultInput { public int Id { get; set; } }
-        public void OnGet()
-        {
-        }
+        public IActionResult OnGet() => NotFound();
 
         // this is public facing so best to use parameters.
         public IActionResult OnPost([FromBody] SetDefaultInput input)

@@ -350,8 +350,9 @@ body.menu-open {
 
 .custom-modal-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    justify-content: space-between; /* pushes items to edges */
+    align-items: center; /* vertically center them */
+    padding: 0.5rem 1rem;
 }
 
     .custom-modal-header h5 {
@@ -369,7 +370,14 @@ body.menu-open {
     cursor: pointer;
 }
 
-.custom-modal-body {
+.address-modal-body {
+    max-height: 50vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-medium);
+}
+.location-modal-body {
     max-height: 50vh;
     overflow-y: auto;
     display: flex;
@@ -414,11 +422,32 @@ body.menu-open {
 
 .custom-modal {
     display: none;
-    /* other modal styles */
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background-color: rgba(0, 0, 0, 0.8); /* semi-transparent overlay */
+    overflow-y: auto; /* vertical scroll for the overlay if needed */
+    overflow-x: hidden;
 }
-
 .custom-modal.show {
     display: block;
+}
+.custom-modal-content {
+    opacity: 1;
+    background-color: var(--color-bg-alt);
+    color: var(--color-text);
+    width: 90%;
+    margin: 2rem auto;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: var(--theme-box-shadow);
+    overflow-y: auto;
+    max-height: 60vh;
+}
+.custom-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 /* ───────────────────────── Modal footer ──────────────────────────── */

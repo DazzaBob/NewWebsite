@@ -59,7 +59,8 @@ namespace Website.Pages.User
         {
             MapboxPublicToken = App.Settings.MapboxToken;
 
-            var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
+            using App.Helper.Connection LocationConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
+            var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(LocationConnection); // Load the address types for the dropdown
             AddressTypeOptions = list;
             ErrorMessage = error;
         }
@@ -69,7 +70,8 @@ namespace Website.Pages.User
 
             if (!ModelState.IsValid)
             {
-                var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
+                using App.Helper.Connection LocationConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
+                var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(LocationConnection); // Load the address types for the dropdown
                 AddressTypeOptions = list;
                 ErrorMessage = error;
 
@@ -96,10 +98,11 @@ namespace Website.Pages.User
             }
             else
             {
+                using App.Helper.Connection EntityConnection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
+                using App.Helper.Connection LocationConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
+
                 try
                 {
-                    using App.Helper.Connection EntityConnection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-
                     bool emailExists = false;
                     bool phoneExists = false;
 
@@ -169,8 +172,7 @@ namespace Website.Pages.User
                     try
                     {
                         // 1) Persist the address & enqueue zoning
-                        using App.Validation.AddressValidation validator = new(AddressTypeID, userId, true);
-                        int addressId = validator.SaveAddressAndGetId(MapboxAddressJSON);
+                        long addressId = App.Validation.AddressValidation.SaveAddressAndGetId(MapboxAddressJSON, LocationConnection, EntityConnection, AddressTypeID, userId, true);
                         if (addressId <= 0)
                         {
                             ModelState.AddModelError(string.Empty, "Could not save address. Please check your input.");
@@ -190,7 +192,7 @@ namespace Website.Pages.User
                     // Log the error and show a generic message
                     ErrorMessage = "An unexpected error occurred: " + ex.Message;
 
-                    var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
+                    var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(LocationConnection); // Load the address types for the dropdown
                     AddressTypeOptions = list;
                     ErrorMessage = error;
 

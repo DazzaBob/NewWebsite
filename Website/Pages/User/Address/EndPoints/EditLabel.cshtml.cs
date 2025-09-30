@@ -13,6 +13,7 @@ namespace Website.Pages.User.Address.EndPoints
             public int Id { get; set; }
             public string Label { get; set; } = string.Empty;
         }
+        public IActionResult OnGet() => NotFound();
         public IActionResult OnPost([FromBody] SetDefaultInput input)
         {
             if (!User.IsAuthorised()) return Unauthorized();

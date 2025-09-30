@@ -46,6 +46,8 @@ namespace Website.Pages.User.Dashboard
         [ViewData]
         public string MapboxPublicToken { get; set; } = string.Empty;
 
+        public App.Helper.Connection LocationConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
+        public App.Helper.Connection EntitiyConnection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
 
         [BindProperty]
         [Required(ErrorMessage = "Please select a valid address type.")]
@@ -70,10 +72,6 @@ namespace Website.Pages.User.Dashboard
             if (UserId == 0) return RedirectToPage("/Logout");
 
             MapboxPublicToken = App.Settings.MapboxToken;
-            var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
-            AddressTypeOptions = list;
-            ErrorMessage = error;
-
             AccountBalance = 0.00m; //* fetch balance for userID
             RecentActivity = []; // fetch recent activity */
             UpcomingTasks = []; // fetch upcoming tasks */ 
@@ -142,33 +140,28 @@ namespace Website.Pages.User.Dashboard
             public DateTime Timestamp { get; set; }
             public string Description { get; set; } = string.Empty;
         }
-
         public class TaskItem
         {
             public DateTime DueDate { get; set; }
             public string Summary { get; set; } = string.Empty;
         }
-
         public class ServiceRecommendation
         {
             public int Id { get; set; }
             public string Name { get; set; } = string.Empty;
         }
-
         public class Promotion
         {
             public int Id { get; set; }
             public string Title { get; set; } = string.Empty;
             public DateTime ExpiresOn { get; set; }
         }
-
         public class OrderSummary
         {
             public int Id { get; set; }
             public string Number { get; set; } = string.Empty;
             public string Status { get; set; } = string.Empty;
         }
-
         public class Notification
         {
             public string Message { get; set; } = string.Empty;

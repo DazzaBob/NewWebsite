@@ -40,6 +40,27 @@ namespace Website.App.Database
             sql.Append(" LIMIT 1;"); // only need one value
             return connection.ExecuteScalar(sql.ToString());
         }
+        public static string SafeHtml(string? input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return string.Empty;
+
+            StringBuilder sb = new(input.Length);
+            foreach (char c in input)
+            {
+                switch (c)
+                {
+                    case '<': sb.Append("&lt;"); break;
+                    case '>': sb.Append("&gt;"); break;
+                    case '&': sb.Append("&amp;"); break;
+                    case '"': sb.Append("&quot;"); break;
+                    case '\'': sb.Append("&#39;"); break;
+                    default: sb.Append(c); break;
+                }
+            }
+            return sb.ToString();
+        }
+
         public static string SafeReplace(object? value)
         {
             if (value == null || value == DBNull.Value)

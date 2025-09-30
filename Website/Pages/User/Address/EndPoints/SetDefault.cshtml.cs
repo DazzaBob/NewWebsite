@@ -10,9 +10,7 @@ namespace Website.Pages.User.Address.EndPoints
     {
 
         public class SetDefaultInput { public int Id { get; set; } }
-        public void OnGet()
-        {
-        }
+        public IActionResult OnGet() => NotFound();
         public IActionResult OnPost([FromBody] SetDefaultInput input)
         {
             if (!User.IsAuthorised()) { return Unauthorized(); }

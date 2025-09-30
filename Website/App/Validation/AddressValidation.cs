@@ -3,53 +3,72 @@ using System.Text;
 
 namespace Website.App.Validation
 {
-    internal partial class AddressValidation : IDisposable
+    public static partial class AddressValidation
     {
-        private readonly int userId;
-        private readonly int _addressTypeId;
-        private readonly bool IsDefault = false;
         private const string NamespaceClass = "App.Validation.AddressValidation.";
-        private bool _disposed;
-
-        internal AddressValidation()
-        {
-            _addressTypeId = 0; // default or throw if required
-            userId = -1;
-        }
-
-        internal AddressValidation(int addressTypeID, int userId, bool IsDefault = false) : this()
-        {
-            _addressTypeId = addressTypeID;
-            this.userId = userId;
-            this.IsDefault = IsDefault;
-        }
-
-        internal int SaveAddressAndGetId(string payload)
-        {
-            return SaveAddress(payload);
-        }
-
-        private int SaveAddress(string payload)
+        public static long SaveAddressAndGetId(string payload, App.Helper.Connection locationsConnection, App.Helper.Connection entitiesConnection, long addressTypeId, long userId, bool SetAsDefault, string label = "")
         {
             if (string.IsNullOrWhiteSpace(payload))
             {
-                string errorMessage = NamespaceClass + "SaveAddress: JSON payload is empty.";
+                string errorMessage = NamespaceClass + "SaveAddressAndGetId: JSON payload is empty.";
                 Bootstrap.Logger?.Add(errorMessage, Helper.Logger.LogLevel.Error);
                 return -1;
             }
-            try
+            Mapbox.GeoCoding.V5.LegacyFeatureParser.ExtractedAddress NEA = Mapbox.GeoCoding.V5.LegacyFeatureParser.ExtractFullAddress(payload);
+
+            if (NEA.PlaceName == string.Empty)
             {
-                string inputaddress = Mapbox.GeoCoding.V5.LegacyFeatureParser.ExtractFullAddress(payload);
+                string errorMessage = NamespaceClass + "SaveAddressAndGetId: Unable to extract the Address.";
+                Bootstrap.Logger?.Add(errorMessage, Helper.Logger.LogLevel.Error);
+                return -1;
+            }
 
-                if (string.IsNullOrWhiteSpace(inputaddress))
-                    throw new ArgumentException("Legacy input did not produce a valid address.");
+            // Lets check to see if this address already exists in the Locations database.
+            string streetNumber = Database.Shared.SafeReplace(NEA.AddressNumber);
+            string streetName = Database.Shared.SafeReplace(NEA.AddressStreet);
+            string postcode = Database.Shared.SafeReplace(NEA.Postcode);
 
+            string whereClause = $"STREET_NUMBER={streetNumber} AND STREET_NAME={streetName} AND POSTCODE={postcode}";
+            DataTable dt = App.Database.Shared.GetDataTable(locationsConnection, Database.Schema.Locations.Tables.Address, whereClause, "LASTUSEDOADATE DESC");
+
+            long addressId;
+            if (dt.Rows.Count > 0)
+            { // ok, so the address exists, does the user have it linked?
+                addressId = (long)dt.Rows[0]["ID"];
+                _ = App.Database.Shared.Update(locationsConnection, Database.Schema.Locations.Tables.Address, $"LASTUSEDOADATE={DateTime.Today.ToOADate()}", $"ID={addressId}");
+
+                dt = App.Database.Shared.GetDataTable(entitiesConnection, Database.Schema.Entities.Tables.UserAddress, $"USER_ID = {userId} AND ADDRESS_ID={addressId}");
+                if (dt.Rows.Count > 0)
+                { // user already has this address linked, update the label and return the ID.
+                    long currentUserAddressId = (long)dt.Rows[0]["ID"];
+                    if (!string.IsNullOrWhiteSpace(label))
+                    {
+                        string newLabel = Database.Shared.SafeReplace(Database.Shared.SafeHtml(label));
+                        App.Database.Shared.Update(entitiesConnection, Database.Schema.Entities.Tables.UserAddress, $"LABEL={newLabel}", $"USER_ID = {userId} AND ADDRESS_ID={currentUserAddressId}");
+                    }
+                    return currentUserAddressId;
+                }
+                else
+                { // link the user to this address.
+                    double today = DateTime.Now.ToOADate();
+                    return InsertNewUserAddress(entitiesConnection, userId, addressId, label, today, SetAsDefault);
+                }
+            }
+            else
+            { // we need to resolve the address and add it.
+                return SaveAddress(NEA.PlaceName, entitiesConnection, locationsConnection, addressTypeId, userId, SetAsDefault, label);
+            }
+        }
+        private static long SaveAddress(string inputaddress, App.Helper.Connection entitiesConnection, App.Helper.Connection locationsConnection, long addressTypeId, long userId, bool IsDefault, string label)
+        {
+            try
+            { // Convert the V5 to V6 so we can get all the information we need.
                 var GD = new Mapbox.GeoCoding.V6.GeoDeserializer();
                 var RAF = GD.Search(inputaddress);
 
                 if (RAF != null)
                 {
-                    return SaveAddressCore(RAF);
+                    return SaveAddressCore(RAF, entitiesConnection, locationsConnection, addressTypeId, userId, IsDefault, label);
                 }
                 else
                 {
@@ -64,119 +83,86 @@ namespace Website.App.Validation
             }
         }
 
-        private int SaveAddressCore(Mapbox.GeoCoding.V6.ResolvedAddressFeature ResolvedAddressFeatures)
+        /// <summary>
+        /// Saves a resolved address to the database and returns its ID.
+        /// 
+        /// The routine performs the following steps:
+        /// 1. Validates the resolved address data.
+        /// 2. Checks if the address already exists in the Locations database
+        ///    by matching street number, street name, and postcode.
+        ///    - If found, updates its "last used" date and returns the existing ID.
+        /// 3. If not found, inserts the new address into the Locations database.
+        /// 4. Creates or updates the corresponding UserAddress record for the current user.
+        /// 5. If requested, marks the address as the user's default by resetting other defaults
+        ///    and updating this one.
+        /// 6. Returns the existing or newly created address ID.
+        /// </summary>
+        private static long SaveAddressCore(Mapbox.GeoCoding.V6.ResolvedAddressFeature resolved, App.Helper.Connection entitiesConnection, App.Helper.Connection locationConnection, long addressTypeId, long userId, bool setAsDefault, string label)
         {
-            if (string.IsNullOrWhiteSpace(ResolvedAddressFeatures.Address?.FullAddress))
+            string streetNumber = Database.Shared.SafeReplace(resolved.Address?.Number);
+            string streetName = Database.Shared.SafeReplace(resolved.Address?.Name);
+            string postcode = Database.Shared.SafeReplace(resolved.Address?.Postcode?.Name);
+
+            int countryId = Database.Locations.Tables.Country.GetId(resolved.Country?.Name ?? "Unknown");
+            int regionId = Database.Locations.Tables.Region.GetId(countryId, resolved.Region?.Name ?? "Unknown", resolved.Region?.RegionCode ?? "Unknown");
+            int placeId = Database.Locations.Tables.Place.GetId(regionId, resolved.Country?.Name ?? "Unknown", resolved.Place?.Name ?? "Unknown");
+
+            int localityId = -1;
+            if (!string.IsNullOrWhiteSpace(resolved.Locality?.Name))
             {
-                string errorMessage = NamespaceClass + "SaveAddressCore: missing Address.FullAddress";
-                Bootstrap.Logger?.Add(errorMessage, Helper.Logger.LogLevel.Error);
+                localityId = Database.Locations.Tables.Locality.GetId(placeId, resolved.Country?.Name ?? "", resolved.Place?.Name ?? "", resolved.Locality?.Name ?? "");
+            }
+
+            string fields = "STREET_NUMBER, STREET_NAME, POSTCODE, COUNTRY_ID, REGION_ID, PLACE_ID, LOCALITY_ID, ADDRESS_TYPE_ID, LONGITUDE, LATITUDE, ROUTABLE_LONGITUDE, ROUTABLE_LATITUDE, LASTUSEDOADATE";
+            var sb = new StringBuilder();
+            sb.Append(streetNumber).Append(", ")
+            .Append(streetName).Append(", ")
+            .Append(postcode).Append(", ")
+            .Append(countryId).Append(", ")
+            .Append(regionId).Append(", ")
+            .Append(placeId).Append(", ")
+            .Append(localityId > 0 ? localityId : "NULL").Append(", ")
+            .Append(addressTypeId).Append(", ")
+            .Append(resolved.Coords.DisplayLongitude).Append(", ")
+            .Append(resolved.Coords.DisplayLatitude).Append(", ")
+            .Append(resolved.Coords.RoutableLongitude > 0 ? resolved.Coords.RoutableLongitude : "NULL").Append(", ")
+            .Append(resolved.Coords.RoutableLatitude > 0 ? resolved.Coords.RoutableLatitude : "NULL").Append(", ")
+            .Append(DateTime.Now.ToOADate());
+
+            long addressId = Database.Shared.Insert(locationConnection, Database.Schema.Locations.Tables.Address, fields, sb.ToString());
+            if (addressId <= 0)
+            {
+                Bootstrap.Logger?.Add($"{NamespaceClass}SaveAddressCore: failed to insert address '{resolved.Address?.Number} {resolved.Address?.Name}'", Helper.Logger.LogLevel.Error);
                 return -1;
             }
 
-            using Helper.Connection LocationConnection = Database.Shared.Connection(Database.Schema.Locations.Database);
-            using Helper.Connection EntitiesConnection = Database.Shared.Connection(Database.Schema.Entities.Database);
-
-            string AddressNumber = Database.Shared.SafeReplace(ResolvedAddressFeatures.Address.Number);
-            string AddressName = Database.Shared.SafeReplace(ResolvedAddressFeatures.Address.Name);
-            string AddressPostcode = Database.Shared.SafeReplace(ResolvedAddressFeatures.Address.Postcode?.Name);
-
-            int UpdateAddressID = -1;
-
-            using DataTable DT = App.Database.Shared.GetDataTable(LocationConnection, Database.Schema.Locations.Tables.Address, $"(STREET_NUMBER = {AddressNumber}) AND (STREET_NAME = {AddressName}) AND (POSTCODE = {AddressPostcode})", "LASTUSEDOADATE DESC");
-
-            if (DT.Rows.Count > 0)
+            string newLabel;
+            if (!string.IsNullOrWhiteSpace(label))
             {
-                UpdateAddressID = Convert.ToInt32(DT.Rows[0]["ID"]);
-                App.Database.Shared.Update(EntitiesConnection, "USER_ADDRESS", "ISDEFAULT=0", $"USER_ID={userId}");
-                App.Database.Shared.Update(EntitiesConnection, "USER_ADDRESS", "ISDEFAULT=1", $"USER_ID={userId} AND ADDRESS_ID={UpdateAddressID}");
-                _ = App.Database.Shared.Update(LocationConnection, Database.Schema.Locations.Tables.Address, $"LASTUSEDOADATE={DateTime.Today.ToOADate()}", $"ID={UpdateAddressID}");
-                return UpdateAddressID;
-            }
-
-            if (UpdateAddressID <= 0)
-            {
-                int countryId = Database.Locations.Tables.Country.GetId(ResolvedAddressFeatures.Country?.Name ?? "Unknown");
-                int regionId = Database.Locations.Tables.Region.GetId(countryId, ResolvedAddressFeatures.Region?.Name ?? "Unknown", ResolvedAddressFeatures.Region?.RegionCode ?? "Unknown");
-                int placeId = Database.Locations.Tables.Place.GetId(regionId, ResolvedAddressFeatures.Country?.Name ?? "Unknown", ResolvedAddressFeatures.Place?.Name ?? "Unknown");
-
-                int localityId = -1;
-                if (!string.IsNullOrWhiteSpace(ResolvedAddressFeatures.Locality?.Name))
-                {
-                    localityId = Database.Locations.Tables.Locality.GetId(placeId, ResolvedAddressFeatures.Country?.Name ?? string.Empty, ResolvedAddressFeatures.Place?.Name ?? string.Empty, ResolvedAddressFeatures.Locality?.Name ?? string.Empty);
-                }
-
-                string fields = "STREET_NUMBER, STREET_NAME, POSTCODE, COUNTRY_ID, REGION_ID, PLACE_ID, LOCALITY_ID, ADDRESS_TYPE_ID, LONGITUDE, LATITUDE, ROUTABLE_LONGITUDE, ROUTABLE_LATITUDE, LASTUSEDOADATE";
-                StringBuilder sb = new();
-                sb.Append(AddressNumber).Append(", ");
-                sb.Append(AddressName).Append(", ");
-                sb.Append(AddressPostcode).Append(", ");
-                sb.Append(countryId).Append(", ");
-                sb.Append(regionId).Append(", ");
-                sb.Append(placeId).Append(", ");
-                sb.Append(localityId > 0 ? localityId.ToString() : "NULL").Append(", ");
-                sb.Append(_addressTypeId).Append(", ");
-                sb.Append(ResolvedAddressFeatures.Coords.DisplayLongitude.ToString()).Append(", ");
-                sb.Append(ResolvedAddressFeatures.Coords.DisplayLatitude.ToString()).Append(", ");
-                sb.Append(ResolvedAddressFeatures.Coords.RoutableLongitude > 0 ? ResolvedAddressFeatures.Coords.RoutableLongitude.ToString() : "NULL").Append(", ");
-                sb.Append(ResolvedAddressFeatures.Coords.RoutableLatitude > 0 ? ResolvedAddressFeatures.Coords.RoutableLatitude.ToString() : "NULL").Append(", ");
-                sb.Append(DateTime.Now.ToOADate());
-
-                int InsertAddressID = Database.Shared.Insert(LocationConnection, Database.Schema.Locations.Tables.Address, fields, sb.ToString());
-                if (InsertAddressID <= 0)
-                {
-                    string errorMessage = NamespaceClass + $"SaveAddressCore: failed to insert address '{ResolvedAddressFeatures.Address.Number} {ResolvedAddressFeatures.Address.Name}'";
-                    Website.App.Bootstrap.Logger?.Add(errorMessage, Helper.Logger.LogLevel.Error);
-                    return -1;
-                }
-                else
-                {
-                    fields = "USER_ID, ADDRESS_ID, LABEL, ISDEFAULT, CREATEDOADATE, UPDATEDOADATE";
-                    sb.Clear();
-                    sb.Append(userId).Append(", ");
-                    sb.Append(InsertAddressID).Append(", ");
-                    string label = ResolvedAddressFeatures.Address.Number + " " + ResolvedAddressFeatures.Address.Name;
-                    sb.Append(Database.Shared.SafeReplace(label)).Append(", ");
-                    sb.Append(IsDefault ? "1" : "0").Append(", ");
-                    double today = DateTime.Now.ToOADate();
-                    sb.Append(today).Append(", ");
-                    sb.Append(today);
-
-                    _ = Database.Shared.Insert(EntitiesConnection, Database.Schema.Entities.Tables.UserAddress, fields, sb.ToString());
-                    Operations.Zoning.ZoneManager.StartZoning();
-                }
-                return InsertAddressID;
+                newLabel = Database.Shared.SafeReplace(Database.Shared.SafeHtml(label));
             }
             else
             {
-                if (App.Database.Shared.GetDataTable(EntitiesConnection, Database.Schema.Entities.Tables.UserAddress, $"(USER_ID = {userId}) AND (ADDRESS_ID = {UpdateAddressID})").Rows.Count > 0)
-                {
-                    _ = App.Database.Shared.Update(EntitiesConnection, Database.Schema.Entities.Tables.UserAddress, "ISDEFAULT=1", $"USER_ID={userId} AND ADDRESS_ID={UpdateAddressID}");
-                }
-                else
-                {
-                    StringBuilder sb = new();
-                    sb.Append(userId).Append(", ");
-                    sb.Append(UpdateAddressID).Append(", ");
-                    string label = ResolvedAddressFeatures.Address.Number + " " + ResolvedAddressFeatures.Address.Name;
-                    sb.Append(Database.Shared.SafeReplace(label)).Append(", ");
-                    sb.Append(IsDefault ? "1" : "0").Append(", ");
-                    double today = DateTime.Now.ToOADate();
-                    sb.Append(today).Append(", ");
-                    sb.Append(today).Append(", 1");
-
-                    _ = App.Database.Shared.Insert(EntitiesConnection, Database.Schema.Entities.Tables.UserAddress, "USER_ID, ADDRESS_ID, LABEL, ISDEFAULT, CREATEDOADATE, UPDATEDOADATE, ISACTIVE", sb.ToString());
-                }
-                return UpdateAddressID;
+                newLabel = $"{resolved.Address?.Number} {resolved.Address?.Name}";
             }
-        }
+            double today = DateTime.Now.ToOADate();
 
-        #region IDisposable
-        public void Dispose()
-        {
-            if (_disposed) return;
-            _disposed = true;
-            GC.SuppressFinalize(this);
+            return InsertNewUserAddress(entitiesConnection, userId, addressId, newLabel, today, setAsDefault);
         }
-        #endregion
+        public static long InsertNewUserAddress(App.Helper.Connection entitiesConnection, long userId, long addressId, string label, double today, bool setAsDefault)
+        {
+            string newLabel = Database.Shared.SafeReplace(Database.Shared.SafeHtml(label));
+            string userFields = "USER_ID, ADDRESS_ID, LABEL, ISDEFAULT, CREATEDOADATE, UPDATEDOADATE, ISACTIVE";
+            string userValues = $"{userId}, {addressId}, {newLabel}, {(setAsDefault ? 1 : 0)}, {today}, {today}, 1";
+            long userAddressId = Database.Shared.Insert(entitiesConnection, Database.Schema.Entities.Tables.UserAddress, userFields, userValues);
+
+            if (setAsDefault && addressId > 0)
+            {
+                App.Database.Shared.Update(entitiesConnection, "USER_ADDRESS", "ISDEFAULT=0", $"USER_ID={userId}");
+                App.Database.Shared.Update(entitiesConnection, "USER_ADDRESS", "ISDEFAULT=1", $"USER_ID={userId} AND ADDRESS_ID={addressId}");
+            }
+
+            return userAddressId;
+        }
     }
 }
