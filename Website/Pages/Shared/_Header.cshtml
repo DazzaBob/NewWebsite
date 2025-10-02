@@ -43,7 +43,7 @@
     <nav class="nav-links"> 
         @if (userId > 0) 
         { // Logged in
-        <a href="/User/Dashboard">Dashboard</a>
+        <a href="/Dashboard">Dashboard</a>
         <a href="/Account/Settings">Settings</a>
         <a href="/User/Logout" class="btn btn-outline">Logout</a> } 
         else { // Not logged in
@@ -61,32 +61,6 @@
     }
     else
     { // Dashboard header
-    <script>
-      window.addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
-    </script>
-    <div class="top-bar">
-        <button class="menu-btn" aria-label="Open Menu" onclick="document.body.classList.toggle('menu-open')"><i class="fas fa-bars"></i></button>
-        <div class="title">Dashboard</div>
-        <button class="settings-btn" aria-label="Settings"><i class="fas fa-cog"></i></button>
-    </div>
-    <div class="pill-bar">
-          <button id="addressToggle" class="pill" onclick="document.getElementById('addressmodal').classList.add('show');">
-              <i class="fa-solid fa-home"></i> @((ViewData["DefaultAddressLabel"] as string) ?? DefaultLabelFallback) &nbsp;<i class="fa-solid fa-chevron-down dropdown-icon"></i>
-        </button>
-        <button id="useCurrentLocation" class="pill" style="margin-left:auto">
-           <i class="fa-solid fa-map-marker-alt"></i> Current location
-        </button>
-    </div>
-    <nav class="side-menu" aria-label="Side navigation">
-        <ul>
-            <li><a href="/User/Dashboard"><i class="fa-solid fa-gauge"></i> Dashboard</a></li>
-            <li><a href="/User/Dashboard/Orders"><i class="fa-solid fa-list-check"></i> Orders</a></li>
-            <li><a href="/User/Dashboard/Addresses"><i class="fa-solid fa-location-dot"></i> Addresses</a></li>
-            <li><a href="/User/Dashboard/Settings"><i class="fa-solid fa-sliders"></i> Settings</a></li>
-            <li><a href="/Legal/Terms"><i class="fa-solid fa-scale-balanced"></i> Terms</a></li>
-            <li><a href="/User/Logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
-        </ul>
-    </nav>
-    <div class="menu-backdrop" aria-hidden="true"></div>
+    
     }
 </div>

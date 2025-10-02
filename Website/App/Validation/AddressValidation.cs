@@ -28,6 +28,13 @@ namespace Website.App.Validation
             string streetName = Database.Shared.SafeReplace(NEA.AddressStreet);
             string postcode = Database.Shared.SafeReplace(NEA.Postcode);
 
+            if (string.IsNullOrWhiteSpace(label))
+            {
+                // Fallback to if no label was provided.
+                string numberPart = string.IsNullOrWhiteSpace(NEA.AddressNumber) ? "" : NEA.AddressNumber + " ";
+                label = NEA.AddressNumber + " " + NEA.AddressStreet;
+            }
+
             string whereClause = $"STREET_NUMBER={streetNumber} AND STREET_NAME={streetName} AND POSTCODE={postcode}";
             DataTable dt = App.Database.Shared.GetDataTable(locationsConnection, Database.Schema.Locations.Tables.Address, whereClause, "LASTUSEDOADATE DESC");
 
@@ -64,7 +71,7 @@ namespace Website.App.Validation
             try
             { // Convert the V5 to V6 so we can get all the information we need.
                 var GD = new Mapbox.GeoCoding.V6.GeoDeserializer();
-                var RAF = GD.Search(inputaddress);
+                Mapbox.GeoCoding.V6.ResolvedAddressFeature? RAF = GD.Search(inputaddress);
 
                 if (RAF != null)
                 {

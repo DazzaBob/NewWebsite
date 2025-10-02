@@ -25,6 +25,10 @@ namespace Website.Pages.User.Address.EndPoints
         public async Task<IActionResult> OnPostAsync()
         {
             if (!User.IsAuthorised()) { return Unauthorized(); }
+
+            if (User.Id() <= 0)
+                return new UnauthorizedObjectResult(new { ok = false, message = "User not authenticated" });
+
             if (Request.Body == null || Request.ContentLength == 0)
                 return BadRequest(new { ok = false, message = "Empty body" });
 
@@ -48,11 +52,6 @@ namespace Website.Pages.User.Address.EndPoints
 
             if (req.AddressTypeID < 1 || req.AddressTypeID > 7)
                 return BadRequest(new { ok = false, message = "Invalid address type" });
-
-            // Get userId from session; do NOT trust client-provided userId
-
-            if (userId <= 0)
-                return new UnauthorizedObjectResult(new { ok = false, message = "User not authenticated" });
 
             // Save using your existing pipeline
             long newId;

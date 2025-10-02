@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Net;
 using System.Text;
 
 namespace Website.App.Database
@@ -42,23 +43,9 @@ namespace Website.App.Database
         }
         public static string SafeHtml(string? input)
         {
-            if (string.IsNullOrEmpty(input))
-                return string.Empty;
-
-            StringBuilder sb = new(input.Length);
-            foreach (char c in input)
-            {
-                switch (c)
-                {
-                    case '<': sb.Append("&lt;"); break;
-                    case '>': sb.Append("&gt;"); break;
-                    case '&': sb.Append("&amp;"); break;
-                    case '"': sb.Append("&quot;"); break;
-                    case '\'': sb.Append("&#39;"); break;
-                    default: sb.Append(c); break;
-                }
-            }
-            return sb.ToString();
+            return string.IsNullOrEmpty(input)
+                ? string.Empty
+                : WebUtility.HtmlEncode(input);
         }
 
         public static string SafeReplace(object? value)

@@ -87,7 +87,7 @@ function UpdateDefaultAddress(radio) {
 
             const toggle = document.getElementById('addressToggle');
             if (toggle) {
-                toggle.innerHTML = `<i class="fa-solid fa-home"></i> ${preview}&nbsp;<i class="fa-solid fa-chevron-down dropdown-icon"></i>`;
+                toggle.innerHTML = `<i class="fa-solid fa-home"></i>${preview}&nbsp;<i class="fa-solid fa-chevron-down dropdown-icon"></i>`;
             }
         })
         .catch(err => {

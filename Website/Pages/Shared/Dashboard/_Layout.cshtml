@@ -1,0 +1,38 @@
+﻿@using Microsoft.AspNetCore.Http
+@using Website.App.Security;
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    using App.Helper.Connection EntitiesConnection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
+    using App.Helper.Connection LocationsConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
+    int userId = User.Id();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] - That's Handy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/theme.css" />
+    <link rel="stylesheet" href="~/css/layout.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <meta name="Website-mapbox-token" content="@App.Settings.MapboxToken" />
+</head>
+<body>
+    @Html.Raw(App.HTML.Pages.Dashboard.Header.HTML(EntitiesConnection, userId))
+    @Html.Raw(App.HTML.Pages.Dashboard.Index.AddressModal(EntitiesConnection, LocationsConnection, userId))
+    @Html.Raw(App.HTML.Pages.Dashboard.Index.LocationModal(EntitiesConnection, LocationsConnection, userId))
+    <div id="globalSpinner" class="spinner-overlay" hidden><div class="spinner spinner--lg" aria-hidden="true"></div></div>
+    <main role="main" class="dashboard-content">
+        @RenderBody()
+    </main>
+    @Html.Raw(App.HTML.Pages.Dashboard.Footer.HTML(EntitiesConnection, userId))
+@* Global JS for all pages *@
+<script src="~/js/GS.js" defer asp-append-version="true"></script>
+<script src="~/js/Site.js" defer asp-append-version="true"></script>
+@* JS for this page only *@
+<script src="~/js/dashboards/AddressModal.js" defer asp-append-version="true"></script>
+<script src="~/js/dashboards/LocationModal.js" defer asp-append-version="true"></script>
+</body>
+</html>

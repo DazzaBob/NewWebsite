@@ -2,6 +2,8 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @{
     bool IsDashboard = App.Helper.Shared.IsDashboard(HttpContextAccessor.HttpContext?.Request.Path.Value?.ToLower() ?? "");
+    using App.Helper.Connection EntitiesConnection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
+    using App.Helper.Connection LocationsConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -27,6 +29,8 @@
     @* Dashboard modals outside header, only if on dashboard *@
     @if (IsDashboard)
     {
+        @Html.Raw(App.HTML.Pages.Dashboard.Index.AddressModal(EntitiesConnection, LocationsConnection, Model.UserId))
+        ;
         <partial name="~/Pages/Shared/Partials/_LocationModal.cshtml" />
     }
 
@@ -53,7 +57,7 @@
         
         if (isDashboardIndex)
         {
-    <script src="~/js/DUAddress.js" defer asp-append-version="true"></script>
+            <script src="~/js/DUAddress.js" defer asp-append-version="true"></script>
         }
         <script src="~/js/dashboards/user/currentlocation.js" defer asp-append-version="true"></script>
         <script src="~/js/dashboard.js" defer asp-append-version="true"></script>

@@ -82,7 +82,7 @@ namespace Website.Pages.User
                 }
 
                 // Fallback
-                return RedirectToPage("/User/Dashboard/Index");
+                return RedirectToPage("/Dashboard/Index");
             }
             catch
             {

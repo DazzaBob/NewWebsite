@@ -2,12 +2,9 @@
 @model Website.Pages.User.Dashboard.IndexModel
 @{
     ViewData["Title"] = "Dashboard Home";
-    Layout = "_Layout";
+    Layout = "~/Pages/Shared/Dashboard/_Layout.cshtml";
     System.Data.DataTable dt = Model.GetLocationModalDataTable();
 }
-@section StatusStrip { }
-@Html.Raw(App.HTML.Pages.User.Dashboard.Index.AddressModal(Model.EntitiyConnection, Model.LocationConnection, Model.UserId));
-
     
 <div class="dashboard-content">
 @if (Model.UserRolesDT.Rows.Count > 1)
