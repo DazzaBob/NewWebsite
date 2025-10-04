@@ -87,7 +87,7 @@ namespace Website.App.HTML.Pages.Dashboard
                     sb.Append("</div>");
                     //sb.Append("<span>&nbsp;</span>");
                 }
-                sb.Append("<div id=\"addressmodaladdaddresssection\" class=\"mt-3\"><a id=\"add-address-link\" href=\"#\" role=\"button\" tabindex=\"0\" onclick=\"showaddaddresscard(); return false;\"> +Add New Address</a></div>");
+                sb.Append("<div id=\"addressmodaladdaddresssection\" class=\"mt-3\"><a id=\"add-address-link\" href=\"#\" role=\"button\" tabindex=\"0\" onclick=\"showaddaddresscard(); return false;\">+ Add New Address</a></div>");
 
                 sb.Append("<div id=\"addressmodaladdaddresssectionaddresscard\" class=\"card address-card\" style=\"display:none\">");
                 sb.Append("<div id=\"addressmodaladdaddresscardform\" class=\"add-address-form\"><div id=\"addressmodaladdaddresscardoptionrow\" class=\"address-option-row\"><label><b>New Address</b></label></div>");
@@ -188,6 +188,64 @@ namespace Website.App.HTML.Pages.Dashboard
 
             return sb.ToString();
         }
+        public static string PackageDeliveryModal(Helper.Connection EntityConnection, Helper.Connection LocationConnection, long userId)
+        {
+            StringBuilder sb = new();
+            sb.Append("<div id=\"PDmodal\" class=\"custom-modal\">")
+                .Append("<div id=\"PDmodalcontent\" class=\"custom-modal-content\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"addressmodaltitle\" tabindex=\"-1\">");
+
+            sb.Append("<div id=\"PDmodalheader\" class=\"custom-modal-header\"> ")
+                .Append("<h5 id=\"PDmodaltitle\">Package Delivery</h5>")
+                .Append("<button id=\"PDmodalClose\" class=\"btn-close\" aria-label=\"Close\" onclick=\"closePDModal();\">×</button>")
+              .Append("</div>");
+
+            sb.Append("<div id=\"PDmodalbody\" class=\"custom-modal-body\">")
+              .Append("<div style=\"display: flex; flex-direction: column; gap: 0.25rem;\">")
+                .Append("<div style=\"display: flex; align-items: center; justify-content: flex-start; gap: 0.4rem;\">")
+                    .Append("<label style=\"margin: 0;\">Pickup Location:</label>")
+                    .Append("<a href=\"#\" ")
+                        .Append("style=\"display:inline-flex; align-items:center; justify-content:center; padding:0; margin:0; text-decoration:none; color:inherit; transition: color 0.3s, transform 0.2s;\" ")
+                        .Append("onmouseover=\"this.style.color='var(--color-primary)'; this.style.transform='scale(1.15)';\" ")
+                        .Append("onmouseout=\"this.style.color='inherit'; this.style.transform='scale(1)';\">")
+                        .Append("<i class=\"fa-solid fa-home\"></i>")
+                    .Append("</a>")
+                .Append("</div>")
+                .Append("<input type=\"text\" name=\"PDmodalpickup\" class=\"address-edit-input\" placeholder=\"Type an address or business name\" required />")
+            .Append("</div>")
+                .Append("<span>&nbsp;</span>");
+
+            sb.Append("<div style=\"display: flex; flex-direction: column; gap: 0.25rem;\">")
+                .Append("<div style=\"display: flex; align-items: center; justify-content: flex-start; gap: 0.4rem;\">")
+                    .Append("<label style=\"margin: 0;\">Drop off Location:</label>")
+                    .Append("<a href=\"#\" ")
+                        .Append("style=\"display:inline-flex; align-items:center; justify-content:center; padding:0; margin:0; text-decoration:none; color:inherit; transition: color 0.3s, transform 0.2s;\" ")
+                        .Append("onmouseover=\"this.style.color='var(--color-primary)'; this.style.transform='scale(1.15)';\" ")
+                        .Append("onmouseout=\"this.style.color='inherit'; this.style.transform='scale(1)';\">")
+                        .Append("<i class=\"fa-solid fa-home\"></i>")
+                    .Append("</a>")
+                .Append("</div>")
+                .Append("<input type=\"text\" name=\"PDmodaldropoff\" class=\"address-edit-input\" placeholder=\"Type an address or business name\" required />")
+            .Append("</div>");
+
+            sb.Append("<label id=\"PDmodallabelPrice\" style=\"display: none;\">Price: </label>")
+                    .Append("<div style=\"display: flex; justify-content: space-between;\">")
+                        .Append("<div style=\"text-align: left;\">")
+                            .Append("<button id=\"PDmodalPrice\" type=\"button\" class=\"btn btn-primary\" onclick=\"GetPDPDPrice()\">Get Price</button>")
+                        .Append("</div>")
+                        .Append("<div style=\"text-align: right;\">")
+                            .Append("<button id=\"PDmodalCancel\" type=\"button\" class=\"btn btn-secondary\" onclick=\"closePDModal();\">Cancel</button>")
+                        .Append("</div>")
+                  .Append("</div>");
+
+            sb.Append("<div id=\"PDmodalfooter\" class=\"custom-modal-footer\"><span>&nbsp;</span></div>")
+              .Append("</div>") // Close Body
+        .Append("</div>") // Close Content
+        .Append("</div>"); // Close Modal
+
+            return sb.ToString();
+        }
+
+
         public static string BuildNewCard(long id, bool isDefault, string label, string street, string placeLine)
         {
             StringBuilder sb = new();

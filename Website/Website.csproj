@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <Folder Include="App\Database\Entities\User\Address\" />
-    <Folder Include="App\Scripts\Pages\User\Dashboard\" />
   </ItemGroup>
 
 </Project>

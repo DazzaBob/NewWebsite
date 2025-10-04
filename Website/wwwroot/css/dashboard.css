@@ -267,16 +267,24 @@ body.menu-open {
     justify-content: flex-start;
     background: none;
     border: none;
+    transition: color 0.3s ease; /* safe hover transition */
 }
 
     .nav-btn i {
         font-size: 1.25rem;
         margin-bottom: .25rem;
+        transition: transform 0.3s ease, color 0.3s ease; /* icon animation */
     }
-
         .nav-btn i::before {
             font-family: "Font Awesome 6 Free";
             font-weight: 900;
+        }
+    .nav-btn:hover {
+        color: var(--color-primary); /* text color change on hover */
+    }
+        .nav-btn:hover i {
+            transform: rotate(15deg) scale(1.2); /* subtle icon animation */
+            color: var(--color-primary); /* match text color */
         }
 
 .icon-home::before {

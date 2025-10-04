@@ -93,7 +93,10 @@ namespace Website.App.Database
                 {
                     Database.Locations.CreateDatabase.Begin();
                 }
-
+                if (dbName == Database.Schema.Operations.Database)
+                {
+                    Database.Operations.CreateDatabase.Begin();
+                }
             }
 
 
