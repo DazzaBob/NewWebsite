@@ -60,7 +60,7 @@ namespace Website.Pages.User
             MapboxPublicToken = App.Settings.MapboxToken;
 
             using App.Helper.Connection LocationConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
-            var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(LocationConnection); // Load the address types for the dropdown
+            var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
             AddressTypeOptions = list;
             ErrorMessage = error;
         }
@@ -71,7 +71,7 @@ namespace Website.Pages.User
             if (!ModelState.IsValid)
             {
                 using App.Helper.Connection LocationConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
-                var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(LocationConnection); // Load the address types for the dropdown
+                var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
                 AddressTypeOptions = list;
                 ErrorMessage = error;
 
@@ -172,7 +172,7 @@ namespace Website.Pages.User
                     try
                     {
                         // 1) Persist the address & enqueue zoning
-                        long addressId = App.Validation.AddressValidation.SaveAddressAndGetId(MapboxAddressJSON, LocationConnection, EntityConnection, AddressTypeID, userId, true);
+                        long addressId = App.Validation.AddressValidation.SaveAddressAndGetId(MapboxAddressJSON, AddressTypeID, userId, true);
                         if (addressId <= 0)
                         {
                             ModelState.AddModelError(string.Empty, "Could not save address. Please check your input.");
@@ -185,14 +185,14 @@ namespace Website.Pages.User
                         return Page();
                     }
                     // Yay! Registration successful.
-                    return RedirectToPage("/User/Dashboard/Index");
+                    return RedirectToPage("/Home/Index");
                 }
                 catch (Exception ex)
                 {
                     // Log the error and show a generic message
                     ErrorMessage = "An unexpected error occurred: " + ex.Message;
 
-                    var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(LocationConnection); // Load the address types for the dropdown
+                    var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
                     AddressTypeOptions = list;
                     ErrorMessage = error;
 

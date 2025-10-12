@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
 using Website.App.Security;
 
@@ -10,44 +11,60 @@ namespace Website.Pages.User.Address.EndPoints
     {
         public class SetDefaultInput
         {
+            public string ModalId { get; set; } = string.Empty;
             public string Label { get; set; } = string.Empty;
             public string AddressJSON { get; set; } = string.Empty;
             public int TypeID { get; set; }
         }
+
         public IActionResult OnGet() => NotFound();
+
         public IActionResult OnPost([FromBody] SetDefaultInput input)
         {
-            if (!User.IsAuthorised()) return Unauthorized();
-            if (input is null) return BadRequest(new { ok = false, msg = "Invalid payload." });
-            if (string.IsNullOrWhiteSpace(input.Label)) return BadRequest(new { ok = false, msg = "Label required." });
-            if (string.IsNullOrWhiteSpace(input.AddressJSON)) return BadRequest(new { ok = false, msg = "Address JSON required." });
-            if (input.TypeID <= 0) return BadRequest(new { ok = false, msg = "Invalid address type." });
+            if (!User.IsAuthorised())
+                return new JsonResult(new { ok = false, msg = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
+
+            if (input is null)
+                return BadRequest(new { ok = false, msg = "Invalid payload." });
+
+            if (string.IsNullOrWhiteSpace(input.Label))
+                return BadRequest(new { ok = false, msg = "Label required." });
+
+            if (string.IsNullOrWhiteSpace(input.AddressJSON))
+                return BadRequest(new { ok = false, msg = "Address JSON required." });
+
+            if (input.TypeID <= 0)
+                return BadRequest(new { ok = false, msg = "Invalid address type." });
+
+            if (string.IsNullOrWhiteSpace(input.ModalId))
+                return BadRequest(new { ok = false, msg = "Input not from Address." });
 
             long userAddressId;
-            long addressId;
             int userId = User.Id();
-            string label = App.Database.Shared.SafeHtml(input.Label); // we dont save to the database here, just return it.
-
-            using App.Helper.Connection entitiesConnection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-            using App.Helper.Connection locationsConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
+            string label = App.Database.Shared.Sanitize(input.Label, forHtml: true);
 
             try
-            {  // We assume this is an address card. We may just want to add; so dont set a default here.
-                userAddressId = App.Validation.AddressValidation.SaveAddressAndGetId(input.AddressJSON, locationsConnection, entitiesConnection, input.TypeID, userId, false, label);
-                using DataTable dt = App.Database.Shared.GetDataTable(entitiesConnection, App.Database.Schema.Entities.Tables.UserAddress, $"ID={userAddressId} AND USER_ID={userId}");
-                addressId = dt.Rows.Count > 0 ? (long)dt.Rows[0]["ADDRESS_ID"] : -1;
+            {
+                userAddressId = App.Validation.AddressValidation.SaveAddressAndGetId(input.AddressJSON, input.TypeID, userId, false, label );
             }
             catch (Exception ex)
             {
-                string errorMessage = ex.Message;
-                App.Bootstrap.Logger?.Add(errorMessage, App.Helper.Logger.LogLevel.Error);
-                return StatusCode(StatusCodes.Status422UnprocessableEntity, new { ok = false, message = "Address not found" });
+                App.Bootstrap.Logger?.Add(ex.Message, App.Helper.Logger.LogLevel.Error);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, new { ok = false, msg = "Address not found" });
             }
 
-            var buildCard = new Website.Pages.User.Address.EndPoints.BuildCardModel();
-            var (cardLabel, cardHtml) = buildCard.BuildCard(userAddressId, false, User.Id());
-
-            return new JsonResult(new { ok = true, Addresslabel = cardLabel, newcard = cardHtml });
+            try
+            {
+                BuildCardModel buildCard = new();
+                // The tuple expected the HTML, LABEL in this order, they are not by name, rather sequence.
+                var (cardHtml, cardLabel) = buildCard.BuildCard(input.ModalId, userAddressId.ToString(), false);
+                return new JsonResult(new { ok = true, Addresslabel = cardLabel, newcard = cardHtml });
+            }
+            catch (Exception ex)
+            {
+                App.Bootstrap.Logger?.Add(ex.Message, App.Helper.Logger.LogLevel.Error);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ok = false, msg = "Failed to build address card" });
+            }
         }
     }
 }

@@ -15,11 +15,17 @@
     </PackageReference>
     <PackageReference Include="NetTopologySuite" Version="2.6.0" />
     <PackageReference Include="NetTopologySuite.IO.GeoJSON" Version="4.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="App\Database\Entities\User\Address\" />
+    <Folder Include="Pages\Shared\Home\" />
+    <Folder Include="wwwroot\webfonts\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\css\Home.css" />
   </ItemGroup>
 
 </Project>

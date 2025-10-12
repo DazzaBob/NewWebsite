@@ -1,0 +1,139 @@
+﻿@page
+@model Website.Pages.Home.IndexModel
+@{
+    ViewData["Title"] = "Home";
+    Layout = "~/Pages/Home/_Layout.cshtml";
+    System.Data.DataTable dt = Model.GetLocationModalDataTable();
+}
+<div class="grid-canvas">
+    <div class="grid">
+        <div class="card">
+            <a href="" onclick="OpenPDModal()" class="btn btn-outline">
+                <h3>Request a Driver</h3>
+                <i class="fas fa-box"></i><b>&nbsp;Place Order!</b>
+            </a>
+        </div>
+        <div class="card">
+            <a href="" onclick="Placeholder" class="btn btn-pill-disabled btn-outline">
+                <h3>Catch a Ride</h3>
+                <i class="fas fa-car"></i><b>&nbsp;Place Order!</b>
+            </a>
+        </div>
+        <div class="card">
+            <a href="/Signup/Partner" class="btn btn-pill-disabled btn-outline">
+                <h3>Work With Us</h3>
+                <i class="fas fa-briefcase"></i><b>&nbsp;Apply Now!</b>
+            </a>
+        </div>
+    </div>
+</div>
+    <br />
+    @if (Model.UserRolesDT.Rows.Count > 1)
+    {
+        <div class="home-card roles-card">
+            <h3>Your Roles</h3>
+            <div class="role-pills">
+                @foreach (System.Data.DataRow dr in Model.UserRolesDT.Rows)
+                {
+                    <a href="@(dr["ROUTE"])" class="pill">
+                        @dr["NAME"]
+                        <i class="@(dr["ICONCLASS"])" aria-hidden="true"></i>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+<div class="grid-canvas">
+    <div class="card">
+        <h3>Manage Addresses</h3>
+        <ul class="task-list">
+            <li><a asp-page="/User/Addresses" class="btn">View / Edit Addresses</a></li>
+            <li><a asp-page="/User/Addresses/Add" class="btn">Add New Address</a></li>
+            <li><a asp-page="/User/Addresses/Delete" class="btn btn-outline-danger">Remove Address</a></li>
+        </ul>
+    </div>
+        <!-- 1. Account Balance -->
+<div class="card">
+        <h3>Account Balance</h3>
+        <p>@Model.AccountBalance.ToString("C")</p>
+    </div>
+
+        <!-- 2. Recent Activity -->
+        <div class="card">
+            <h3>Recent Activity</h3>
+            <p>No recent activity.</p>
+        </div>
+
+        <!-- 3. Upcoming Tasks -->
+        <div class="card">
+            <h3>Upcoming Tasks</h3>
+            <p>No scheduled tasks.</p>
+        </div>
+
+        <!-- 4. Recommended Services -->
+        <div class="card">
+            <h3>Recommended Services</h3>
+            <p>No recommendations at this time.</p>
+        </div>
+
+        <!-- 5. Promotions & Offers -->
+        <div class="card">
+            <h3>Promotions & Offers</h3>
+            <p>No current promotions.</p>
+        </div>
+
+        <!-- 6. Recent Orders -->
+        <div class="card">
+            <h3>Recent Orders</h3>
+            <p>No orders yet.</p>
+        </div>
+
+        <!-- 7. Current Mode -->
+        <div class="card">
+            <h3>Current Mode</h3>
+            <p>No intent selected.</p>
+        </div>
+
+        <!-- 8. Notifications -->
+        <div class="card">
+            <h3>Notifications</h3>
+            <p>No new notifications.</p>
+        </div>
+
+        <!-- 9. Nearby Services -->
+        <div class="card">
+            <h3>Nearby Services</h3>
+            <p>Map preview</p>
+        </div>
+
+        <!-- 10. Help & Support -->
+        <div class="card">
+            <h3>Help & Support</h3>
+            <ul>
+                <li><a asp-page="/Help/Faq">FAQ</a></li>
+                <li><a asp-page="/Help/Chat">Live Chat</a></li>
+                <li><a asp-page="/Help/Ticket">Submit a Ticket</a></li>
+            </ul>
+        </div>
+
+        <!-- 11. Usage Trends -->
+        <div class="card">
+            <h3>Usage Trends</h3>
+            <p>View detailed stats</p>
+        </div>
+
+        <!-- 12. What Others Say -->
+        <div class="card">
+            <h3>What Others Say</h3>
+            <blockquote>“Great service—always on time!”</blockquote>
+        </div>
+
+        <!-- 13. Resources -->
+        <div class="card">
+            <h3>Resources</h3>
+            <ul>
+                <li><a asp-page="/Resources/Guide">Getting Started Guide</a></li>
+                <li><a asp-page="/Resources/Blog">Latest Articles</a></li>
+            </ul>
+        </div>
+    </div>

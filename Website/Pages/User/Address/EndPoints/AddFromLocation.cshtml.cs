@@ -58,7 +58,7 @@ namespace Website.Pages.User.Address.EndPoints
             string label;
             try
             {
-                newId = App.Validation.AddressValidation.SaveAddressAndGetId(req.JSonpayload, LocationConnection, connection, Input.AddressTypeID, userId, true);
+                newId = App.Validation.AddressValidation.SaveAddressAndGetId(req.JSonpayload, Input.AddressTypeID, userId, true);
                 DataTable dt = App.Database.Shared.GetDataTable(connection, "USER_ADDRESS", $"USER_ID = {userId} AND ISDEFAULT=1");
                 if (dt.Rows.Count == 0) return NotFound(new { ok = false, msg = "Address not found." });
 

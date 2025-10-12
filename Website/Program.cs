@@ -10,6 +10,8 @@ Website.App.Database.Shared.EnsureDatabase(Website.App.Database.Schema.Entities.
 Website.App.Database.Shared.EnsureDatabase(Website.App.Database.Schema.Operations.Database);
 Website.App.Database.Shared.EnsureDatabase(Website.App.Database.Schema.LiveOps.Database);
 
+Website.App.HTML.SiteCSS.Create();
+
 // Bootstrap
 Website.App.Settings.Load();
 Website.App.Bootstrap.Logger?.Add("Application starting...");
@@ -75,6 +77,18 @@ app.UseStaticFiles(new StaticFileOptions
     ContentTypeProvider = new FileExtensionContentTypeProvider
     {
         Mappings = { [".webp"] = "image/webp" }
+    },
+    OnPrepareResponse = ctx =>
+    {
+        if (ctx.File.Name.Equals("all.min.css", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=31536000,immutable");
+        }
+        string ext = Path.GetExtension(ctx.File.Name).ToLowerInvariant();
+        if (ext == ".woff2" && ctx.File.Name.StartsWith("fa-solid", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=31536000,immutable");
+        }
     }
 });
 app.UseRouting();
@@ -92,9 +106,14 @@ app.Use(async (ctx, next) =>
     }
 });
 
+
 app.UseSession();          // session before auth
 app.UseAuthentication();   // required
 app.UseAuthorization();
 
 app.MapRazorPages();
+app.Lifetime.ApplicationStopping.Register(() =>
+{ // Graceful shutdown of DB pools
+    Website.App.Database.DataAccessManager.ShutdownPools();
+});
 app.Run();

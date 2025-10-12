@@ -8,7 +8,19 @@ namespace Website.App.Helper.Table
         private static SelectList selectlist = new(Enumerable.Empty<SelectListItem>());
         private static readonly object lockAssignSelectListObj = new();
 
-        public static (SelectList List, string? Error) GetAddressTypeOptions(App.Helper.Connection LocationConnection)
+        public static SelectList AddressTypeOptions()
+        {
+            var (list, error) = GetAddressTypeOptions(); // Load the address types for the dropdown
+
+            SelectList SelectOption = new("");
+            if (!string.IsNullOrEmpty(error))
+                return SelectOption;
+
+            SelectOption = list;
+            return SelectOption;
+        }
+
+        public static (SelectList List, string? Error) GetAddressTypeOptions()
         {
             lock (lockAssignSelectListObj)
             {
@@ -17,8 +29,7 @@ namespace Website.App.Helper.Table
 
                 try
                 {
-                    using DataTable dt = Database.Shared.GetDataTable(LocationConnection, Database.Schema.Locations.Tables.AddressType);
-
+                    using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Locations.Database, Database.Schema.Locations.Tables.AddressType);
                     var items = dt.Rows
                         .Cast<DataRow>()
                         .Select(r => new

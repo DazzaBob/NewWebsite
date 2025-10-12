@@ -1,0 +1,261 @@
+﻿/* ───────────────────────────── Elements CSS ─────────────────────────────
+   This file imports base.css (theme + layout) and defines:
+   1. Buttons
+   2. Inputs & Form Elements
+   3. Mapbox Autofill
+   4. Modals
+   5. Legal Content
+   6. Spinners / Loading
+──────────────────────────────────────────────────────────────────────────── */
+
+/* #region Import Base */
+/* #endregion Import Base */
+
+/* #region Buttons */
+.error-msg {
+    color: var(--color-primary);
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+/* #endregion Buttons */
+
+/* #region Inputs & Textareas */
+input,
+textarea {
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--color-text);
+    background-color: var(--color-bg-alt);
+    border: 1px solid var(--color-primary);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+    input:focus,
+    textarea:focus {
+        outline: none;
+        border-color: var(--color-primary-hover);
+        box-shadow: 0 0 0 2px rgba(255, 90, 95, 0.2);
+    }
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+    .password-wrapper .input-text {
+        width: 100%;
+    }
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 3.3rem;
+    color: var(--color-text);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    z-index: 10;
+    opacity: 0.9;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+    transition: color 0.2s ease, opacity 0.2s ease;
+}
+    .password-toggle:hover {
+        color: var(--color-primary);
+    }
+input[type="password"]::-ms-reveal,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+    display: none !important;
+}
+/* #endregion Inputs & Textareas */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+}
+
+    .modal.hidden {
+        display: none;
+    }
+
+.modal-content {
+    background: var(--color-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+}
+/* #endregion Modals */
+
+/* #region Legal Content */
+.legal-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: 1rem;
+    line-height: 1.75;
+}
+
+    .legal-container h1,
+    .legal-container h2,
+    .legal-container h3 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+
+    .legal-container p {
+        margin-bottom: 1.25rem;
+    }
+
+    .legal-container ul,
+    .legal-container ol {
+        padding-left: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .legal-container li {
+        margin-bottom: 0.75rem;
+    }
+/* #endregion Legal Content */
+
+/* #region Spinners / Loading */
+@keyframes mava-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    border: .15em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: mava-spin .8s linear infinite;
+}
+
+.spinner--sm {
+    width: .9em;
+    height: .9em;
+    border-width: .12em;
+}
+
+.spinner--md {
+    width: 1.25em;
+    height: 1.25em;
+}
+
+.spinner--lg {
+    width: 2em;
+    height: 2em;
+    border-width: .2em;
+}
+
+.btn.is-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: .75;
+}
+
+.btn .spinner {
+    margin-left: .5rem;
+    vertical-align: -0.15em;
+}
+
+.spinner-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,.35);
+    z-index: 9999;
+}
+
+    .spinner-overlay[hidden] {
+        display: none;
+    }
+/* #endregion Spinners / Loading */
+
+/* ───────────────────────── Centered modal ────────────────────────── */
+.custom-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background-color: rgba(0, 0, 0, 0.8);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+    .custom-modal.show {
+        display: flex; /* enable flex centering */
+        align-items: center; /* vertical centering */
+        justify-content: center; /* horizontal centering */
+    }
+.custom-modal-content {
+    opacity: 1;
+    background-color: var(--color-bg-alt);
+    color: var(--color-text);
+    width: 90%;
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 2px solid var(--color-primary);
+    background-color: var(--color-bg-alt);
+    box-shadow: var(--theme-box-shadow);
+    overflow-y: auto;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+@media (max-width: 992px) {
+    .custom-modal-content {
+        max-width: 500px;
+    }
+}
+@media (max-width: 768px) {
+    .custom-modal-content {
+        max-width: 90%; /* almost full width on small screens */
+    }
+}
+@media (max-width: 480px) {
+    .custom-modal-content {
+        max-width: 95%;
+    }
+}
+.custom-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.custom-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+}
+    .custom-modal-header h5 {
+        margin: 0;
+        font-size: 1rem;
+        flex: 1;
+        color: var(--color-on-primary);
+    }

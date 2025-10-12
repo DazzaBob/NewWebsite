@@ -23,7 +23,7 @@ namespace Website.App.Operations.Zoning
                 if (placeId <= 0)
                     ArgumentOutOfRangeException.ThrowIfLessThan(placeId, 1, nameof(placeId));
 
-                DataRow[] DR = Database.Locations.Tables.Place.DataTable(connection).Select($"ID = {placeId}");
+                DataRow[] DR = Database.Locations.Tables.Place.DataTable().Select($"ID = {placeId}");
                 if (DR.Length == 0)
                 {
                     return;

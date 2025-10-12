@@ -6,7 +6,7 @@ namespace Website.App.Database.Locations.Tables
     internal static class Locality
     {
         internal static object LockRehydrate = new();
-        internal static DataTable LocalityDT = new();
+        private readonly static DataTable LocalityDT = new();
         internal static DataTable DataTable(Helper.Connection connection)
         {
             if (LocalityDT.Rows.Count == 0)
@@ -14,7 +14,7 @@ namespace Website.App.Database.Locations.Tables
                 lock (LockRehydrate)
                 {
                     if (LocalityDT.Rows.Count == 0)
-                        RehydrateDT(connection);
+                        RehydrateDT();
                 }
             }
             return LocalityDT;
@@ -22,14 +22,12 @@ namespace Website.App.Database.Locations.Tables
 
         internal static int GetId(int placeId, string countryName, string placeName, string localityName)
         {
-            using Helper.Connection connection = Shared.Connection(Schema.Locations.Database);
-
             if (LocalityDT.Rows.Count == 0)
             {
                 lock (LockRehydrate)
                 {
                     if (LocalityDT.Rows.Count == 0)
-                        RehydrateDT(connection);
+                        RehydrateDT();
                 }
             }
 
@@ -38,8 +36,8 @@ namespace Website.App.Database.Locations.Tables
 
             lock (LockRehydrate)
             {
-                Insert(connection, placeId, countryName, placeName, localityName);
-                RehydrateDT(connection);
+                Insert(placeId, countryName, placeName, localityName);
+                RehydrateDT();
             }
 
             rows = LocalityDT.Select($"PLACE_ID={placeId} AND NAME={Shared.SafeReplace(localityName)}");
@@ -48,16 +46,16 @@ namespace Website.App.Database.Locations.Tables
             return -1;
         }
 
-        private static void RehydrateDT(Helper.Connection connection)
+        private static void RehydrateDT()
         {
-            DataTable newDT = Shared.GetDataTable(connection, "LOCALITY");
+            DataTable newDT = DataAccessManager.GetDataTable(Schema.Locations.Database, Schema.Locations.Tables.Locality);
             lock (LockRehydrate)
             {
                 LocalityDT.Clear();
                 LocalityDT.Merge(newDT);
             }
         }
-        internal static void Insert(Helper.Connection connection, int placeId, string countryName, string placeName, string localityName)
+        internal static void Insert(int placeId, string countryName, string placeName, string localityName)
         {
             string inputAddress = $"{localityName}, {placeName} {countryName}".Trim();
             if (string.IsNullOrWhiteSpace(inputAddress)) return;
@@ -75,9 +73,9 @@ namespace Website.App.Database.Locations.Tables
             string minLon = SqlVal(RAF?.Locality?.BBox?.MinLongitude);
             string maxLon = SqlVal(RAF?.Locality?.BBox?.MaxLongitude);
 
-            connection.ExecuteNonQuery($@"INSERT OR IGNORE INTO LOCALITY 
-        (PLACE_ID, NAME, LATITUDE, LONGITUDE, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE) 
-        VALUES ({placeId}, {Shared.SafeReplace(localityName)}, {lat}, {lon}, {minLat}, {maxLat}, {minLon}, {maxLon})");
+            string sql = "INSERT OR IGNORE INTO LOCALITY (PLACE_ID, NAME, LATITUDE, LONGITUDE, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE) ";
+            sql += $"VALUES ({placeId}, {Shared.SafeReplace(localityName)}, {lat}, {lon}, {minLat}, {maxLat}, {minLon}, {maxLon})";
+            _ = DataAccessManager.ExecuteNonQuery(Schema.Locations.Database, sql, []);
         }
     }
 }

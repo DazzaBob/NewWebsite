@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Data;
 using Website.App.Security;
 
-namespace Website.Pages.User.Dashboard
+namespace Website.Pages.Home
 {
     public class IndexModel : PageModel
     {
@@ -46,9 +46,6 @@ namespace Website.Pages.User.Dashboard
         [ViewData]
         public string MapboxPublicToken { get; set; } = string.Empty;
 
-        public App.Helper.Connection LocationConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
-        public App.Helper.Connection EntitiyConnection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-
         [BindProperty]
         [Required(ErrorMessage = "Please select a valid address type.")]
 
@@ -87,11 +84,10 @@ namespace Website.Pages.User.Dashboard
             }
             Notifications = []; // fetch notifications
 
-            using App.Helper.Connection connection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
             string sql = $@"SELECT ur.*, r.NAME, r.DESCRIPTION, r.ROUTE, r.ICONCLASS FROM USER_ROLES ur 
             INNER JOIN ROLES r ON ur.ROLE_ID = r.ID WHERE ur.USER_ID = @UserId AND ur.ISACTIVE = 1";
             Microsoft.Data.Sqlite.SqliteParameter[] roleParams = [new Microsoft.Data.Sqlite.SqliteParameter("@UserId", UserId)];
-            UserRolesDT = connection.GetDataTable(sql, roleParams);
+            UserRolesDT = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Database, sql, roleParams);
 
             return Page();
         }

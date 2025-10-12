@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Xml.Linq;
 using Website.App.Mapbox.GeoCoding.V6;
 
 namespace Website.App.Database.Locations.Tables
@@ -6,31 +7,28 @@ namespace Website.App.Database.Locations.Tables
     internal static class Place
     {
         internal static object LockRehydrate = new();
-        private static DataTable PlaceDT = new();
+        private readonly static DataTable PlaceDT = new();
 
-        internal static DataTable DataTable(Helper.Connection connection)
+        internal static DataTable DataTable()
         {
             if (PlaceDT.Rows.Count == 0)
             {
                 lock (LockRehydrate)
                 {
                     if (PlaceDT.Rows.Count == 0)
-                        RehydrateDT(connection);
+                        RehydrateDT();
                 }
             }
             return PlaceDT;
         }
-
         internal static int GetId(int regionId, string countryName, string placeName)
         {
-            using Helper.Connection connection = Shared.Connection(Schema.Locations.Database);
-
             if (PlaceDT.Rows.Count == 0)
             {
                 lock (LockRehydrate)
                 {
                     if (PlaceDT.Rows.Count == 0)
-                        RehydrateDT(connection);
+                        RehydrateDT();
                 }
             }
 
@@ -39,8 +37,8 @@ namespace Website.App.Database.Locations.Tables
 
             lock (LockRehydrate)
             {
-                Insert(connection, regionId, countryName, placeName);
-                RehydrateDT(connection);
+                Insert(regionId, countryName, placeName);
+                RehydrateDT();
             }
 
             rows = PlaceDT.Select($"REGION_ID={regionId} AND NAME={Shared.SafeReplace(placeName)}");
@@ -48,18 +46,16 @@ namespace Website.App.Database.Locations.Tables
 
             return -1;
         }
-
-        private static void RehydrateDT(Helper.Connection connection)
+        private static void RehydrateDT()
         {
-            DataTable newDT = Shared.GetDataTable(connection, "PLACE");
+            using DataTable newDT = DataAccessManager.GetDataTable(Schema.Locations.Database, Schema.Locations.Tables.Place);
             lock (LockRehydrate)
             {
                 PlaceDT.Clear();
                 PlaceDT.Merge(newDT);
             }
         }
-
-        internal static void Insert(Helper.Connection connection, int regionId, string countryName, string placeName)
+        internal static void Insert(int regionId, string countryName, string placeName)
         {
             string inputAddress = $"{placeName} {countryName}".Trim();
             if (string.IsNullOrWhiteSpace(inputAddress)) return;
@@ -77,9 +73,9 @@ namespace Website.App.Database.Locations.Tables
             string minLon = SqlVal(RAF?.Place?.BBox?.MinLongitude);
             string maxLon = SqlVal(RAF?.Place?.BBox?.MaxLongitude);
 
-            connection.ExecuteNonQuery($@"INSERT OR IGNORE INTO PLACE 
-        (REGION_ID, NAME, LATITUDE, LONGITUDE, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE) 
-        VALUES ({regionId}, {Shared.SafeReplace(placeName)}, {lat}, {lon}, {minLat}, {maxLat}, {minLon}, {maxLon})");
+            string sql = "INSERT OR IGNORE INTO PLACE (REGION_ID, NAME, LATITUDE, LONGITUDE, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE) ";
+            sql += $"VALUES ({regionId}, {Shared.SafeReplace(placeName)}, {lat}, {lon}, {minLat}, {maxLat}, {minLon}, {maxLon})";
+            _ = DataAccessManager.ExecuteNonQuery(Schema.Locations.Database, sql, []);
         }
     }
 }

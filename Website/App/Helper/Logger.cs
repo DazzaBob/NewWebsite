@@ -1,224 +1,141 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+
 namespace Website.App.Helper
 {
     public class Logger : IDisposable
     {
-        private string[] LogLevelNames = new string[5];
+        private readonly string[] LogLevelNames = { "UNK", "INF", "WRN", "ERR", "DBG" };
         private string _filePathName;
         private long Counter;
 
-        private System.Timers.Timer LazyWriterTimer;
-        private int LazyWriterDelay;
+        private readonly object MutexPrimaryList = new();
+        private readonly object MutexFilePath = new();
+        private readonly List<LogMessage> PrimaryList = [];
 
-        private object MutexPrimaryList;
-        private object MutexCounter;
-        private object MutexFilePath;
-        private object MutexLazyWriter;
+        private readonly System.Threading.Timer LazyWriterTimer;
+        private int LazyWriterDelay = 100;
+        private volatile bool _isFlushing = false;
 
-        private List<LogMessage> PrimaryList;
-        public enum LogLevel : byte
+        public enum LogLevel : byte { Unknown = 0, Info = 1, Warn = 2, Error = 3, Debug = 4 }
+        public Logger(string pathName)
         {
-            Unknown = 0,
-            Info = 1,
-            Warn = 2,
-            Error = 3,
-            Debug = 4
-        }
-        private Logger()
-        {
-            LogLevelNames[(byte)LogLevel.Unknown] = "UNK";
-            LogLevelNames[(byte)LogLevel.Info] = "INF";
-            LogLevelNames[(byte)LogLevel.Warn] = "WRN";
-            LogLevelNames[(byte)LogLevel.Error] = "ERR";
-            LogLevelNames[(byte)LogLevel.Debug] = "DBG";
+            if (string.IsNullOrEmpty(pathName)) throw new ArgumentException("Path name cannot be null or empty.", nameof(pathName));
+            if (!Path.IsPathRooted(pathName)) throw new ArgumentException("Path must be absolute.", nameof(pathName));
 
-            LazyWriterDelay = 100;
-
-            MutexPrimaryList = new object();
-            MutexCounter = new object();
-            MutexFilePath = new object();
-            MutexLazyWriter = new object();
-            _filePathName = string.Empty;
-            PrimaryList = [];
-
-            LazyWriterTimer = new System.Timers.Timer(); // { AutoReset = true };
-        }
-        public Logger(string pathName) : this()
-        {
-            if (string.IsNullOrEmpty(pathName))
-                throw new ArgumentException("Path name cannot be null or empty.", nameof(pathName));
-
-            if (Path.IsPathRooted(pathName))
-                _filePathName = pathName;
-            else
-                throw new ArgumentException("Path must be absolute.", nameof(pathName));
-
+            _filePathName = pathName;
             InsureLogFileExists(pathName);
 
-            LazyWriterTimer.Interval = LazyWriterDelay;
-            LazyWriterTimer.AutoReset = true;
-            LazyWriterTimer.Enabled = true;
-            LazyWriterTimer.SynchronizingObject = null; // No synchronization context   
-            LazyWriterTimer.Elapsed += (sender, e) => LazyWriterTimerElapsed();
+            // Initialize System.Threading.Timer
+            LazyWriterTimer = new System.Threading.Timer(_ => LazyWriterTimerCallback(), null, LazyWriterDelay, LazyWriterDelay);
         }
         public void Add(string message, LogLevel level = LogLevel.Info)
         {
+            string sMessage = $"[{LogLevelNames[(byte)level]}] {message}";
             lock (MutexPrimaryList)
             {
-                lock (MutexCounter)
-                {
-                    if (Counter < 0) Counter = 0; // Prevent overflow
-
-                    Counter++;
-
-                    if (Counter > 9999999999) // Prevent overflow
-                        Counter = 0;
-                    PrimaryList.Clear();
-                }
-                string sMessage = "[" + LogLevelNames[(byte)level] + "] " + message;
+                Counter++;
                 PrimaryList.Add(new LogMessage(sMessage, Counter));
             }
         }
         public void ChangeLogFile(string pathName)
         {
-            LazyWriterTimer.Stop();
-            if (PrimaryList.Count > 0)
+            Flush();
+            lock (MutexFilePath)
             {
-                WriteMessageToDisc();
-
-                lock (MutexFilePath)
-                {
-                    _filePathName = pathName;
-                }
-                InsureLogFileExists(pathName);
-
-                Thread.SpinWait(LazyWriterDelay);
+                _filePathName = pathName;
             }
-            LazyWriterTimer.Start();
+            InsureLogFileExists(pathName);
         }
         public string FilePathName => _filePathName;
-        private static bool InsureLogFileExists(string pathName)
+        private void LazyWriterTimerCallback()
+        {
+            if (_isFlushing) return;
+            try
+            {
+                _isFlushing = true;
+
+                List<LogMessage> snapshot;
+                lock (MutexPrimaryList)
+                {
+                    if (PrimaryList.Count == 0) return;
+                    snapshot = [.. PrimaryList]; // modern C# 12 clone
+                    PrimaryList.Clear();
+                }
+
+                // Adaptive interval based on message count
+                int count = snapshot.Count;
+                int newInterval = count switch
+                {
+                    > 1000 => 50,
+                    > 100 => 100,
+                    > 0 => 250,
+                    _ => 500
+                };
+                LazyWriterTimer.Change(newInterval, newInterval);
+
+                // Build log text
+                StringBuilder sb = new();
+                snapshot.Sort((a, b) => a.Sequence.CompareTo(b.Sequence));
+                foreach (var msg in snapshot)
+                    sb.AppendLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} {msg.Text}");
+
+                // Write safely to disk
+                lock (MutexFilePath)
+                {
+                    try
+                    {
+                        File.AppendAllText(_filePathName, sb.ToString(), Encoding.UTF8);
+                    }
+                    catch (IOException)
+                    {
+                        // Optional: could retry, skip, or queue for next flush
+                    }
+                }
+            }
+            finally
+            {
+                _isFlushing = false;
+            }
+        }
+        public void Flush()
+        {
+            LazyWriterTimerCallback();
+        }
+        private static void InsureLogFileExists(string pathName)
         {
             if (!File.Exists(pathName))
             {
-                try
-                {
-                    using (File.Create(pathName)) { }
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-        private static bool IsFileLocked(string fileName)
-        {
-            try
-            {
-                using (File.Open(fileName, FileMode.Open, FileAccess.Write, FileShare.None))
-                {
-                    return false;
-                }
-            }
-            catch (IOException)
-            {
-                return true;
+                using (File.Create(pathName)) { }
             }
         }
-        private struct LogMessage
+        private readonly struct LogMessage
         {
-            internal string Text { get; set; }
-            internal long Sequence { get; set; }
+            internal string Text { get; }
+            internal long Sequence { get; }
             internal LogMessage(string text, long sequence)
             {
                 Text = text;
                 Sequence = sequence;
             }
         }
-        private void WriteMessageToDisc()
-        {
-            string sMessage = GetMessage();
-            if (string.IsNullOrEmpty(sMessage)) return;
-            if (IsFileLocked(_filePathName)) return;
-
-            using var writer = File.AppendText(_filePathName);
-            writer.WriteLine(sMessage);
-        }
-        private string GetMessage()
-        {
-            var sb = new StringBuilder();
-            lock (MutexPrimaryList)
-            {
-                PrimaryList.Sort((a, b) => a.Sequence.CompareTo(b.Sequence));
-                foreach (var message in PrimaryList)
-                {
-                    string sText = message.Text;
-                    string sTimeStamp = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
-                    sText = sTimeStamp + " " + sText;
-                    if (!sText.EndsWith(Environment.NewLine))
-                        sText += Environment.NewLine;
-                    sb.Append(sText);
-                }
-                PrimaryList.Clear();
-                lock (MutexCounter)
-                {
-                    Counter = 0;
-                }
-            }
-            return sb.ToString();
-        }
-        private void LazyWriterTimerElapsed()
-        {
-            LazyWriterTimer.Stop();
-            LazyWriterTimer.Enabled = false;
-
-            int count = PrimaryList.Count;
-            if (count > 1000)
-                lock (MutexLazyWriter) { LazyWriterDelay = 49; }
-            else if (count > 100)
-                lock (MutexLazyWriter) { LazyWriterDelay = 99; }
-            else if (count > 0)
-                lock (MutexLazyWriter) { LazyWriterDelay = 259; }
-            else
-                lock (MutexLazyWriter) { LazyWriterDelay = 511; }
-
-            Thread.SpinWait(LazyWriterDelay);
-
-            if (PrimaryList.Count > 0)
-                WriteMessageToDisc();
-            else
-                lock (MutexCounter) { Counter = 0; }
-
-            LazyWriterTimer.Enabled = true;
-            LazyWriterTimer.Start();
-        }
-
-        #region IDisposable Support
+        #region Implements IDisposable Pattern
         private bool disposedValue;
-
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
                 if (disposing)
                 {
-                    LazyWriterTimer?.Stop();
+                    LazyWriterTimer?.Change(Timeout.Infinite, Timeout.Infinite);
                     LazyWriterTimer?.Dispose();
+                    Flush();
                 }
-                if (PrimaryList.Count > 0)
-                {
-                    WriteMessageToDisc();
-                    Thread.SpinWait(LazyWriterDelay);
-                    Counter = 0;
-                    LazyWriterDelay = 0;
-                }
-                PrimaryList?.Clear();
                 disposedValue = true;
             }
         }
-
         public void Dispose()
         {
             Dispose(true);

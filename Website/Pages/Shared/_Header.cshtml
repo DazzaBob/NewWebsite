@@ -33,34 +33,29 @@
         ViewData["DefaultAddressLabel"] = DefaultLabelFallback;
     }
 }
-
-<div class="header-container">
-    @if (!IsDashboard)
-    {
-    <div class="logo" style="flex:0 0 auto; margin-right:2rem;">
-        <a href="/Index"><img src="/assets/images/logo_96.png" alt="" height="40" style="display:block;" /></a>
+<header class="site-header">
+    <div class="header-container">
+        <div class="logo" style="flex:0 0 auto; margin-right:2rem;">
+            <a href="/Index"><img src="/assets/images/logo_96.png" alt="" height="40" style="display:block;" /></a>
+        </div>
+        <nav class="nav-links"> 
+            @if (userId > 0) 
+            { // Logged in
+            <a href="/Home">Home</a>
+            <a href="/Account/Settings">Settings</a>
+              <a href="/User/Logout" class="btn btn-outline">Logout</a>
+     }
+            else { // Not logged in
+                if (currentPath != "/user/login")
+                {
+                    <a href="/User/Login" class="btn btn-outline">Log In</a>
+                }
+                if (currentPath != "/user/signup")
+                {
+                    <a href="/User/SignUp" class="btn btn-outline">Sign Up</a>
+                }
+                    <a href="/Faq">FAQ</a>
+            }
+        </nav>
     </div>
-    <nav class="nav-links"> 
-        @if (userId > 0) 
-        { // Logged in
-        <a href="/Dashboard">Dashboard</a>
-        <a href="/Account/Settings">Settings</a>
-        <a href="/User/Logout" class="btn btn-outline">Logout</a> } 
-        else { // Not logged in
-            if (currentPath != "/user/login")
-            {
-        <a href="/User/Login" class="btn btn-outline">Log In</a>
-            }
-            if (currentPath != "/user/signup")
-            {
-        <a href="/User/SignUp" class="btn btn-outline">Sign Up</a>
-            }
-        <a href="/Faq">FAQ</a> 
-        }
-    </nav>
-    }
-    else
-    { // Dashboard header
-    
-    }
-</div>
+</header>

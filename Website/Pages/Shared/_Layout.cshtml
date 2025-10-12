@@ -10,31 +10,13 @@
 <head>
     <meta charset="utf-8" />
     <title>@ViewData["Title"] - That's Handy</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="~/css/theme.css" />
-    <link rel="stylesheet" href="~/css/layout.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
-    @if (IsDashboard)
-    {
-        <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
-        <meta name="Website-mapbox-token" content="@App.Settings.MapboxToken" />
-    }
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="/css/elements.css" />
 </head>
 <body>
-    <header class="site-header">
-        <partial name="~/Pages/Shared/_Header.cshtml" />
-    </header>
-
-    @* Dashboard modals outside header, only if on dashboard *@
-    @if (IsDashboard)
-    {
-        @Html.Raw(App.HTML.Pages.Dashboard.Index.AddressModal(EntitiesConnection, LocationsConnection, Model.UserId))
-        ;
-        <partial name="~/Pages/Shared/Partials/_LocationModal.cshtml" />
-    }
-
-    <main role="main" class="@(IsDashboard ? "dashboard-content" : "container")">
+<partial name="~/Pages/Shared/_Header.cshtml" />
+    <main role="main" class="site-main">
         @RenderSection("StatusStrip", required: false)
         @RenderBody()
     </main>
@@ -49,20 +31,19 @@
     <script src="~/js/GS.js" defer asp-append-version="true"></script>
 
     <script src="~/js/Site.js" defer asp-append-version="true"></script>
-    @* Dashboard JS only if dashboard *@
-    @if (IsDashboard)
-    {
-        var currentPath = Context.Request.Path.Value?.ToLower() ?? "";
-        bool isDashboardIndex = currentPath == "/user/dashboard";
-        
-        if (isDashboardIndex)
-        {
-            <script src="~/js/DUAddress.js" defer asp-append-version="true"></script>
-        }
-        <script src="~/js/dashboards/user/currentlocation.js" defer asp-append-version="true"></script>
-        <script src="~/js/dashboard.js" defer asp-append-version="true"></script>
-    }
+    <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', () => {
+            // CSS preload
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = '/css/all.min.css';
+            document.head.appendChild(link);
 
+            // Font preload
+            const font = new FontFace('Font Awesome 7 Free', 'url(/webfonts/fa-solid-900.woff2)', { weight: '900' });
+            font.load().then(f => document.fonts.add(f));
+        });
+    </script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>
