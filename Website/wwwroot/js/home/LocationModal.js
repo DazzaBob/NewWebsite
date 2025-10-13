@@ -68,7 +68,7 @@ function ResolveCurrentLocation() {
 function GetAddressFromCoords(lat, lon) {
     const preview = document.getElementById('locationPreview');
     const payload = document.getElementById('locationPayload');
-    const token = document.querySelector('meta[name="Website-mapbox-token"]')?.content?.trim();
+    const token = document.querySelector('meta[name="t"]')?.content?.trim();
 
     if (!token) {
         if (preview) preview.textContent = 'Mapbox token missing.';

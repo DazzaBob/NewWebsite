@@ -1,16 +1,66 @@
-﻿using System;
-using System.Data;
-using System.Reflection.Metadata;
+﻿using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
-using System.Xml.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static Website.Pages.User.Address.EndPoints.BuildCardModel;
+using System.Text.RegularExpressions;
 
-namespace Website.App.HTML.Pages.Home.Modals.Scripts
+/// The Strings must be manaually string built.  because JS sucks!!!
+namespace Website.App.StringBuilders
 {
-    public static class Address
+    public static partial class Javascripts
     {
-        public static string Script()
+        public static void Create()
+        {
+            string path = Path.Combine("wwwroot", "js", "site.js");
+            if (File.Exists(path)) File.Delete(path);
+            File.WriteAllText(path, Get());
+        }
+        private static string Get()
+        {
+            StringBuilder sb = new();
+            sb.AppendLine(Global());
+            sb.AppendLine(AddressModalScript());
+            //sb.Append(Dashboard());
+            // add more here...
+
+            return sb.ToString();
+
+        }
+        private static string Global()
+        {
+            StringBuilder sb = new();
+
+            sb.Append("let _globalSpinner; ")
+              .Append("function toggleGlobalSpinner(show = false) {")
+              .Append("if (!_globalSpinner) {")
+              .Append("_globalSpinner=document.createElement('div'); ")
+              .Append("_globalSpinner.id='globalOverlaySpinner'; ")
+              .Append("Object.assign(_globalSpinner.style,{")
+              .Append("position:'fixed',")
+              .Append("top:'0',")
+              .Append("left:'0',")
+              .Append("width:'100vw',")
+              .Append("height:'100vh',")
+              .Append("background:'rgba(0,0,0,0.3)',")
+              .Append("display:'flex',")
+              .Append("justifyContent:'center',")
+              .Append("alignItems:'center',")
+              .Append("zIndex:'9999',")
+              .Append("visibility:'hidden'")
+              .Append("}); ")
+              .Append("_globalSpinner.innerHTML='<div class=\"spinner spinner--lg\"></div>'; ")
+              .Append("document.body.appendChild(_globalSpinner); ")
+              .Append("} ")
+              .Append("_globalSpinner.style.visibility=show?'visible':'hidden'; ")
+              .Append("}; ")
+              .Append("window.addEventListener('pageshow',e=>{if(e.persisted)location.reload();}); ")
+              .Append("document.addEventListener('DOMContentLoaded', () => { ")
+              .Append("const resetButton = document.getElementById('AMBTNCLS'); ")
+              .Append("if (resetButton) { resetButton.addEventListener('click', AMBtnCls);}}); ")
+              .AppendLine("window.AMBtnCls = function () { CloseNewAddressCard(); closeModalByType('address');}; ");
+            return sb.ToString();
+        }
+        #region Address Modal
+        public static string AddressModalScript()
         {
             StringBuilder sb = new();
             sb.Append(ResetNewAddressInputs())
@@ -28,7 +78,7 @@ namespace Website.App.HTML.Pages.Home.Modals.Scripts
         public static string ResetNewAddressInputs()
         {
             StringBuilder sb = new();
-            sb.Append("ResetNewAddressInputs = function () { ")
+            sb.Append("window.ResetNewAddressInputs = function () { ")
               .Append("const label = document.getElementById('AMNAL'); ")
               .Append("const search = document.getElementById('AMNAS'); ")
               .Append("const payload = document.getElementById('AMHJSON'); ")
@@ -45,7 +95,7 @@ namespace Website.App.HTML.Pages.Home.Modals.Scripts
         private static string CloseNewAddressCard()
         {
             StringBuilder sb = new();
-            sb.Append("CloseNewAddressCard = function () ")
+            sb.Append("window.CloseNewAddressCard = function () ")
             .Append("{")
             .Append("toggleGlobalSpinner(true); ")
             .Append("ResetNewAddressInputs(); ")
@@ -60,7 +110,7 @@ namespace Website.App.HTML.Pages.Home.Modals.Scripts
         private static string UpdateDefaultAddress()
         {
             StringBuilder sb = new();
-            sb.Append("UpdateDefaultAddress = function (radio) ")
+            sb.Append("window.UpdateDefaultAddress = function (radio) ")
                 .Append("{ ")
                 .Append("if (!radio) return; ")
                 .Append("const card = radio.closest('.address-card'); ")
@@ -106,7 +156,7 @@ namespace Website.App.HTML.Pages.Home.Modals.Scripts
         private static string StartEditAddress()
         {
             StringBuilder sb = new();
-            sb.Append("StartEditAddress = function (button) ")
+            sb.Append("window.StartEditAddress = function (button) ")
                 .Append("{ ")
                 .Append("if (!button) return; ")
                 .Append("const card = button.closest('.address-card'); ")
@@ -145,7 +195,7 @@ namespace Website.App.HTML.Pages.Home.Modals.Scripts
         private static string CancelEditAddress()
         {
             StringBuilder sb = new();
-            sb.Append("CancelEditAddress = function (button) ")
+            sb.Append("window.CancelEditAddress = function (button) ")
                 .Append("{ ")
                 .Append("if (!button) return; ")
                 .Append("const card = button.closest('.address-card'); ")
@@ -173,7 +223,7 @@ namespace Website.App.HTML.Pages.Home.Modals.Scripts
         private static string SaveEditedAddress()
         {
             StringBuilder sb = new();
-            sb.Append("SaveEditedAddress = function (card, newLabel) ")
+            sb.Append("window.SaveEditedAddress = function (card, newLabel) ")
                 .Append("{ ")
                 .Append("if (!card || !newLabel?.trim()) return; ")
                 .Append("const radio = card.querySelector('.address-radio'); ")
@@ -214,7 +264,7 @@ namespace Website.App.HTML.Pages.Home.Modals.Scripts
         private static string SaveNewAddress()
         {
             StringBuilder sb = new();
-            sb.Append("SaveNewAddress = async function (card) { ")
+            sb.Append("window.SaveNewAddress = async function (card) { ")
               .Append("if (!card) { alert('No card passed'); return; } ")
               .Append("const label = document.getElementById('AMNAL')?.value.trim(); ")
               .Append("const searchJSON = document.getElementById('AMHJSON')?.value; ")
@@ -250,7 +300,7 @@ namespace Website.App.HTML.Pages.Home.Modals.Scripts
         {
             StringBuilder sb = new();
 
-            sb.Append("function AddNewAddressCard(data) { ")
+            sb.Append("window.AddNewAddressCard = function (data) { ")
               .Append("if (!data || !data.newcard) return; ")
               .Append("const modal = document.querySelector('.custom-modal[data-modal-type=\"address\"]'); ")
               .Append("if (!modal) return; ")
@@ -277,7 +327,7 @@ namespace Website.App.HTML.Pages.Home.Modals.Scripts
         {
             StringBuilder sb = new();
 
-            sb.Append("async function DeleteAddressCard(button) { ")
+            sb.Append("window.DeleteAddressCard = async function (button) { ")
             .Append("if (!button) return; ")
             .Append("const card = button.closest('.address-card'); ")
             .Append("if (!card) return; ")
@@ -290,7 +340,7 @@ namespace Website.App.HTML.Pages.Home.Modals.Scripts
             .Append("radio.focus(); ")
             .Append("return; ")
             .Append("} ")
-            .AppendLine("toggleGlobalSpinner(true); ")
+            .Append("toggleGlobalSpinner(true); ")
             .Append("try { ")
             .Append("const response = await fetch('/User/Address/EndPoints/DeleteSelected', { ")
             .Append("method: 'POST', ")
@@ -310,5 +360,18 @@ namespace Website.App.HTML.Pages.Home.Modals.Scripts
 
             return sb.ToString();
         }
+        #endregion
+        private static string Modal() => @"
+            function openModal(id) {
+                const modal = document.getElementById(id);
+                if (modal) modal.style.display = 'block';
+            }
+        ";
+
+        private static string Dashboard() => @"
+            function refreshDashboard() {
+                console.log('Dashboard refreshed');
+            }
+        ";
     }
 }

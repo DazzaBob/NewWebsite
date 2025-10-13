@@ -16,10 +16,12 @@
     <PackageReference Include="NetTopologySuite" Version="2.6.0" />
     <PackageReference Include="NetTopologySuite.IO.GeoJSON" Version="4.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="WebMarkupMin.Core" Version="2.19.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="App\Database\Entities\User\Address\" />
+    <Folder Include="App\HTML\Pages\Home\Modals\Scripts\" />
     <Folder Include="Pages\Shared\Home\" />
     <Folder Include="wwwroot\webfonts\" />
   </ItemGroup>

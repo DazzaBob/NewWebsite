@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.StaticFiles;
+using Website.App.StringBuilders;
 using Website.Pages.User.Address.EndPoints;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,7 +11,8 @@ Website.App.Database.Shared.EnsureDatabase(Website.App.Database.Schema.Entities.
 Website.App.Database.Shared.EnsureDatabase(Website.App.Database.Schema.Operations.Database);
 Website.App.Database.Shared.EnsureDatabase(Website.App.Database.Schema.LiveOps.Database);
 
-Website.App.HTML.SiteCSS.Create();
+Website.App.StringBuilders.SiteCSS.Create();
+Website.App.StringBuilders.Javascripts.Create();
 
 // Bootstrap
 Website.App.Settings.Load();
@@ -105,12 +107,13 @@ app.Use(async (ctx, next) =>
         //ctx.Response.Headers.Expires = "0";
     }
 });
-
-
 app.UseSession();          // session before auth
 app.UseAuthentication();   // required
 app.UseAuthorization();
 
+#if (!DEBUG)
+    app.UseMiddleware<HtmlMinifyMiddleware>(); // this will minify all HTML responses
+#endif
 app.MapRazorPages();
 app.Lifetime.ApplicationStopping.Register(() =>
 { // Graceful shutdown of DB pools

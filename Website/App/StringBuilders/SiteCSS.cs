@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Website.App.HTML
+namespace Website.App.StringBuilders
 {
     public static partial class SiteCSS
     {
@@ -55,7 +55,7 @@ namespace Website.App.HTML
 
             string css = @"
             :root {
-            --font-family-base: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-family-base: 'Font Awesome 7 Free', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             --color-primary: #ff5a5f;
             --color-primary-hover: #e14b50;
             --color-secondary: #007bff;
@@ -64,9 +64,9 @@ namespace Website.App.HTML
             --btn-primary-hover-bg: #e14b50;
             --btn-primary-hover-text: #0;             
             --btn-primary-text: #ffffff; 
-            --btn-secondary-bg: #007bff;
-            --btn-secondary-hover-bg: #0056b3;
-            --btn-secondary-text: #ffffff;
+            --btn-secondary-bg: #dc3545;
+            --btn-secondary-hover-bg: #c82333;
+            --btn-secondary-text: #fff;
             --btn-transparent-bg: transparent;
             --btn-transparent-border: #ff5a5f;
             --btn-transparent-text: #ff5a5f;
@@ -75,9 +75,6 @@ namespace Website.App.HTML
             --color-bg: #ffffff;
             --color-bg-alt: #f9f9f9;
             --color-bg-alt-alt: #f0f0f0;
-            --color-header-bg: #ffffff;
-            --color-footer-bg: #333333;
-            --color-footer-text: #ffffff;
             --shadow-light: rgba(0,0,0,0.1);
             --shadow-strong: rgba(0,0,0,0.15);
             --hero-overlay-start: rgba(0,0,0,0.5);
@@ -122,7 +119,7 @@ namespace Website.App.HTML
             margin: 0;
             padding: 0;
             font-family: var(--font-family-base);
-            font-size: clamp(0.625rem, 2vw + 0.625rem, 2rem);
+            font-size: clamp(0.55rem, 0.5vw + 0.55rem, 1.25rem);
             line-height: 1.5;
             color: var(--color-text);
             background-color: var(--color-bg);
@@ -142,7 +139,6 @@ namespace Website.App.HTML
         private static string Layout()
         {
             StringBuilder sb = new();
-            sb.AppendLine(Header());
             sb.AppendLine(MainContainer());
             sb.AppendLine(Footer());
 
@@ -157,69 +153,25 @@ namespace Website.App.HTML
         // 5. Footer
         // 6. Responsive Breakpoints
         // ──────────────────────────────────────────────────────────────────────────── */
-        private static string Header()
-        {
-            string css = @"
-                .site-header 
-                {display: flex; align-items: center; /* vertically centers content */
-                justify-content: space-between;
-                padding: 0.75rem .15rem; /* top/bottom and left/right padding */
-                background: var(--color-header-bg);
-                box-shadow: 0 2px 4px var(--shadow-light);
-                position: fixed;
-                width: 100%;
-                top: 0;
-                left: 0;
-                margin: 0;
-                box-sizing: border-box;
-                z-index: 100;
-                height: auto; /* let content dictate height */
-                }
-                .header-container 
-                {width: 100%; margin: 0; padding: 0; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;}
-                .logo {flex-shrink: 0;}
-                .logo img
-                {display: block; height: 40px; width: auto;}";
-            return css;
-        }
         private static string MainContainer()
         {
-            string css = @".site-main {flex: 1 1 auto; width: 100%; margin: 0 auto; overflow-y: auto;}";
+            string css = @".site-main {overflow-y: auto; width: 100%; margin: 0 auto;}";
             return css;
         }
         private static string Footer()
         {
             string css = @"
-                .site-footer 
-                {background: var(--color-footer-bg); color: var(--color-footer-text);
-                display: flex; align-items: center; justify-content: space-around;
-                flex-shrink: 0; /* prevent shrinking */}
-                .footer-container, footer 
-                {width: 90%; max-width: 1200px; margin: 0 auto; padding: 1rem 1rem;
-                text-align: center; font-size: clamp(0.625rem, 2vw + 0.625rem, 2rem);}
-                .footer-container a, footer a 
-                {color: var(--color-footer-text); margin: 0 0.5rem; font-weight: 300;
-                transition: color 0.3s;}
-                .footer-container a:hover, footer a:hover 
-                {color: var(--color-primary);}
-                /* Footer nav buttons */
-                .footer-nav-btn 
-                {flex: 1 1 120px; max-width: 200px; max-height: 60px; text-align: center;
-                color: var(--color-text-secondary); text-decoration: none;
-                padding: var(--spacing-small) 0 .25rem; display: flex; flex-direction: column;
-                align-items: center; justify-content: flex-start;
-                background: var(--color-bg-alt-alt); border: 1px solid var(--color-primary);
-                border-radius: .25rem; transition: color 0.3s ease;}
-                .footer-nav-btn i 
-                {font-size: clamp(0.625rem, 2vw + 0.625rem, 2rem); margin-bottom: .25rem;
-                transition: transform 0.3s ease, color 0.3s ease;
-                font-family: 'Font Awesome 7 Free'; font-weight: 900;}
-                .footer-nav-btn.active 
-                {color: var(--color-primary);}
-                .footer-nav-btn:hover 
-                {color: var(--color-primary);}
-                .footer-nav-btn:hover i
-                {transform: rotate(15deg) scale(1.2); color: var(--color-primary);}";
+                .site-footer {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;}
+
+                .footer-container {
+                display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.5rem;
+                width: 90%; margin: 0 auto; padding: .15rem 1rem;
+                text-align: center; font-size: clamp(0.55rem, 0.5vw + 0.55rem, 1.25rem);}";
 
             return css;
         }
@@ -237,16 +189,19 @@ namespace Website.App.HTML
             //<button class="btn btn-primary">Home</button>
             //<button class="btn btn-nav btn-outline">Settings</button>
             //<button class="btn btn-pill btn-transparent">Logout</button>
-            string css = @".btn {display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 30px; border: none; font-weight: 600; font-size: clamp(0.875rem, 2vw + 0.875rem, 2rem); cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px var(--shadow-light);}
+            string css = @".btn {display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 30px; border: none; font-weight: 600; font-size: clamp(0.55rem, 0.5vw + 0.55rem, 1.25rem); cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px var(--shadow-light);}
             .btn-primary {background: var(--btn-primary-bg); color: var(--btn-primary-text);}
             .btn-primary:hover {background: var(--btn-primary-hover-bg); color: var(--btn-primary-hover-text); transform: translateY(-2px); box-shadow: 0 6px 8px var(--shadow-strong);}
-            .btn-outline {background: var(--btn-transparent-bg); color: var(--btn-transparent-text); border: 2px solid var(--color-text);}
-            .btn-outline:hover {background: var(--btn-transparent-hover-bg); color: var(--btn-transparent-hover-text); transform: translateY(-2px);}
+            
+            .btn-outline {background: var(--btn-transparent-bg); color: var(--color-text); border: 2px solid var(--color-text);}
+            .btn-outline:hover {background: background: rgba(0,0,0,0.05); var(--color-primary); border-color: var(--color-primary);}
+            
             .btn-secondary {background: var(--btn-secondary-bg); color: var(--btn-secondary-text); border: 2px solid var(--btn-transparent-border);}
             .btn-secondary:hover {background: var(--btn-secondary-hover-bg); color: var(--btn-secondary-text); transform: translateY(-2px);}
+            
             .btn-nav {padding: 0.35rem 0.9rem; border-radius: 15px; box-shadow: none; line-height: 1.2;}
             .btn-nav:hover {transform: translateY(-1px); box-shadow: none;}
-            .btn-pill {padding: 0.35rem 0.9rem; font-size: clamp(0.70rem, 1.5vw + 0.70rem, 1.20rem); white-space: nowrap; border-radius: 9999px; box-shadow: 0 2px 4px var(--shadow-light); line-height: 1.2;}
+            .btn-pill {padding: 0.35rem 0.9rem; font-size: clamp(0.55rem, 0.5vw + 0.55rem, 1.25rem); white-space: nowrap; border-radius: 9999px; box-shadow: 0 2px 4px var(--shadow-light); line-height: 1.2;}
             .btn-pill:hover {transform: translateY(-1px); box-shadow: 0 4px 6px var(--shadow-strong);}
             .btn-pill-disabled {opacity: .5; pointer-events: none;}";
 
@@ -254,10 +209,10 @@ namespace Website.App.HTML
         }
         private static string GridCanvasCards()
         {
-            string css = @".grid-canvas {width: 100%; background-color: var(--color-bg-alt); padding: var(--spacing-medium); box-sizing: border-box;}
+            string css = @".grid-canvas {width: 100%; max-height: 100%; background-color: var(--color-bg-alt); padding: var(--spacing-medium);}
             .grid {display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--spacing-medium); align-items: stretch; width: 100%}
             .card {background-color: var(--color-bg-alt-alt); border: 2px solid var(--color-primary); border-radius: var(--radius-medium); box-shadow: 0 2px 4px var(--shadow-light); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; gap: 0.5rem; box-sizing: border-box;}
-            .card h3 {margin: 0 0 0.5rem 0; font-weight: 600; font-size: clamp(1rem, 2vw + 0.875rem, 1.5rem); text-align: center;}
+            .card h3 {margin: 0 0 0.5rem 0; font-weight: 600; font-size: clamp(0.55rem, 0.5vw + 0.55rem, 1.25rem);; text-align: center;}
             .card p, .card b, .card i, .card ul, .card blockquote {margin: 0; text-align: center;}";
             
             return css;

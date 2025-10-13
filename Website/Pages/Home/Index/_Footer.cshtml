@@ -1,27 +1,22 @@
 ﻿@using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor HttpContextAccessor
-<footer class="site-footer">
-    <!-- 1. Home -->
-    <a href="/Home" class="footer-nav-btn active">
-        <i class="fa-solid fa-th-large"></i>
-        <span><b>Home</b></span>
-    </a>
-
-    <!-- 2. Dynamic center slot -->
-    <a href="@Model.DefaultIntentDashboard" class="footer-nav-btn">
-        <i class="fa-solid fa-briefcase"></i>
-        <span>Order Now!</span>
-    </a>
-
-    <!-- 3. Profile -->
-    <a href="/User/Profile" class="footer-nav-btn">
-        <i class="fa-solid fa-user"></i>
-        <span>Profile</span>
-    </a>
-
-    <!-- 4. Tools -->
-    <a href="/User/Tools" class="footer-nav-btn">
-        <i class="fa-solid fa-wrench"></i>
-        <span>Tools</span>
-    </a>
-</footer>
+<div class="site-footer">
+    <div class="site-footer footer-container">
+        <a href="/Home" class="btn btn-nav btn-outline">
+            <i class="fa-solid fa-th-large"></i>
+            <b>Home</b>
+        </a>
+        <a href="placeholder" class="btn btn-nav btn-outline">
+            <i class="fa-solid fa-briefcase"></i>
+            <b>Order Now!</b>
+        </a>
+        <a href="/User/Profile" class="btn btn-nav btn-outline">
+            <i class="fa-solid fa-user"></i>
+            <b>Profile</b>
+        </a>
+        <a href="/User/Tools" class="btn btn-nav btn-outline">
+            <i class="fa-solid fa-wrench"></i>
+            <b>Tools</b>
+        </a>
+    </div>
+</div>

@@ -1,16 +1,12 @@
 ﻿@using System.Data
 @using App.Security
 @{
-    var userId = User.Id(); 
+    int userId = User.Id(); 
 
     // Resolve default address label
     string label = "Select Address";
 
     using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Database, App.Database.Schema.Entities.Tables.UserAddress, $"USER_ID={userId} AND ISDEFAULT=1");
-
-    //using App.Helper.Connection EntitiesConnection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-    //using DataTable dt = App.Database.Shared.GetDataTable(EntitiesConnection, App.Database.Schema.Entities.Tables.UserAddress, $"USER_ID={userId} AND ISDEFAULT=1");
-
     if (dt.Rows.Count > 0)
     {
         var temp = dt.Rows[0]["LABEL"] as string;
@@ -19,70 +15,63 @@
     }
     // border-collapse:collapse; border-spacing:0;">
 }
-<header class="site-header">
-    <div class="header-container">
-        <table style="width:100%; margin:0 auto; border-collapse:collapse; border-spacing:0;">
-            <tr><th style="width: 33%;"></th><th style="width: 34%;"></th><th style="width: 33%;"></th></tr>
-            <tr>
-                <td style="text-align:left">
-                    <a href="/Index">
-                        <img src="/assets/images/logo_96.png" alt="" height="40" />
-                    </a>
-                </td>
-                <td style="text-align:right;" colspan="2">
-                    <nav>
-                        <a href="/Home">Home</a>&nbsp;&nbsp;
-                        <a href="/Account/Settings">Settings</a>&nbsp;&nbsp;
-                        <a href="/User/Logout" class="btn btn-nav btn-outline">Logout</a>
-                    </nav>
-                </td>
-            </tr>
+<table style="width:100%; margin:0 auto; border-collapse:collapse; border-spacing:0;">
+    <tr><th style="width: 33%;"></th><th style="width: 34%;"></th><th style="width: 33%;"></th></tr>
+    <tr>
+        <td style="text-align:left">
+            <a href="/Index">
+                <img src="/assets/images/logo_96.png" alt="" height="40" />
+            </a>
+        </td>
+        <td style="text-align:right;" colspan="2">
+            <nav>
+                <a href="/Home">Home</a>&nbsp;&nbsp;
+                <a href="/Account/Settings">Settings</a>&nbsp;&nbsp;
+                <a href="/User/Logout" class="btn btn-nav btn-outline">Logout</a>
+            </nav>
+        </td>
+    </tr>
 
-            <tr style="background: var(--color-primary); color: var(--color-text);">
-                <td style="text-align:left; vertical-align:middle;">
-                    <button style="background:none; border:none; font-size:2rem; color:inherit; cursor:pointer;" aria-label="Open Menu" onclick="document.body.classList.toggle('menu-open')">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                </td>
-                <td style="text-align:center; vertical-align:middle; font-weight:600;">
-                    Home
-                </td>
-                <td style="text-align:right; vertical-align:middle;">
-                    <button style="background:none; border:none; font-size:2rem; color:inherit; cursor:pointer;" aria-label="Settings">
-                        <i class="fa-solid fa-cog"></i>
-                    </button>
-                </td>
-            </tr>
+    <tr style="background: var(--color-primary); color: var(--color-text);">
+        <td style="text-align:left; vertical-align:middle;">
+            <button style="background:none; border:none; font-size:2rem; color:inherit; cursor:pointer;" aria-label="Open Menu" onclick="document.body.classList.toggle('menu-open')">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </td>
+        <td style="text-align:center; vertical-align:middle; font-weight:600;">
+            Home
+        </td>
+        <td style="text-align:right; vertical-align:middle;">
+            <button style="background:none; border:none; font-size:2rem; color:inherit; cursor:pointer;" aria-label="Settings">
+                <i class="fa-solid fa-cog"></i>
+            </button>
+        </td>
+    </tr>
 
-            <tr>
-                <td style="text-align:left; vertical-align:middle;">
-                    <button id="addressToggle" class="btn btn-pill btn-outline" onclick="openModalByType('address')">
-                        <i class="fa-solid fa-home" style="margin-right:.5rem;"></i>
-                        @label&nbsp;<i class="fa-solid fa-chevron-down dropdown-icon"></i>
-                    </button>
-                </td>
-                <td></td>
-                <td style="text-align:right; vertical-align:middle;">
-                    <button id="useCurrentLocation" class="btn btn-pill btn-outline" onclick="OpenLocationModal();">
-                        <i class="fa-solid fa-map-marker-alt" style="margin-right:.5rem;"></i>
-                        Current location
-                    </button>
-                </td>
-            </tr>
-        </table>
-    </div>
-    <nav class="side-menu" aria-label="Side navigation">
-        <ul>
-            <li><a href="/User/Dashboard"><i class="fa-solid fa-gauge"></i>Dashboard</a></li>
-            <li><a href="/User/Dashboard/Orders"><i class="fa-solid fa-list-check"></i>Orders</a></li>
-            <li><a href="/User/Dashboard/Addresses"><i class="fa-solid fa-location-dot"></i>Addresses</a></li>
-            <li><a href="/User/Dashboard/Settings"><i class="fa-solid fa-sliders"></i>Settings</a></li>
-            <li><a href="/Legal/Terms"><i class="fa-solid fa-scale-balanced"></i>Terms</a></li>
-            <li><a href="/User/Logout"><i class="fa-solid fa-right-from-bracket"></i>Logout</a></li>
-        </ul>
-    </nav>
-    <div class="mn-bckdrp" aria-hidden="true"></div>
-</header>
-<script>
-    window.addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
-</script>
+    <tr>
+        <td style="text-align:left; vertical-align:middle;">
+            <button id="addressToggle" class="btn btn-pill btn-outline" onclick="openModalByType('address')">
+                <i class="fa-solid fa-home" style="margin-right:.5rem;"></i>
+                @label&nbsp;<i class="fa-solid fa-chevron-down dropdown-icon"></i>
+            </button>
+        </td>
+        <td></td>
+        <td style="text-align:right; vertical-align:middle;">
+            <button id="useCurrentLocation" class="btn btn-pill btn-outline" onclick="OpenLocationModal();">
+                <i class="fa-solid fa-map-marker-alt" style="margin-right:.5rem;"></i>
+                Current location
+            </button>
+        </td>
+    </tr>
+</table>
+<nav class="side-menu" aria-label="Side navigation">
+    <ul>
+        <li><a href="/User/Dashboard"><i class="fa-solid fa-gauge"></i>Dashboard</a></li>
+        <li><a href="/User/Dashboard/Orders"><i class="fa-solid fa-list-check"></i>Orders</a></li>
+        <li><a href="/User/Dashboard/Addresses"><i class="fa-solid fa-location-dot"></i>Addresses</a></li>
+        <li><a href="/User/Dashboard/Settings"><i class="fa-solid fa-sliders"></i>Settings</a></li>
+        <li><a href="/Legal/Terms"><i class="fa-solid fa-scale-balanced"></i>Terms</a></li>
+        <li><a href="/User/Logout"><i class="fa-solid fa-right-from-bracket"></i>Logout</a></li>
+    </ul>
+</nav>
+<div class="mn-bckdrp" aria-hidden="true"></div>

@@ -13,7 +13,7 @@
         <div class="custom-modal-header">
             <input type="hidden" class="AddressModalId" value="@modalId" />
             <h5 id="addressmodaltitle_@modalId">Select Current Address</h5>
-            <button class="btn-close" aria-label="Close" onclick="ResetNewAddressInputs(); CloseNewAddressCard(); closeModalByType('address')">×</button>
+            <button id="AMBTNCLS" class="btn-close" aria-label="Close">×</button>
         </div>
 
         <!-- Body -->
@@ -85,5 +85,4 @@
 </div>
 <script type="text/javascript">
     @Html.Raw(App.Scripts.Mapbox.AutoCompleteScript("AMNAS", "AMACL", "AMHJSON"))
-    @Html.Raw(App.HTML.Pages.Home.Modals.Scripts.Address.Script())
 </script>

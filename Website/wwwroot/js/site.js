@@ -1,89 +1,12 @@
-﻿window.Website = window.Website || {};
+let _globalSpinner; function toggleGlobalSpinner(show = false) {if (!_globalSpinner) {_globalSpinner=document.createElement('div'); _globalSpinner.id='globalOverlaySpinner'; Object.assign(_globalSpinner.style,{position:'fixed',top:'0',left:'0',width:'100vw',height:'100vh',background:'rgba(0,0,0,0.3)',display:'flex',justifyContent:'center',alignItems:'center',zIndex:'9999',visibility:'hidden'}); _globalSpinner.innerHTML='<div class="spinner spinner--lg"></div>'; document.body.appendChild(_globalSpinner); } _globalSpinner.style.visibility=show?'visible':'hidden'; }; window.addEventListener('pageshow',e=>{if(e.persisted)location.reload();}); document.addEventListener('DOMContentLoaded', () => { const resetButton = document.getElementById('AMBTNCLS'); if (resetButton) { resetButton.addEventListener('click', AMBtnCls);}}); window.AMBtnCls = function () { CloseNewAddressCard(); closeModalByType('address');}; 
 
-Website.UI = (() => {
-    const $ = (sel, root = document) => root.querySelector(sel);
+window.ResetNewAddressInputs = function () { const label = document.getElementById('AMNAL'); const search = document.getElementById('AMNAS'); const payload = document.getElementById('AMHJSON'); const type = document.getElementById('AMNATID'); const list = document.getElementById('AMACL'); if (label) label.value = ''; if (search) search.value = ''; if (payload) payload.value = ''; if (type) type.selectedIndex = 0; if (list) list.hidden = true; };
+window.CloseNewAddressCard = function () {toggleGlobalSpinner(true); ResetNewAddressInputs(); const modal = document.querySelector('.custom-modal[data-modal-type="address"]'); if (!modal) return; const newCard = modal.querySelector('.new-address-card'); if (newCard) newCard.style.display = 'none';toggleGlobalSpinner(false); }
+window.UpdateDefaultAddress = function (radio) { if (!radio) return; const card = radio.closest('.address-card'); if (!card) return; const selectedId = parseInt(radio.value, 10); if (!selectedId || isNaN(selectedId)) return; toggleGlobalSpinner(true); fetch('/User/Address/EndPoints/SetDefault', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Id: selectedId }) }) .then(resp => resp.json()) .then(data => { if (!data?.ok) throw new Error(data?.msg || 'Failed to save.'); radio.checked = true; document.querySelectorAll('.address-card').forEach(c => { const r = c.querySelector('.address-radio'); const delBtn = c.querySelector('.address-delete'); if (!r || !delBtn) return; delBtn.style.display = r.checked ? 'none' : 'block'; }); const labelText = card.querySelector('.address-label')?.textContent?.trim() || ''; const lineText = card.querySelector('.address-line')?.textContent?.trim() || ''; const preview = labelText ? labelText : (data.label || lineText); const toggle = document.getElementById('addressToggle'); if (toggle) { toggle.innerHTML = `<i class="fa-solid fa-home"></i>${preview}&nbsp;<i class="fa-solid fa-chevron-down dropdown-icon"></i>`; } }) .catch(err => { console.error(err); alert(err.message || 'Error saving default address.'); }) .finally(() => { toggleGlobalSpinner(false); }); }
+window.StartEditAddress = function (button) { if (!button) return; const card = button.closest('.address-card'); if (!card) return; const label = card.querySelector('.address-label'); if (label) label.style.display = 'none'; const radio = card.querySelector('.address-radio'); if (radio) radio.style.display = 'none'; const input = card.querySelector('.address-edit-input'); if (input) { toggleGlobalSpinner(true); input.style.display = 'block'; input.style.width = '100%'; input.style.boxSizing = 'border-box'; input.focus(); const valLength = input.value.length; input.setSelectionRange(valLength, valLength); } const normalActions = card.querySelector('.address-actions'); if (normalActions) normalActions.style.display = 'none'; const editActions = card.querySelector('.address-actions-edit'); if (editActions) { Object.assign(editActions.style, {display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', marginLeft: '1rem'}); const saveBtn = editActions.querySelector('.address-save'); if (saveBtn) saveBtn.style.display = 'inline-block'; const cancelBtn = editActions.querySelector('.address-cancel'); if (cancelBtn) cancelBtn.style.display = 'inline-block'; } toggleGlobalSpinner(false); }
+window.CancelEditAddress = function (button) { if (!button) return; const card = button.closest('.address-card'); if (!card) return; const label = card.querySelector('.address-label'); if (label) label.style.display = 'block'; const radio = card.querySelector('.address-radio'); if (radio) radio.style.display = 'inline-block'; const input = card.querySelector('.address-edit-input'); if (input) { toggleGlobalSpinner(true); input.style.display = 'none'; input.value = label?.textContent?.trim() || ''; } const normalActions = card.querySelector('.address-actions'); if (normalActions) normalActions.style.display = 'block'; const editActions = card.querySelector('.address-actions-edit'); if (editActions) editActions.style.display = 'none'; toggleGlobalSpinner(false); }
+window.SaveEditedAddress = function (card, newLabel) { if (!card || !newLabel?.trim()) return; const radio = card.querySelector('.address-radio'); const addressId = parseInt(radio?.value, 10); if (!addressId) return; toggleGlobalSpinner(true); fetch('/User/Address/EndPoints/EditLabel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Id: addressId, Label: newLabel.trim() }) }) .then(resp => resp.json()) .then(data => { if (!data?.ok) throw new Error(data?.msg || 'Failed to update label.'); const label = card.querySelector('.address-label'); if (label) label.textContent = ' ' + newLabel.trim(); if (radio?.checked) { const toggle = document.getElementById('addressToggle'); if (toggle) { toggle.innerHTML = `<i class="fa-solid fa-home"></i> ${newLabel.trim()}&nbsp;<i class="fa-solid fa-chevron-down dropdown-icon"></i>`; } } CancelEditAddress(card); }) .catch(err => { console.error(err); alert(err.message || 'Error updating address label.'); }) .finally(() => { toggleGlobalSpinner(false); }); }
+window.SaveNewAddress = async function (card) { if (!card) { alert('No card passed'); return; } const label = document.getElementById('AMNAL')?.value.trim(); const searchJSON = document.getElementById('AMHJSON')?.value; const typeID = document.getElementById('AMNATID')?.value; const modalId = document.querySelector('.AddressModalId')?.value; if (!label || !searchJSON || !typeID) { alert('Validation failed: Missing Label, Address or Address Type'); return; } toggleGlobalSpinner(true); try { const resp = await fetch('/User/Address/EndPoints/AddAddress', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ModalId: modalId, Label: label, AddressJSON: searchJSON, TypeID: parseInt(typeID) }) }); if (!resp.ok) { let errMsg = 'Server returned an error'; try { const errData = await resp.json(); errMsg = errData?.msg || errMsg; } catch {} throw new Error(errMsg); } const data = await resp.json(); if (!data?.ok) throw new Error(data?.msg || 'Failed to save new address'); AddNewAddressCard(data); CloseNewAddressCard(); } catch(err) { alert('ERROR: ' + (err.message || 'Unknown error')); } finally { toggleGlobalSpinner(false); } };
+window.DeleteAddressCard = async function (button) { if (!button) return; const card = button.closest('.address-card'); if (!card) return; const radio = card.querySelector('.address-radio'); if (!radio) return; const addressId = parseInt(radio.value, 10); const label = card.querySelector('.address-label')?.textContent?.trim() || 'this address'; if (!window.confirm(`Are you sure you want to delete "${label}"?`)) { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); radio.focus(); return; } toggleGlobalSpinner(true); try { const response = await fetch('/User/Address/EndPoints/DeleteSelected', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Id: addressId }) }); const data = await response.json(); if (!data?.ok) throw new Error(data?.msg || 'Failed to delete address.'); card.remove(); } catch (err) { console.error(err); alert(err.message || 'Error deleting address.'); } finally { toggleGlobalSpinner(false); } } 
+window.AddNewAddressCard = function (data) { if (!data || !data.newcard) return; const modal = document.querySelector('.custom-modal[data-modal-type="address"]'); if (!modal) return; const container = modal.querySelector('.custom-modal-body'); if (!container) return; const temp = document.createElement('div'); temp.innerHTML = data.newcard.trim(); const newCard = temp.firstElementChild; if (!newCard) return; const addSection = container.querySelector('.mt-3'); if (addSection) { container.insertBefore(newCard, addSection); } else { container.appendChild(newCard); } newCard.style.opacity = 0; newCard.style.transform = 'translateY(-10px)'; newCard.style.transition = 'opacity 0.5s ease, transform 0.5s ease'; if (newCard.style.display === 'none') { newCard.style.display = ''; } requestAnimationFrame(() => { newCard.style.opacity = 1; newCard.style.transform = 'translateY(0)'; }); container.scrollTo({ top: newCard.offsetTop, behavior: 'smooth' }); } 
 
-    function setButtonLoading(btn, loading, textIfLoading) {
-        if (!btn) return;
-
-        // find/create spinner inside the button
-        let spin = btn.querySelector('.spinner');
-        if (!spin) {
-            spin = document.createElement('span');
-            spin.className = 'spinner spinner--sm';
-            spin.hidden = true;
-            btn.appendChild(spin);
-        }
-
-        // find/create label span
-        let label = btn.querySelector('.btn-label');
-        if (!label) {
-            const t = document.createTextNode(btn.textContent.trim());
-            btn.textContent = '';
-            label = document.createElement('span');
-            label.className = 'btn-label';
-            label.appendChild(t);
-            btn.prepend(label);
-        }
-
-        if (loading) {
-            btn.classList.add('is-loading');
-            btn.disabled = true;
-            spin.hidden = false;
-            if (textIfLoading) {
-                label.dataset._old = label.textContent;
-                label.textContent = textIfLoading;
-            }
-        } else {
-            btn.classList.remove('is-loading');
-            btn.disabled = false;
-            spin.hidden = true;
-            if (label.dataset._old) {
-                label.textContent = label.dataset._old;
-                delete label.dataset._old;
-            }
-        }
-    }
-
-    function showOverlay(show = true, id = 'globalSpinner') {
-        const el = document.getElementById(id);
-        if (el) el.hidden = !show;
-    }
-
-    // fetch wrapper that toggles a button’s spinner
-    async function fetchJson(url, options = {}, btn, loadingText = 'Saving…') {
-        try {
-            if (btn) setButtonLoading(btn, true, loadingText);
-            const res = await fetch(url, options);
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok) {
-                const err = new Error(data?.message || res.statusText || `HTTP ${res.status}`);
-                err.status = res.status;
-                throw err;
-            }
-            return data;
-        } finally {
-            if (btn) setButtonLoading(btn, false);
-        }
-    }
-
-    // Force-stop any lingering spinners globally
-    function forceStopAllLoading() {
-        document.querySelectorAll('.is-loading,.spinner').forEach(el => {
-            el.classList.remove('is-loading');
-            el.removeAttribute('aria-busy');
-            el.disabled = false;
-            const spin = el.querySelector('.spinner');
-            if (spin) { spin.hidden = true; spin.style.display = 'none'; spin.style.animation = 'none'; }
-            const label = el.querySelector('.btn-label');
-            if (label && label.dataset?._old) {
-                label.textContent = label.dataset._old;
-                delete label.dataset._old;
-            }
-        });
-        const overlay = document.getElementById('globalSpinner');
-        if (overlay) overlay.hidden = true;
-    }
-
-    return { setButtonLoading, fetchJson, showOverlay, forceStopAllLoading };
-})();
