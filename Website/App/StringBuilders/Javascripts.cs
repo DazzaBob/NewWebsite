@@ -590,11 +590,5 @@ namespace Website.App.StringBuilders
                 }
             }
         }
-
-        private static string Dashboard() => @"
-            function refreshDashboard() {
-                console.log('Dashboard refreshed');
-            }
-        ";
     }
 }

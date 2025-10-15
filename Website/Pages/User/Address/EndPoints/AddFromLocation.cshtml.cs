@@ -36,9 +36,6 @@ namespace Website.Pages.User.Address.EndPoints
 
             // Shallow-parse for fields we need (type + payload). userId is NOT trusted from client.
             Req? req;
-            using App.Helper.Connection connection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-            using App.Helper.Connection LocationConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
-
             try
             {
                 req = await Request.ReadFromJsonAsync<Req>(JsonOpts);
@@ -59,7 +56,7 @@ namespace Website.Pages.User.Address.EndPoints
             try
             {
                 newId = App.Validation.AddressValidation.SaveAddressAndGetId(req.JSonpayload, req.AddressTypeID, userId, true);
-                DataTable dt = App.Database.Shared.GetDataTable(connection, "USER_ADDRESS", $"USER_ID = {userId} AND ISDEFAULT=1");
+                using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Database, App.Database.Schema.Entities.Tables.UserAddress, $"USER_ID = {userId} AND ISDEFAULT=1");
                 if (dt.Rows.Count == 0) return NotFound(new { ok = false, msg = "Address not found." });
 
                 label = dt.Rows[0]["LABEL"] == DBNull.Value ? "Select Address" : dt.Rows[0]["LABEL"].ToString()?.Trim() ?? "Select Address";
