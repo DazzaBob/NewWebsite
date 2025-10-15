@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.Reflection.Metadata;
+using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 /// The Strings must be manaually string built.  because JS sucks!!!
 namespace Website.App.StringBuilders
@@ -17,7 +19,6 @@ namespace Website.App.StringBuilders
             sb.Append(Global.Get());
             sb.Append(Pages.Home.Modals.Address.Get());
             sb.Append(Pages.Home.Modals.Location.Get());
-            // add more here...
 
             return sb.ToString();
 
@@ -28,6 +29,7 @@ namespace Website.App.StringBuilders
             {
                 StringBuilder sb = new();
                 sb.Append(Common())
+                .AppendLine(SideMenu())
                 .AppendLine(Spinner());
 
                 return sb.ToString();
@@ -50,6 +52,16 @@ namespace Website.App.StringBuilders
                   .Append("const resetButton = document.getElementById('AMBTNCLS'); ")
                   .Append("if (resetButton) { resetButton.addEventListener('click', AMBtnCls);}}); ")
                   .Append("window.AMBtnCls = function () { CloseNewAddressCard(); closeModalByType('address');}; ");
+                return sb.ToString();
+            }
+            private static string SideMenu()
+            {
+                StringBuilder sb = new();
+                sb.Append("function openSideMenu() { document.body.classList.add('menu-open'); } ")
+                .Append("function closeSideMenu() { document.body.classList.remove('menu-open'); } ")
+                .Append("document.querySelector('.menu-backdrop')?.addEventListener('click', closeSideMenu); ")
+                .Append("function toggleSideMenu() { document.body.classList.toggle('menu-open'); }");
+
                 return sb.ToString();
             }
             private static string Spinner()
