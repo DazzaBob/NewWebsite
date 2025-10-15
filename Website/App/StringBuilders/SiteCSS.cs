@@ -1,10 +1,5 @@
-﻿using NetTopologySuite.Utilities;
-using System.Drawing;
-using System.Net.NetworkInformation;
-using System.Runtime.CompilerServices;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Website.App.StringBuilders
 {
@@ -39,7 +34,7 @@ namespace Website.App.StringBuilders
             return MyRegex().Replace(minified, " ").Trim();
         }
         private static class Base
-            {
+        {
             internal static string Get()
             {
                 StringBuilder sb = new();
@@ -204,14 +199,17 @@ namespace Website.App.StringBuilders
             }
         }
         private static class Elements
-        { 
+        {
             internal static string Get()
             {
                 StringBuilder sb = new();
                 sb.AppendLine(Buttons())
                 .AppendLine(Inputs())
                 .AppendLine(GridCanvasCards())
-                .AppendLine(CustomModals());
+                .AppendLine(CustomModals())
+                .AppendLine(Password())
+                .AppendLine(MapBox())
+                .AppendLine(SideMenu());
 
                 return sb.ToString();
             }
@@ -282,10 +280,10 @@ namespace Website.App.StringBuilders
                 .card {background-color: var(--color-bg-alt-alt); border: 2px solid var(--color-primary); border-radius: var(--radius-medium); box-shadow: 0 2px 4px var(--shadow-light); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; gap: 0.5rem; box-sizing: border-box;}
                 .card h3 {margin: 0 0 0.5rem 0; font-weight: 600; font-size: clamp(0.55rem, 0.5vw + 0.55rem, 1.25rem);; text-align: center;}
                 .card p, .card b, .card i, .card ul, .card blockquote {margin: 0; text-align: center;}";
-            
+
                 return css;
             }
-            private static string CustomModals() 
+            private static string CustomModals()
             {
                 string css = @".custom-modal { display: none; position: fixed; inset: 0; z-index: 10000; background-color: rgba(0, 0, 0, 0.8); overflow-y: auto; overflow-x: hidden; }
                 .custom-modal.hidden { display: none; } 
@@ -300,14 +298,64 @@ namespace Website.App.StringBuilders
 
                 return css;
             }
+            private static string Password()
+            {
+                string css = @".password-wrapper { position: relative; width: 100%; }
+                .password-wrapper .input-text { width: 100%; padding-right: 2.5rem; }
+                .password-toggle { position: absolute;
+                top: 65%;
+                right: 0.5rem;
+                transform: translateY(-50%);
+                background: none;
+                border: none;
+                font-size: 2rem;
+                color: var(--color-primary);
+                cursor: pointer;
+                padding: 0;
+                line-height: 1;
+                z-index: 10;
+                opacity: 0.9;
+                filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+                transition: color 0.2s ease, opacity 0.2s ease; }
+                .password-toggle:hover { color: var(--color-text); }
+                input[type=""password""]::-ms-reveal, input[type=""password""]::-webkit-credentials-auto-fill-button { display: none !important; }";
+
+                return css;
+            }
+            private static string MapBox()
+            {
+                string css = @".mapbox-address-autofill { position: relative; display: block; width: 100%; font-size: 1rem; padding: 0.75rem 1rem; box-sizing: border-box; border: 1px solid var(--color-primary); border-radius: 8px; background-color: var(--color-bg-alt); color: var(--color-text); }
+                .mapbox-address-autofill input { width: 100%; padding: 0.75rem 1rem; font-size: 1rem; font-family: inherit; box-sizing: border-box; border: none; outline: none; background: transparent; color: var(--color-text); }
+                .mapbox-address-autofill:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 2px rgba(255, 90, 95, 0.2); }
+                .mapbox-address-autofill ul { position: absolute; top: 100%; left: 0; width: 100%; max-height: 200px; overflow-y: auto; margin: 0; padding: 0; list-style: none; background-color: var(--color-bg-alt); border-left: 1px solid var(--color-primary); border-right: 1px solid var(--color-primary); border-bottom: 1px solid var(--color-primary); border-top: none; border-radius: 0 0 8px 8px; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.15); color: var(--color-text); }
+                .mapbox-address-autofill ul li { padding: 0.5rem 1rem; cursor: pointer; background-color: var(--color-bg-alt); }
+                .mapbox-address-autofill ul li:hover, .mapbox-address-autofill ul li.selected { background-color: var(--color-primary); color: var(--color-text); }";
+
+                return css;
+            }
+            private static string SideMenu()
+            {
+                string css = @".side-menu { position: fixed; top: var(--top-bar-height); bottom: 0; left: -280px; width: 280px; background: var(--color-bg-alt); box-shadow: 2px 0 8px rgba(0,0,0,.2); transition: left .3s ease; z-index: 1001; padding-top: var(--spacing-medium); }
+                body.menu-open .side-menu { left: 0; }
+                .menu-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 1000; }
+                body.menu-open .menu-backdrop { opacity: 1; pointer-events: auto; }
+                body.menu-open { overflow: hidden; }
+                .side-menu ul { margin: 0; padding: 0; list-style: none; }
+                .side-menu li { margin: var(--spacing-small) 0; }
+                .side-menu a { display: flex; align-items: center; padding: .75rem 1rem; text-decoration: none; color: var(--color-text); }
+                .side-menu a i { width: 1.25rem; text-align: center; margin-right: .75rem; }
+                .side-menu a:hover { background: rgba(255,255,255,.1); }";
+
+                return css;
+            }
         }
         private static string Address()
         {
             string css = @".address-card { padding: var(--spacing-medium); border: 2px solid var(--color-primary); border-radius: 16px; display: block; }
             .address-option-row { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: .5rem; }
+            .address-line { font-size: .85rem; color: var(--color-text-secondary); margin-top: .25rem;}            
             .address-radio { margin: 0; inline-size: 1em; block-size: 1em; transform: scale(1.1); }
-            .address-label { font-size: .95rem; font-weight: 600; cursor: pointer; word-break: break-word;}
-            .address-line { font-size: .85rem; color: var(--color-text-secondary); margin-top: .25rem;}";
+            .address-label { font-size: .95rem; font-weight: 600; cursor: pointer; word-break: break-word;}";
 
             return css;
         }

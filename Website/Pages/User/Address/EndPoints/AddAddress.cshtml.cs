@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore.Storage;
-using System.Data;
 using Website.App.Security;
 
 namespace Website.Pages.User.Address.EndPoints
@@ -45,7 +43,7 @@ namespace Website.Pages.User.Address.EndPoints
 
             try
             {
-                userAddressId = App.Validation.AddressValidation.SaveAddressAndGetId(input.AddressJSON, input.TypeID, userId, false, label );
+                userAddressId = App.Validation.AddressValidation.SaveAddressAndGetId(input.AddressJSON, input.TypeID, userId, false, label);
             }
             catch (Exception ex)
             {

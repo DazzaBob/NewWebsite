@@ -2,8 +2,6 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @{
     bool IsDashboard = App.Helper.Shared.IsDashboard(HttpContextAccessor.HttpContext?.Request.Path.Value?.ToLower() ?? "");
-    using App.Helper.Connection EntitiesConnection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-    using App.Helper.Connection LocationsConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -13,7 +11,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <link rel="stylesheet" href="/css/all.min.css">
     <link rel="stylesheet" href="/css/site.css" />
-    <link rel="stylesheet" href="/css/elements.css" />
 </head>
 <body>
     <partial name="~/Pages/Shared/_Header.cshtml" />

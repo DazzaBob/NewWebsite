@@ -25,8 +25,4 @@
     <Folder Include="wwwroot\webfonts\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="wwwroot\css\Home.css" />
-  </ItemGroup>
-
 </Project>

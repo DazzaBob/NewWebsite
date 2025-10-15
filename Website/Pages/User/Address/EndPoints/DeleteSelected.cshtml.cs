@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore.Storage;
 using Website.App;
 using Website.App.Security;
 
@@ -24,7 +23,7 @@ namespace Website.Pages.User.Address.EndPoints
             if (input is null || input.Id <= 0) return BadRequest(new { ok = false, msg = "Invalid address." });
 
             int userId = User.Id();
-            
+
 
             string checkSql = $"SELECT ISDEFAULT FROM USER_ADDRESS WHERE USER_ID={userId} AND ID={input.Id} LIMIT 1";
             object? checkResult = App.Database.DataAccessManager.ExecuteScalar(ADSED, checkSql, []);

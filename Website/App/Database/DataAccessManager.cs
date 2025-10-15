@@ -41,7 +41,7 @@ namespace Website.App.Database
             {
                 StringBuilder sql = new($"UPDATE {tableName} SET {setClause}");
                 if (!string.IsNullOrWhiteSpace(whereClause))
-                sql.Append(" WHERE ").Append(whereClause);
+                    sql.Append(" WHERE ").Append(whereClause);
 
                 return conn.ExecuteNonQuery(sql.ToString());
             }

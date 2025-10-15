@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Data;
-using System.Text;
+﻿using System.Text;
 
 namespace Website.App.HTML.Pages.Home
 {

@@ -1,13 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using RTools_NTS.Util;
-using System;
-using System.Net.NetworkInformation;
-using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using System.Text;
 
 /// The Strings must be manaually string built.  because JS sucks!!!
 namespace Website.App.StringBuilders
@@ -35,7 +26,7 @@ namespace Website.App.StringBuilders
         {
             internal static string Get()
             {
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 sb.Append(Common())
                 .AppendLine(Spinner());
 
@@ -410,8 +401,8 @@ namespace Website.App.StringBuilders
                     {
                         internal static string Get()
                         {
-                            StringBuilder sb = new StringBuilder();
-                            
+                            StringBuilder sb = new();
+
                             sb.AppendLine(ResetLocationModalInputs())
                             .AppendLine(ResolveCurrentLocation())
                             .AppendLine(ValidateLocationModal())

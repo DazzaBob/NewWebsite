@@ -23,6 +23,6 @@ namespace Website.App.Scripts
             .AppendLine("})();");
 
             return sb.ToString();
-        }       
+        }
     }
 }
