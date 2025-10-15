@@ -1,9 +1,9 @@
 ﻿using System.Data;
 using System.Text;
 
-namespace Website.App.HTML.Pages.Home.IndexPartials
+namespace Website.App.StringBuilders.Pages.Index.Modals.Address
 {
-    public static class AddressModelAddressCard
+    public static class AddressCard
     {
         public static string Get(string modalId, string addressId, string userAddressId, bool IsDefault, string label)
         {
@@ -11,7 +11,7 @@ namespace Website.App.HTML.Pages.Home.IndexPartials
             sb.AppendLine("SELECT a.ID AS ADDRESS_ID, a.STREET_NUMBER, a.STREET_NAME, l.NAME AS LOCALITY_NAME, p.NAME AS PLACE_NAME ");
             sb.AppendLine("FROM ADDRESS a LEFT JOIN LOCALITY l ON a.LOCALITY_ID = l.ID LEFT JOIN PLACE p ON a.PLACE_ID = p.ID ");
             sb.AppendLine($"WHERE (a.ID = {addressId})");
-            using DataTable DT = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Locations.Database, sb.ToString(), []);
+            using DataTable DT = Database.DataAccessManager.GetDataTable(Database.Schema.Locations.Database, sb.ToString(), []);
             if (DT == null) { return string.Empty; }
             if (DT.Rows.Count == 0 ) { return string.Empty; }
 

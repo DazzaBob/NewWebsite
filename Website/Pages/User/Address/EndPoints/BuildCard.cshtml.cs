@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 using Website.App.Security;
+using Website.App.StringBuilders.Pages.Index.Modals.Address;
 
 namespace Website.Pages.User.Address.EndPoints
 {
@@ -49,7 +50,7 @@ namespace Website.Pages.User.Address.EndPoints
 
             string label = dt.Rows[0]["LABEL"]?.ToString() ?? string.Empty;
             string addressId = dt.Rows[0]["ADDRESS_ID"]?.ToString() ?? string.Empty;
-            string cardHtml = App.HTML.Pages.Home.IndexPartials.AddressModelAddressCard.Get(modalid, addressId, userAddressId, setDefault, label);
+            string cardHtml = AddressCard.Get(modalid, addressId, userAddressId, setDefault, label);
 
             return (cardHtml, label);
         }

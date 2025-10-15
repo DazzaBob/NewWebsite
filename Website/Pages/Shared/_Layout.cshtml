@@ -11,37 +11,20 @@
     <meta charset="utf-8" />
     <title>@ViewData["Title"] - That's Handy</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="stylesheet" href="/css/all.min.css">
     <link rel="stylesheet" href="/css/site.css" />
     <link rel="stylesheet" href="/css/elements.css" />
 </head>
 <body>
-<partial name="~/Pages/Shared/_Header.cshtml" />
+    <partial name="~/Pages/Shared/_Header.cshtml" />
     <main role="main" class="site-main">
         @RenderSection("StatusStrip", required: false)
         @RenderBody()
     </main>
-
-    <div id="globalSpinner" class="spinner-overlay" hidden>
-        <div class="spinner spinner--lg" aria-hidden="true"></div>
-    </div>
-
     <partial name="_Footer" />
 
     @* Global JS for all pages *@
     <script src="/js/site.js" defer asp-append-version="true"></script>
-    <script type="text/javascript">
-            document.addEventListener('DOMContentLoaded', () => {
-            // CSS preload
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = '/css/all.min.css';
-            document.head.appendChild(link);
-
-            // Font preload
-            const font = new FontFace('Font Awesome 7 Free', 'url(/webfonts/fa-solid-900.woff2)', { weight: '900' });
-            font.load().then(f => document.fonts.add(f));
-        });
-    </script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

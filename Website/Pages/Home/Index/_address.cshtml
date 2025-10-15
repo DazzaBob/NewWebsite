@@ -13,7 +13,7 @@
         <div class="custom-modal-header">
             <input type="hidden" class="AddressModalId" value="@modalId" />
             <h5 id="addressmodaltitle_@modalId">Select Current Address</h5>
-            <button id="AMBTNCLS" class="btn-close" aria-label="Close">×</button>
+            <button id="AMBTNCLS" class="btn btn-close" aria-label="Close">×</button>
         </div>
 
         <!-- Body -->
@@ -32,13 +32,12 @@
                     string userAddressId = (row["ID"]?.ToString() ?? string.Empty).Trim();
                     string label = (row["LABEL"]?.ToString() ?? string.Empty).Trim();
                     long isDefault = (long)row["ISDEFAULT"];
-                    @Html.Raw(App.HTML.Pages.Home.IndexPartials.AddressModelAddressCard.Get(modalId, addressId.ToString(), userAddressId, Convert.ToBoolean(isDefault), label));
+                    @Html.Raw(App.StringBuilders.Pages.Index.Modals.Address.AddressCard.Get(modalId, addressId.ToString(), userAddressId, Convert.ToBoolean(isDefault), label));
                 }
             }
-            
             <!-- Add New Address Section -->
             <div class="mt-3">
-                <a href="#" role="button" onclick="var modal=this.closest('.custom-modal');var newCard=modal.querySelector('.new-address-card');if(newCard){newCard.style.display='block';var input=newCard.querySelector('.new-address-label');if(input)input.focus();newCard.scrollIntoView({behavior:'smooth',block:'center'});}return false;">+ Add New Address</a>
+                <button type="button" class="btn btn-pill btn-outline nav" onclick="var modal=this.closest('.custom-modal');var newCard=modal.querySelector('.new-address-card');if(newCard){newCard.style.display='block';var input=newCard.querySelector('.new-address-label');if(input)input.focus();newCard.scrollIntoView({behavior:'smooth',block:'center'});}return false;">+ Add New Address</button>
             </div>
             <div class="card address-card new-address-card" style="display:none;">
                 <div class="add-address-form">
@@ -47,7 +46,7 @@
                     </div>
                     <br />
                     <div class="form-group mt-2">
-                        <label>Label</label>
+                        <label><b>Label</b></label>
                         <input id="AMNAL" type="text" class="form-control new-address-label" placeholder="Home, Work, etc." maxlength="25" />
                     </div>
                     <br />
@@ -59,8 +58,8 @@
                     </div>
                     <br />
                     <div class="form-group mt-2">
-                        <label>Address Type</label>
-                        <select id="AMNATID" class="input-text" style="color: var(--color-text); background-color: var(--color-bg-alt); border: 1px solid var(--color-primary); border-radius: 8px; padding: 0.75rem 1rem; width: 100%; box-sizing: border-box; transition: border-color 0.3s ease, box-shadow 0.3s ease;" required>
+                        <label><b>Address Type</b></label>
+                        <select id="AMNATID" class="input-text" required>
                             <option value="">--Select address type--</option>
                             @foreach (SelectListItem item in AddressOptions)
                             {

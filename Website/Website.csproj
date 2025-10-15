@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <Folder Include="App\Database\Entities\User\Address\" />
-    <Folder Include="App\HTML\Pages\Home\Modals\Scripts\" />
     <Folder Include="Pages\Shared\Home\" />
     <Folder Include="wwwroot\webfonts\" />
   </ItemGroup>

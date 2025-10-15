@@ -24,11 +24,11 @@
             </a>
         </td>
         <td style="text-align:right;" colspan="2">
-            <nav>
-                <a href="/Home">Home</a>&nbsp;&nbsp;
-                <a href="/Account/Settings">Settings</a>&nbsp;&nbsp;
-                <a href="/User/Logout" class="btn btn-nav btn-outline">Logout</a>
-            </nav>
+            <div class="nav-group">
+                <button type="button" class="btn btn-pill btn-outline" onclick="window.location.href='/Home'"><i class="fa-solid fa-th-large"></i>&nbsp;Home</button>
+                <button type="button" class="btn btn-pill btn-outline" onclick="window.location.href='/Account/Settings'">Settings</button>
+                <button type="button" class="btn btn-pill btn-outline" onclick="window.location.href='/User/Logout'">Logout</button>
+            </div>
         </td>
     </tr>
 
@@ -39,7 +39,7 @@
             </button>
         </td>
         <td style="text-align:center; vertical-align:middle; font-weight:600;">
-            Home
+            <i class="fa-solid fa-th-large"></i>&nbsp;Home&nbsp;<i class="fa-solid fa-th-large"></i>
         </td>
         <td style="text-align:right; vertical-align:middle;">
             <button style="background:none; border:none; font-size:2rem; color:inherit; cursor:pointer;" aria-label="Settings">
@@ -57,7 +57,7 @@
         </td>
         <td></td>
         <td style="text-align:right; vertical-align:middle;">
-            <button id="useCurrentLocation" class="btn btn-pill btn-outline" onclick="OpenLocationModal();">
+            <button id="useCurrentLocation" class="btn btn-pill btn-outline" onclick="openModalByType('location'); ResolveCurrentLocation();">
                 <i class="fa-solid fa-map-marker-alt" style="margin-right:.5rem;"></i>
                 Current location
             </button>

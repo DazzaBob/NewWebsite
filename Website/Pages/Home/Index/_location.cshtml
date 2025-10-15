@@ -1,0 +1,46 @@
+﻿@using System.Data
+@using App.Security
+@{
+    SelectList AddressOptions = App.Helper.Table.AddressType.AddressTypeOptions();
+    string modalId = Guid.NewGuid().ToString("N"); // unique modal identifier
+}
+<div id="locationModal" data-modal-type="location" class="custom-modal" data-modal-id="@modalId">
+    <div class="custom-modal-content" role="dialog" aria-modal="true" aria-labelledby="locationModalTitle" tabindex="-1">
+        <div class="custom-modal-header">
+            <h5>Current Location</h5>
+            <button type="button" class="btn-close" aria-label="Close" onclick="closeModalByType('location')">×</button>
+        </div>
+        <div class="location-modal-body">
+            <div class="card address-card">
+                <div class="address-option-row" style="align-items:flex-start">
+                    <label class="address-label"><b>Resolved Address</b></label>
+                </div>
+                <div id="locationPreview" class="address-line">(not loaded yet)</div>
+            </div>
+            <span>&nbsp;</span>
+            <div class="card address-card">
+                <div class="address-option-row">
+                    <label for="LMATID" class="address-label"><b>Address Type</b></label>
+                </div>
+                <select id="LMATID" name="LMATID" class="input-text" required>
+                    <option value="">--Select address type--</option>
+                    @foreach (SelectListItem item in AddressOptions)
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
+                </select>
+                <input id="locationPayload" type="hidden" />
+                <div id="locationTypeError" class="field-error" aria-live="polite"></div>
+            </div>
+        </div>
+        <span>&nbsp;</span>
+        <div class="custom-modal-footer">
+            <table style="width: 100%; padding: 0 0 0 0; border-collapse: collapse;">
+                <tr>
+                    <td style="width: 50%;"><button type="button" class="btn btn-primary" onclick="SaveLocation()">Save</button></td>
+                    <td style="text-align: right;"><button type="button" class="btn btn-secondary" onclick="closeModalByType('location')">Cancel</button></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
