@@ -44,7 +44,7 @@ namespace Website.Pages.User.Address.EndPoints
 
         public (string cardHtml, string label) BuildCard(string modalid, string userAddressId, bool setDefault)
         {
-            using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Database, App.Database.Schema.Entities.Tables.UserAddress, $"ID={userAddressId}");
+            using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.SchemaName, App.Database.Schema.Entities.UserAddress, $"ID={userAddressId}");
             if (dt.Rows.Count == 0)
                 return (string.Empty, string.Empty);
 

@@ -7,11 +7,7 @@ namespace Website.App.StringBuilders.Pages.Index.Modals.Address
     {
         public static string Get(string modalId, string addressId, string userAddressId, bool IsDefault, string label)
         {
-            StringBuilder sb = new();
-            sb.AppendLine("SELECT a.ID AS ADDRESS_ID, a.STREET_NUMBER, a.STREET_NAME, l.NAME AS LOCALITY_NAME, p.NAME AS PLACE_NAME ");
-            sb.AppendLine("FROM ADDRESS a LEFT JOIN LOCALITY l ON a.LOCALITY_ID = l.ID LEFT JOIN PLACE p ON a.PLACE_ID = p.ID ");
-            sb.AppendLine($"WHERE (a.ID = {addressId})");
-            using DataTable DT = Database.DataAccessManager.GetDataTable(Database.Schema.Locations.Database, sb.ToString(), []);
+          using DataTable DT = App.Database.Views.UserAddress.DataTable(userId: 0, addressId: long.Parse(addressId));
             if (DT == null) { return string.Empty; }
             if (DT.Rows.Count == 0) { return string.Empty; }
 
@@ -19,7 +15,8 @@ namespace Website.App.StringBuilders.Pages.Index.Modals.Address
             var placeLine = string.IsNullOrWhiteSpace(DT.Rows[0]["LOCALITY_NAME"]?.ToString())
                 ? DT.Rows[0]["PLACE_NAME"]?.ToString()
                 : $"{DT.Rows[0]["LOCALITY_NAME"]}, {DT.Rows[0]["PLACE_NAME"]}";
-
+            
+            StringBuilder sb = new();
             sb.Clear();
             sb.Append("<div class=\"card address-card\">")
               .Append("<table style=\"width: 100%; padding: 0; border-collapse: collapse;\">") //  border=\"1\"
@@ -38,7 +35,7 @@ namespace Website.App.StringBuilders.Pages.Index.Modals.Address
             .Append("<button type=\"button\" class=\"btn btn-outline\" onclick=\"StartEditAddress(this);\">")
             .Append("<i class=\"fa-solid fa-pen\"></i>")
             .Append("</button>")
-            .Append("<button type=\"button\" class=\"btn btn-outline\" onclick=\"DeleteAddressCard(this);\" style=\"display:");
+            .Append("<button type=\"button\" class=\"btn btn-outline address-delete\" onclick=\"DeleteAddressCard(this);\" style=\"display:");
             if (IsDefault)
             {
                 sb.Append("none");

@@ -4,12 +4,7 @@ using Website.Pages.User.Address.EndPoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Make sure the databases are created; and there are tables in the databases.
-Website.App.Database.Shared.EnsureDatabase(Website.App.Database.Schema.Locations.Database);
-Website.App.Database.Shared.EnsureDatabase(Website.App.Database.Schema.Entities.Database);
-Website.App.Database.Shared.EnsureDatabase(Website.App.Database.Schema.Operations.Database);
-Website.App.Database.Shared.EnsureDatabase(Website.App.Database.Schema.LiveOps.Database);
-
+// Make sure the scripts and styles are created
 Website.App.StringBuilders.SiteCSS.Create();
 Website.App.StringBuilders.Javascripts.Create();
 
@@ -61,8 +56,6 @@ builder.Services.AddSession(o =>
 });
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<IAddressService, AddressService>();
-
 var app = builder.Build();
 
 // Pipeline

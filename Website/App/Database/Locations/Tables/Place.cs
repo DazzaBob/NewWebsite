@@ -47,7 +47,7 @@ namespace Website.App.Database.Locations.Tables
         }
         private static void RehydrateDT()
         {
-            using DataTable newDT = DataAccessManager.GetDataTable(Schema.Locations.Database, Schema.Locations.Tables.Place);
+            using DataTable newDT = DataAccessManager.GetDataTable(Schema.Locations.SchemaName, Schema.Locations.Place);
             lock (LockRehydrate)
             {
                 PlaceDT.Clear();
@@ -72,9 +72,18 @@ namespace Website.App.Database.Locations.Tables
             string minLon = SqlVal(RAF?.Place?.BBox?.MinLongitude);
             string maxLon = SqlVal(RAF?.Place?.BBox?.MaxLongitude);
 
-            string sql = "INSERT OR IGNORE INTO PLACE (REGION_ID, NAME, LATITUDE, LONGITUDE, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE) ";
-            sql += $"VALUES ({regionId}, {Shared.SafeReplace(placeName)}, {lat}, {lon}, {minLat}, {maxLat}, {minLon}, {maxLon})";
-            _ = DataAccessManager.ExecuteNonQuery(Schema.Locations.Database, sql, []);
+            string fields = "REGION_ID, NAME, LATITUDE, LONGITUDE, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE";
+            string values = $"{regionId}, {Shared.Sanitize(placeName, true, true)}, {lat}, {lon}, {minLat}, {maxLat}, {minLon}, {maxLon}";
+
+            int placeid = DataAccessManager.Insert(Schema.Locations.SchemaName, Schema.Locations.Place, fields, values);
+            if (placeid <= 0)
+            {
+                Bootstrap.Logger?.Add($"Database.Locations.Tables.Place.Insert: Failed to insert place ID {placeid}.", Helper.Logger.LogLevel.Error);
+                return;
+            }
+
+            //Call the Zone Seeder for Place
+            App.Operations.Zoning.ZoneManager.CreatePlaceZoneID(placeid);
         }
     }
 }

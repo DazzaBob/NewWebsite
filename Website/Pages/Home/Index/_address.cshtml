@@ -1,8 +1,8 @@
 ﻿@using System.Data
 @using App.Security
 @{
-    using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Database, App.Database.Schema.Entities.Tables.UserAddress, $"USER_ID={User.Id()}");
-    DataRow[] DR = dt.Select("");
+    using DataTable DT = App.Database.Views.UserAddress.DataTable(User.Id());
+    DataRow[] DR = DT.Select("");
 
     SelectList AddressOptions = App.Helper.Table.AddressType.AddressTypeOptions();
     string modalId = Guid.NewGuid().ToString("N"); // unique modal identifier
@@ -28,11 +28,11 @@
             {
                 foreach (DataRow row in DR)
                 {
-                    long addressId = (long)(row["ADDRESS_ID"]);
+                    int addressId = (int)(row["ADDRESS_ID"]);
                     string userAddressId = (row["ID"]?.ToString() ?? string.Empty).Trim();
                     string label = (row["LABEL"]?.ToString() ?? string.Empty).Trim();
-                    long isDefault = (long)row["ISDEFAULT"];
-                    @Html.Raw(App.StringBuilders.Pages.Index.Modals.Address.AddressCard.Get(modalId, addressId.ToString(), userAddressId, Convert.ToBoolean(isDefault), label));
+                    bool isDefault = (bool)row["ISDEFAULT"];
+                    @Html.Raw(App.StringBuilders.Pages.Index.Modals.Address.AddressCard.Get(modalId, addressId.ToString(), userAddressId, isDefault, label));
                 }
             }
             <!-- Add New Address Section -->
@@ -83,5 +83,7 @@
     </div>
 </div>
 <script type="text/javascript">
-    @Html.Raw(App.Scripts.Mapbox.AutoCompleteScript("AMNAS", "AMACL", "AMHJSON"))
+    document.addEventListener('DOMContentLoaded', () => {
+    try { if (typeof initMapboxAutocomplete === 'function') { initMapboxAutocomplete('AMNAS', 'AMACL', 'AMHJSON'); } else {alert('Autocomplete not loaded.'); } }
+    catch (err) { alert('Autocomplete is disabled: ' + err.message); } });
 </script>

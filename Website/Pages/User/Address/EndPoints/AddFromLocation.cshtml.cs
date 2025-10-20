@@ -47,7 +47,7 @@ namespace Website.Pages.User.Address.EndPoints
             if (req is null)
                 return BadRequest(new { ok = false, message = "Invalid body" });
 
-            if (req.AddressTypeID < 1 || req.AddressTypeID > 7)
+            if (req.AddressTypeID < 1 || req.AddressTypeID > 15)
                 return BadRequest(new { ok = false, message = "Invalid address type" });
 
             // Save using your existing pipeline
@@ -56,7 +56,7 @@ namespace Website.Pages.User.Address.EndPoints
             try
             {
                 newId = App.Validation.AddressValidation.SaveAddressAndGetId(req.JSonpayload, req.AddressTypeID, userId, true);
-                using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Database, App.Database.Schema.Entities.Tables.UserAddress, $"USER_ID = {userId} AND ISDEFAULT=1");
+                using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.SchemaName, App.Database.Schema.Entities.UserAddress, $"USER_ID = {userId} AND ISDEFAULT=true");
                 if (dt.Rows.Count == 0) return NotFound(new { ok = false, msg = "Address not found." });
 
                 label = dt.Rows[0]["LABEL"] == DBNull.Value ? "Select Address" : dt.Rows[0]["LABEL"].ToString()?.Trim() ?? "Select Address";

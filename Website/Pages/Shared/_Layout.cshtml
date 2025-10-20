@@ -1,9 +1,4 @@
-﻿@using Microsoft.AspNetCore.Http
-@inject IHttpContextAccessor HttpContextAccessor
-@{
-    bool IsDashboard = App.Helper.Shared.IsDashboard(HttpContextAccessor.HttpContext?.Request.Path.Value?.ToLower() ?? "");
-}
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -11,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <link rel="stylesheet" href="/css/all.min.css">
     <link rel="stylesheet" href="/css/site.css" />
+    <meta name="t" content="@App.Settings.MapboxToken" />
 </head>
 <body>
     <partial name="~/Pages/Shared/_Header.cshtml" />
@@ -18,10 +14,7 @@
         @RenderSection("StatusStrip", required: false)
         @RenderBody()
     </main>
-    <partial name="_Footer" />
-
-    @* Global JS for all pages *@
+    <partial name="~/Pages/Shared/_Footer.cshtml" />
     <script src="/js/site.js" defer asp-append-version="true"></script>
-    @RenderSection("Scripts", required: false)
 </body>
 </html>

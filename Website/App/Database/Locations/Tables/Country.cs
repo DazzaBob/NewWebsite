@@ -32,7 +32,7 @@ namespace Website.App.Database.Locations.Tables
         }
         private static void RehydrateDT()
         {
-            using DataTable newDT = DataAccessManager.GetDataTable(Schema.Locations.Database, Schema.Locations.Tables.Country);
+            using DataTable newDT = App.Database.DataAccessManager.GetDataTable(Schema.Locations.SchemaName, Schema.Locations.Country);
             lock (LockRehydrate)
             {
                 DT.Clear();
@@ -42,7 +42,9 @@ namespace Website.App.Database.Locations.Tables
         internal static void Insert(string countryName)
         {
             double today = DateTime.UtcNow.ToOADate();
-            _ = App.Database.DataAccessManager.ExecuteNonQuery(Schema.Locations.Database, $"INSERT OR IGNORE INTO COUNTRY(NAME, CREATEDOADATE, UPDATEDOADATE) VALUES({Shared.SafeReplace(countryName)}, {today}, {today} )", []);
+            string fields = "NAME, CREATEDOADATE, UPDATEDOADATE";
+            string values = $"VALUES({Shared.Sanitize(countryName, true)}, {today}, {today})";
+            _ = DataAccessManager.Insert(Schema.Locations.SchemaName, Schema.Locations.Country, fields, values);
         }
     }
 

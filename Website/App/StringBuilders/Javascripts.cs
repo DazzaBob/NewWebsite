@@ -1,6 +1,4 @@
-﻿using System.Reflection.Metadata;
-using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using System.Text;
 
 /// The Strings must be manaually string built.  because JS sucks!!!
 namespace Website.App.StringBuilders
@@ -30,7 +28,8 @@ namespace Website.App.StringBuilders
                 StringBuilder sb = new();
                 sb.Append(Common())
                 .AppendLine(SideMenu())
-                .AppendLine(Spinner());
+                .AppendLine(Spinner())
+                .AppendLine(Mapbox());
 
                 return sb.ToString();
             }
@@ -51,7 +50,9 @@ namespace Website.App.StringBuilders
                   .Append("document.addEventListener('DOMContentLoaded', () => { ")
                   .Append("const resetButton = document.getElementById('AMBTNCLS'); ")
                   .Append("if (resetButton) { resetButton.addEventListener('click', AMBtnCls);}}); ")
-                  .Append("window.AMBtnCls = function () { CloseNewAddressCard(); closeModalByType('address');}; ");
+                  .Append("window.AMBtnCls = function () { CloseNewAddressCard(); closeModalByType('address');}; ")
+
+                  .Append("window.togglePasswordVisibility = function() { const pwd = document.getElementById('password'); pwd.type = pwd.type === 'password' ? 'text' : 'password'; };");
                 return sb.ToString();
             }
             private static string SideMenu()
@@ -98,6 +99,26 @@ namespace Website.App.StringBuilders
                   .Append("}")
                   .Append("}; ")
                   .Append("function showOverlay(show = true, id = 'globalSpinner') { const el = document.getElementById(id); if (el) el.hidden = !show; }");
+
+                return sb.ToString();
+            }
+            private static string Mapbox()
+            {
+                StringBuilder sb = new();
+                sb.Append("function initMapboxAutocomplete(textInput, listElement, hiddenJson) {")
+                .Append("const t=document.querySelector('meta[name=\"t\"]').content; ")
+                .Append($"const a=document.getElementById(textInput); ")
+                .Append($"const b=document.getElementById(listElement); ")
+                .Append($"const c=document.getElementById(hiddenJson); ")
+                .Append("let d=null; ")
+                .Append("function e(fn,d=300){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),d);};} ")
+                .Append("const f=e(async()=>{const q=a.value.trim();if(!q)return b.hidden=true;d?.abort();d=new AbortController(); ")
+                .Append("const u=`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?autocomplete=true&country=nz&limit=5&access_token=${t}`; ")
+                .Append("try{const r=await fetch(u,{signal:d.signal});const{features}=await r.json();g(features||[]);}catch(e){if(e.name!=='AbortError')console.error(e);}},200); ")
+                .Append("function g(f){b.innerHTML='';if(!f.length)return b.hidden=true;f.forEach(x=>{const li=document.createElement('li');li.textContent=x.place_name;li.addEventListener('mousedown',()=>h(x));b.appendChild(li);});b.hidden=false;}")
+                .Append("function h(x){a.value=x.place_name;c.value=JSON.stringify(x);b.hidden=true;}")
+                .Append("a.addEventListener('input',f);document.addEventListener('click',e=>{if(!a.contains(e.target)&&!b.contains(e.target))b.hidden=true;});")
+                .AppendLine("} ");
 
                 return sb.ToString();
             }
@@ -177,11 +198,11 @@ namespace Website.App.StringBuilders
                                 .Append(".then(data => { ")
                                 .Append("if (!data?.ok) throw new Error(data?.msg || 'Failed to save.'); ")
                                 .Append("radio.checked = true; ")
-                                .Append("document.querySelectorAll('.address-card').forEach(c => { ")
-                                .Append("const r = c.querySelector('.address-radio'); ")
-                                .Append("const delBtn = c.querySelector('.address-delete'); ")
-                                .Append("if (!r || !delBtn) return; ")
-                                .Append("delBtn.style.display = r.checked ? 'none' : 'block'; ")
+                                .Append("document.querySelectorAll('.address-card').forEach(card => { ")
+                                .Append("const radio = card.querySelector('.address-radio'); ")
+                                .Append("const delBtn = card.querySelector('.address-delete'); ")
+                                .Append("if (!radio || !delBtn) return; ")
+                                .Append("delBtn.style.display = radio.checked ? 'none' : 'block'; ")
                                 .Append("}); ")
                                 .Append("const labelText = card.querySelector('.address-label')?.textContent?.trim() || ''; ")
                                 .Append("const lineText = card.querySelector('.address-line')?.textContent?.trim() || ''; ")
@@ -490,62 +511,61 @@ namespace Website.App.StringBuilders
                         private static string SaveLocation()
                         {
                             StringBuilder sb = new();
-                            sb.Append("window.SaveLocation = function () {")
+                            sb.Append("window.SaveLocation = async function () {")
                               .Append("const preview = document.getElementById('locationPreview'); ")
                               .Append("const typeSelect = document.getElementById('LMATID'); ")
                               .Append("const payloadEl = document.getElementById('locationPayload'); ")
 
+                              // Validation alerts
                               .Append("if (!typeSelect?.value) { alert('Please select an address type.'); return; } ")
-                              .Append("if (!preview || preview.textContent === '(not loaded yet)') return; ")
+                              .Append("if (!preview || preview.textContent === '(not loaded yet)') { alert('Preview not ready'); return; } ")
                               .Append("if (!payloadEl?.value) { alert('No location to save.'); return; } ")
 
                               .Append("const addressData = JSON.parse(payloadEl.value); ")
                               .Append("const typeID = parseInt(typeSelect.value, 10); ")
-
                               .Append("toggleGlobalSpinner(true); ")
 
-                              .Append("fetch('/User/Address/EndPoints/AddFromLocation', { ")
-                              .Append("method: 'POST', ")
-                              .Append("headers: { 'Content-Type': 'application/json' }, ")
+                              .Append("try { ")
+                              .Append("const resp = await fetch('/User/Address/EndPoints/AddFromLocation', { ")
+                              .Append("method: 'POST', headers: { 'Content-Type': 'application/json' }, ")
                               .Append("body: JSON.stringify({ AddressTypeID: typeID, JSonpayload: JSON.stringify(addressData) }) ")
-                              .Append("}) ")
-                              .Append(".then(resp => resp.json()) ")
-                              .Append(".then(data => { ")
+                              .Append("}); ")
+
+                              .Append("let text = await resp.text(); ")
+                              .Append("let data = {}; try { data = JSON.parse(text); } catch(e) { alert('Save JSON parse failed: ' + e.message); throw e; } ")
+
                               .Append("if (!data?.ok && !data?.success) throw new Error(data?.message || 'Save failed.'); ")
 
                               .Append("const toggle = document.getElementById('addressToggle'); ")
                               .Append("const label = (data.label || preview.textContent || '').trim(); ")
-                              .Append("if (toggle && label) { ")
-                              // backticks kept for template literal; escape inner double-quotes for C# string
-                              .Append("toggle.innerHTML = `<i class=\"fa-solid fa-home\"></i>${label}&nbsp;<i class=\"fa-solid fa-chevron-down dropdown-icon\"></i>`; ")
-                              .Append("} ")
+                              .Append("if (toggle && label) { toggle.innerHTML = `<i class=\"fa-solid fa-home\"></i>${label}&nbsp;<i class=\"fa-solid fa-chevron-down dropdown-icon\"></i>`; } ")
+
                               .Append("if (data.addressId) { ")
                               .Append("const modal = document.querySelector('.custom-modal[data-modal-type=\"address\"]'); ")
                               .Append("const modalId = modal?.getAttribute('data-modal-id') || ''; ")
 
-                              .Append("fetch('/User/Address/EndPoints/BuildCard', { ")
-                              .Append("method: 'POST', ")
-                              .Append("headers: { 'Content-Type': 'application/json' }, ")
+                              .Append("try { ")
+                              .Append("const cardResp = await fetch('/User/Address/EndPoints/BuildCard', { ")
+                              .Append("method: 'POST', headers: { 'Content-Type': 'application/json' }, ")
                               .Append("body: JSON.stringify({ ModalId: modalId, UserAddressId: data.addressId, SetDefault: true }) ")
-                              .Append("}) ")
-                              .Append(".then(resp => resp.json()) ")
-                              .Append(".then(cardData => { ")
-                              .Append("if (cardData?.ok && cardData?.newcard) { ")
-                              .Append("AddNewAddressCard(cardData); ")
-                              .Append("} ")
-                              .Append("}) ")
-                              .Append(".catch(err => { console.error('BuildCard failed', err); }) ")
-                              .Append(".finally(() => { CloseLocationModal(); }); ")
-                              .Append("} else { CloseLocationModal(); } ")
+                              .Append("}); ")
 
-                              .Append("}) ")
-                              .Append(".catch(err => { if (preview) preview.textContent = err?.message || 'Save failed.'; console.error(err); }) ")
-                              .Append(".finally(() => { toggleGlobalSpinner(false); ResetLocationModalInputs(); closeModalByType('location'); });")
+                              .Append("const cardText = await cardResp.text(); ")
+                              .Append("let cardData = {}; try { cardData = JSON.parse(cardText); } catch(e) { alert('BuildCard JSON parse failed: ' + e.message); throw e; } ")
+                              .Append("if (cardData?.ok && cardData?.newcard) { AddNewAddressCard(cardData); } ")
+                              .Append("} catch (err) { alert('BuildCard failed: ' + err.message); } ")
+                              .Append("finally { closeModalByType('location'); } ")
+
+                              .Append("} else { closeModalByType('location'); } ")
+
+                              .Append("} catch (err) { alert('SaveLocation failed: ' + err.message); if (preview) preview.textContent = err?.message || 'Save failed.'; } ")
+                              .Append("finally { toggleGlobalSpinner(false); ResetLocationModalInputs(); closeModalByType('location'); } ")
 
                               .Append("};");
 
                             return sb.ToString();
                         }
+
                         private static string GetAddressFromCoords()
                         {
                             StringBuilder sb = new();

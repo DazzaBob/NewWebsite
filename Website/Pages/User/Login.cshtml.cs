@@ -33,20 +33,13 @@ namespace Website.Pages.User
                 }
 
                 // build SQL
-                Microsoft.Data.Sqlite.SqliteParameter[] EmailPhoneParams;
+                string WhereClause;
                 if (isEmail)
-                    EmailPhoneParams = [new Microsoft.Data.Sqlite.SqliteParameter("@Email", identifier.ToLowerInvariant())];
+                    WhereClause = $"(EMAIL={App.Database.Shared.Sanitize(identifier.ToLowerInvariant(), true, true)})";
                 else
-                    EmailPhoneParams = [new Microsoft.Data.Sqlite.SqliteParameter("@Phone", identifier)];
+                    WhereClause = $"(PHONE={App.Database.Shared.Sanitize(identifier.ToLowerInvariant(), true, true)})";
 
-                string sql = isEmail
-                    ? "SELECT ID, PASSWORDHASH FROM USER WHERE EMAIL = @Email LIMIT 1;"
-                    : "SELECT ID, PASSWORDHASH FROM USER WHERE PHONE = @Phone LIMIT 1;";
-
-                // run query with parameter
-                using App.Helper.Connection connection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-                DataTable DT = connection.GetDataTable(sql, EmailPhoneParams);
-
+                using DataTable DT = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.SchemaName, App.Database.Schema.Entities.Users, WhereClause);
                 if (DT.Rows.Count == 0)
                 {
                     ErrorMessage = ErrorText;
@@ -67,11 +60,6 @@ namespace Website.Pages.User
                     return Page();
                 }
                 HttpContext.SignInUser(Convert.ToInt32(DT.Rows[0]["ID"]));
-
-                // OPTIONAL: pull canonical email/phone/display
-                //string email = dt.Columns.Contains("EMAIL") ? (dt.Rows[0]["EMAIL"]?.ToString() ?? "") : "";
-                //string phone = dt.Columns.Contains("PHONE") ? (dt.Rows[0]["PHONE"]?.ToString() ?? "") : "";
-                //string name = dt.Columns.Contains("DISPLAYNAME") ? (dt.Rows[0]["DISPLAYNAME"]?.ToString() ?? "") : (email != "" ? email : phone);
 
                 // REDIRECT BACK (using Session["redirect"] captured by OnRedirectToLogin)
                 string? target = HttpContext.Session.GetString("redirect");

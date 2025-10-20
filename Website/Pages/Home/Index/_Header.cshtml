@@ -6,7 +6,7 @@
     // Resolve default address label
     string label = "Select Address";
 
-    using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Database, App.Database.Schema.Entities.Tables.UserAddress, $"USER_ID={userId} AND ISDEFAULT=1");
+    using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.SchemaName, App.Database.Schema.Entities.UserAddress, $"USER_ID={userId} AND ISDEFAULT=true");
     if (dt.Rows.Count > 0)
     {
         var temp = dt.Rows[0]["LABEL"] as string;

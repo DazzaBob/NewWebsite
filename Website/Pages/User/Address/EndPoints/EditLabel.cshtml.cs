@@ -21,18 +21,18 @@ namespace Website.Pages.User.Address.EndPoints
             if (input.Label == string.Empty) return BadRequest(new { ok = false, msg = "Invalid address." });
             int userId = User.Id();
 
-            using App.Helper.Connection conn = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-            Microsoft.Data.Sqlite.SqliteParameter[] parameters =
+            Npgsql.NpgsqlParameter[] parameters =
             [
-                new Microsoft.Data.Sqlite.SqliteParameter("@userId", userId),
-                new Microsoft.Data.Sqlite.SqliteParameter("@id", input.Id),
-                new Microsoft.Data.Sqlite.SqliteParameter("@label", input.Label)
+                new Npgsql.NpgsqlParameter("@userId", userId),
+                new Npgsql.NpgsqlParameter("@id", input.Id),
+                new Npgsql.NpgsqlParameter("@label", input.Label)
             ];
 
-            string sql = "UPDATE USER_ADDRESS SET LABEL=@label WHERE USER_ID=@userId AND ID=@id";
+            string sql = $"UPDATE {App.Database.Schema.Entities.UserAddress} SET LABEL=@label WHERE USER_ID=@userId AND ID=@id";
             try
             {
-                conn.ExecuteNonQuery(sql, parameters);
+                
+                App.Database.DataAccessManager.ExecuteNonQuery(App.Database.Schema.Entities.SchemaName, sql, parameters);
                 return new JsonResult(new { ok = true, msg = input.Label });
             }
             catch (Exception ex)

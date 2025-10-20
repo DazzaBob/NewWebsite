@@ -17,7 +17,7 @@
             <div class="password-wrapper" style="margin-bottom: 1rem;">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="Password" class="input-text" required />
-                <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">👁</button>
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility()" aria-label="Toggle password visibility">👁</button>
             </div>
 
             @if (!string.IsNullOrEmpty(Model.ErrorMessage))
@@ -31,7 +31,7 @@
         </form>
     </div>
 </section>
-<script>
+<script type="text/javascript">
     function togglePasswordVisibility() {
         const pwd = document.getElementById("password");
         pwd.type = pwd.type === "password" ? "text" : "password";

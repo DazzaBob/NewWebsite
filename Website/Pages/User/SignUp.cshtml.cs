@@ -11,6 +11,8 @@ namespace Website.Pages.User
 {
     public class SignUpModel : PageModel
     {
+        private readonly string EntitiesSchema = App.Database.Schema.Entities.SchemaName;
+
         [BindProperty]
         [Required(ErrorMessage = "Full name is required.")]
         [StringLength(32, MinimumLength = 8, ErrorMessage = "Full name must be between 8 and 32 characters.")]
@@ -47,7 +49,7 @@ namespace Website.Pages.User
 
         [BindProperty]
         [Required(ErrorMessage = "Please select a valid address.")]
-        public required string MapboxAddressJSON { get; set; }
+        public required string HJSON { get; set; }
 
         [ValidateNever]
         public SelectList AddressTypeOptions { get; set; } = new(Enumerable.Empty<SelectListItem>());
@@ -58,29 +60,26 @@ namespace Website.Pages.User
         public void OnGet()
         {
             MapboxPublicToken = App.Settings.MapboxToken;
-
-            using App.Helper.Connection LocationConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
             var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
             AddressTypeOptions = list;
             ErrorMessage = error;
         }
         public IActionResult OnPost()
         {
-            ModelState.Remove("AddressSearch");
+            ModelState.Remove("AddressSearch"); // Clear the Address Search
 
             if (!ModelState.IsValid)
             {
-                using App.Helper.Connection LocationConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
                 var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
                 AddressTypeOptions = list;
                 ErrorMessage = error;
 
                 // Repopulate AddressSearch if we still have MapboxAddressJSON
-                if (!string.IsNullOrWhiteSpace(MapboxAddressJSON))
+                if (!string.IsNullOrWhiteSpace(HJSON))
                 {
                     try
                     {
-                        var feature = JsonDocument.Parse(MapboxAddressJSON).RootElement;
+                        var feature = JsonDocument.Parse(HJSON).RootElement;
 
                         if (feature.TryGetProperty("place_name", out var placeName) &&
                             placeName.ValueKind == JsonValueKind.String)
@@ -98,81 +97,55 @@ namespace Website.Pages.User
             }
             else
             {
-                using App.Helper.Connection EntityConnection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-                using App.Helper.Connection LocationConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
-
                 try
                 {
-                    bool emailExists = false;
-                    bool phoneExists = false;
-
-                    string emailCheckSql = "SELECT ID FROM USER WHERE EMAIL = @Email LIMIT 1";
-                    Microsoft.Data.Sqlite.SqliteParameter[] emailParams =
-                    [
-                        new Microsoft.Data.Sqlite.SqliteParameter("@Email", Email.ToLowerInvariant() ?? (object)DBNull.Value)
-                    ];
-                    object? emailObj = EntityConnection.ExecuteScalar(emailCheckSql, emailParams);
-                    emailExists = emailObj != null && emailObj != DBNull.Value && Convert.ToInt32(emailObj) > 0;
-
-                    string phoneCheckSql = "SELECT ID FROM USER WHERE PHONE = @Phone LIMIT 1";
-                    Microsoft.Data.Sqlite.SqliteParameter[] phoneParams =
-                    [
-                        new Microsoft.Data.Sqlite.SqliteParameter("@Phone", Phone ?? (object)DBNull.Value)
-                    ];
-                    object? phoneObj = EntityConnection.ExecuteScalar(phoneCheckSql, phoneParams);
-                    phoneExists = phoneObj != null && phoneObj != DBNull.Value && Convert.ToInt32(phoneObj) > 0;
-
-                    if (emailExists || phoneExists)
+                    using DataTable DT = App.Database.DataAccessManager.GetDataTable(EntitiesSchema, App.Database.Schema.Entities.Users, $"(EMAIL={App.Database.Shared.Sanitize(Email.ToLowerInvariant(), true, true)}) OR (PHONE={App.Database.Shared.Sanitize(Phone.ToLowerInvariant(), true, true)})");
+                    if (DT.Rows.Count > 0)
                     {
                         TempData["RecoverEmail"] = Email.ToLowerInvariant();
                         TempData["RecoverPhone"] = Phone;
                         return RedirectToPage("/User/Recover");
                     }
-
                     string hash = App.Helper.Shared.HashPassword(Password);
-                    var CustomerRoleId = App.Database.Shared.GetScalar(EntityConnection, App.Database.Schema.Entities.Tables.Roles, "ID", "NAME='Customer'");
+                    var CustomerRoleId = App.Database.DataAccessManager.GetScalar(EntitiesSchema, App.Database.Schema.Entities.Roles, "ID", "NAME='Customer'");
 
-                    string sql = @"INSERT INTO USER (FULLNAME, EMAIL, PHONE, PASSWORDHASH, CREATEDOADATE, UPDATEDOADATE) 
+                    string sql = @$"INSERT INTO {App.Database.Schema.Entities.Users} (FULLNAME, EMAIL, PHONE, PASSWORDHASH, CREATEDOADATE, UPDATEDOADATE) 
                     VALUES (@FullName, @Email, @Phone, @PasswordHash, @Created, @Updated)";
 
-                    Microsoft.Data.Sqlite.SqliteParameter[] parameters =
+                    Npgsql.NpgsqlParameter[] parameters =
                     [
-                        new Microsoft.Data.Sqlite.SqliteParameter("@FullName", FullName ?? (object)DBNull.Value),
-                        new Microsoft.Data.Sqlite.SqliteParameter("@Email", Email.ToLowerInvariant() ?? (object)DBNull.Value),
-                        new Microsoft.Data.Sqlite.SqliteParameter("@Phone", Phone ?? (object)DBNull.Value),
-                        new Microsoft.Data.Sqlite.SqliteParameter("@PasswordHash", hash),
-                        new Microsoft.Data.Sqlite.SqliteParameter("@Created", DateTime.Now.ToOADate()),
-                        new Microsoft.Data.Sqlite.SqliteParameter("@Updated", DateTime.Now.ToOADate())
+                        new Npgsql.NpgsqlParameter("@FullName", FullName ?? (object)DBNull.Value),
+                        new Npgsql.NpgsqlParameter("@Email", Email.ToLowerInvariant() ?? (object)DBNull.Value),
+                        new Npgsql.NpgsqlParameter("@Phone", Phone ?? (object)DBNull.Value),
+                        new Npgsql.NpgsqlParameter("@PasswordHash", hash),
+                        new Npgsql.NpgsqlParameter("@Created", DateTime.UtcNow.ToOADate()),
+                        new Npgsql.NpgsqlParameter("@Updated", DateTime.UtcNow.ToOADate())
                     ];
-
-                    EntityConnection.ExecuteNonQuery(sql, parameters);
+                    _ = App.Database.DataAccessManager.ExecuteNonQuery(EntitiesSchema, sql, parameters);
 
                     int userId = 0;
-                    DataTable DT = App.Database.Shared.GetDataTable(EntityConnection, "USER", $"EMAIL={App.Database.Shared.SafeReplace(Email.ToLowerInvariant())} AND PHONE='{Phone}'");
-                    if (DT != null)
-                    {
-                        userId = Convert.ToInt32(DT.Rows[0]["ID"]);
-                    }
+                    using DataTable DT1 = App.Database.DataAccessManager.GetDataTable(EntitiesSchema, App.Database.Schema.Entities.Users, $"EMAIL={App.Database.Shared.Sanitize(Email.ToLowerInvariant(), true, true)} AND PHONE={App.Database.Shared.Sanitize(Phone,true)}");
+                    if (DT1 != null && DT1.Rows.Count > 0) userId = Convert.ToInt32(DT1.Rows[0]["ID"]);
 
-                    sql = @"INSERT INTO USER_ROLES (USER_ID, ROLE_ID, GRANTEDOADATE, EXPIRATIONOADATE, REVOKEDOADATE, REVOKEDREASON, CREATEDBY_USER_ID, UPDATEDBY_USER_ID, ISACTIVE) 
-                    VALUES (@UserId, @RoleId, @Granted, NULL, NULL, NULL, @CreatedBy, @UpdatedBy, 1);";
+                    sql = @$"INSERT INTO {App.Database.Schema.Entities.UserRoles} (USER_ID, ROLE_ID, GRANTEDOADATE, EXPIRATIONOADATE, REVOKEDOADATE, REVOKEDREASON, CREATEDBY_USER_ID, UPDATEDBY_USER_ID, ISACTIVE) 
+                    VALUES (@UserId, @RoleId, @Granted, NULL, NULL, NULL, @CreatedBy, @UpdatedBy, true);";
 
-                    Microsoft.Data.Sqlite.SqliteParameter[] roleParams =
+                    Npgsql.NpgsqlParameter[] roleParams =
                     [
-                        new Microsoft.Data.Sqlite.SqliteParameter("@UserId", userId),
-                        new Microsoft.Data.Sqlite.SqliteParameter("@RoleId", CustomerRoleId), // "Customer"
-                        new Microsoft.Data.Sqlite.SqliteParameter("@Granted", DateTime.Now.ToOADate()),
-                        new Microsoft.Data.Sqlite.SqliteParameter("@CreatedBy", userId), // The user themselves, or could be 0/admin
-                        new Microsoft.Data.Sqlite.SqliteParameter("@UpdatedBy", userId)  // Same as CreatedBy
+                        new Npgsql.NpgsqlParameter("@UserId", userId),
+                        new Npgsql.NpgsqlParameter("@RoleId", CustomerRoleId), // "Customer"
+                        new Npgsql.NpgsqlParameter("@Granted", DateTime.UtcNow.ToOADate()),
+                        new Npgsql.NpgsqlParameter("@CreatedBy", userId), // The user themselves, or could be 0/admin
+                        new Npgsql.NpgsqlParameter("@UpdatedBy", userId)  // Same as CreatedBy
                     ];
-                    EntityConnection.ExecuteNonQuery(sql, roleParams);
+                    _ = App.Database.DataAccessManager.ExecuteNonQuery(EntitiesSchema, sql, roleParams);
 
                     // Set ClaimsPrincipal (Authinticate the user and sign them in)
                     HttpContext.SignInUser(userId);
                     try
                     {
                         // 1) Persist the address & enqueue zoning
-                        long addressId = App.Validation.AddressValidation.SaveAddressAndGetId(MapboxAddressJSON, AddressTypeID, userId, true);
+                        long addressId = App.Validation.AddressValidation.SaveAddressAndGetId(HJSON, AddressTypeID, userId, true);
                         if (addressId <= 0)
                         {
                             ModelState.AddModelError(string.Empty, "Could not save address. Please check your input.");
@@ -197,10 +170,8 @@ namespace Website.Pages.User
                     ErrorMessage = error;
 
                     return Page();
-
                 }
             }
         }
-
     }
 }

@@ -4,61 +4,7 @@ namespace Website.App.HTML.Pages.Home
 {
     public static class Index
     {
-        public static string LocationModal(Helper.Connection entityConn, Helper.Connection locationConn, long userId)
-        {
-            StringBuilder sb = new();
-
-            sb.Append("<div id=\"locationModal\" class=\"custom-modal\">")
-              .Append("<div class=\"custom-modal-content\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"locationModalTitle\" tabindex=\"-1\">");
-
-            // header
-            sb.Append("<div class=\"custom-modal-header\">")
-              .Append("<h5 id=\"locationModalTitle\">Current Location</h5>")
-              .Append("<button id=\"locationClose\" type=\"button\" class=\"btn-close\" aria-label=\"Close\" onclick=\"CloseLocationModal()\">×</button>")
-              .Append("</div>");
-
-            // body start
-            sb.Append("<div class=\"location-modal-body\">");
-
-            // resolved address card
-            sb.Append("<div class=\"card address-card\">")
-              .Append("<div class=\"address-option-row\" style=\"align-items:flex-start\">")
-              .Append("<label class=\"address-label\"><b>Resolved Address</b></label>")
-              .Append("</div>")
-              .Append("<div id=\"locationPreview\" class=\"address-line\">(not loaded yet)</div>")
-              .Append("</div>");
-            // address type card
-            sb.Append("<div class=\"card address-card\">")
-              .Append("<div class=\"address-option-row\">")
-              .Append("<label for=\"locationAddressTypeId\" class=\"address-label\"><b>Address Type</b></label>")
-              .Append("</div>")
-              .Append("<select id=\"locationAddressTypeId\" class=\"input-text\" name=\"locationAddressTypeId\" required>")
-              .Append("<option value=\"\">--Select address type--</option>");
-            foreach (var item in App.Helper.Table.AddressType.AddressTypeOptions())
-            {
-                sb.Append($"<option value=\"{item.Value}\">{item.Text}</option>");
-            }
-            sb.Append("</select>")
-              .Append("<div id=\"locationTypeError\" class=\"field-error\" aria-live=\"polite\"></div>")
-              .Append("</div>") // close address-type card
-              .Append("</div>"); // close location-modal-body
-
-            // footer
-            sb.Append("<div class=\"custom-modal-footer\">")
-              .Append("<button id=\"locationCancel\" type=\"button\" class=\"btn btn-secondary\" onclick=\"CloseLocationModal()\">Cancel</button>")
-              // no form here, so keep Save as a button and wire click in JS
-              .Append("<button id=\"locationSave\" type=\"button\" class=\"btn btn-primary\" onclick=\"SaveLocation()\">Save</button>")
-              .Append("</div>");
-
-            // close content & modal
-            sb.Append("</div>") // custom-modal-content
-              .Append("</div>"); // locationModal
-
-            // NOTE: entityConn and userId are unused here — drop if not needed.
-
-            return sb.ToString();
-        }
-        public static string DeliveryModal(Helper.Connection entityConn, Helper.Connection locationConn, long userId)
+        public static string DeliveryModal(long userId)
         {
             StringBuilder sb = new();
 

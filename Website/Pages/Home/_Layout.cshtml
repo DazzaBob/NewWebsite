@@ -1,12 +1,4 @@
-﻿@using Microsoft.AspNetCore.Http
-@using Website.App.Security;
-@inject IHttpContextAccessor HttpContextAccessor
-@{
-    using App.Helper.Connection EntitiesConnection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-    using App.Helper.Connection LocationsConnection = App.Database.Shared.Connection(App.Database.Schema.Locations.Database);
-    int userId = User.Id();
-}
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -20,20 +12,10 @@
     <table style="width: 100%; height: 100dvh; border-collapse: collapse;">
         <thead><tr style="height:auto;"><td colspan="1"><partial name="~/Pages/Home/Index/_Header.cshtml" /></td></tr></thead>
         <tbody style="display: block; overflow-y: auto; height: calc(100dvh - 200px); width: 100%;"><tr style="display: table; table-layout: fixed; width: 100%;"><td style="width: 100%;">@RenderBody()</td></tr></tbody>
-        <tfoot>
-            <tr>
-                <td colspan="1">
-                    <partial name="~/Pages/Home/Index/_Footer.cshtml" />
-                </td>
-            </tr>
-        </tfoot>
+        <tfoot><tr><td colspan="1"><partial name="~/Pages/Home/Index/_Footer.cshtml" /></td></tr></tfoot>
     </table>
     <partial name="~/Pages/Home/Index/_address.cshtml" />
     <partial name="~/Pages/Home/Index/_location.cshtml" />
-    @Html.Raw(App.HTML.Pages.Home.Index.DeliveryModal(EntitiesConnection, LocationsConnection, userId))
-
     <script src="/js/site.js" defer asp-append-version="true"></script>
-@* JS for this page only *@
-    <script src="~/js/home/DeliveryModal.js" defer asp-append-version="true"></script>
 </body>
 </html>

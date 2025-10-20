@@ -8,7 +8,8 @@ namespace Website.Pages.User.Address.EndPoints
     [IgnoreAntiforgeryToken]
     public class SetDefaultModel : PageModel
     {
-
+        private readonly string EntitiesSchema = App.Database.Schema.Entities.SchemaName;
+        private readonly string UserAddress = App.Database.Schema.Entities.UserAddress;
         public class SetDefaultInput { public int Id { get; set; } }
         public IActionResult OnGet() => NotFound();
         public IActionResult OnPost([FromBody] SetDefaultInput input)
@@ -18,13 +19,13 @@ namespace Website.Pages.User.Address.EndPoints
 
             int userId = User.Id();
 
-            using App.Helper.Connection conn = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-            App.Database.Shared.Update(conn, "USER_ADDRESS", "ISDEFAULT = 0", $"USER_ID = {userId}");
-            App.Database.Shared.Update(conn, "USER_ADDRESS", "ISDEFAULT = 1", $"(USER_ID = {userId}) AND (ID = {input.Id})");
-            DataTable dt = App.Database.Shared.GetDataTable(conn, "USER_ADDRESS", $"(USER_ID = {userId}) AND (ID = {input.Id})");
-            if (dt.Rows.Count == 0) return NotFound(new { ok = false, msg = "Address not found." });
+            App.Database.DataAccessManager.Update(EntitiesSchema, UserAddress, "ISDEFAULT = false", $"USER_ID = {userId}");
+            App.Database.DataAccessManager.Update(EntitiesSchema, UserAddress, "ISDEFAULT = true", $"(USER_ID = {userId}) AND (ID = {input.Id})");
 
-            string label = dt.Rows[0]["LABEL"] == DBNull.Value ? "Select Address" : dt.Rows[0]["LABEL"].ToString()?.Trim() ?? "Select Address";
+            using DataTable DT = App.Database.DataAccessManager.GetDataTable(EntitiesSchema, UserAddress, $"(USER_ID = {userId}) AND (ISDEFAULT = true)");
+            if (DT.Rows.Count == 0) return NotFound(new { ok = false, msg = "Address not found." });
+
+            string label = DT.Rows[0]["LABEL"] == DBNull.Value ? "Select Address" : DT.Rows[0]["LABEL"].ToString()?.Trim() ?? "Select Address";
             return new JsonResult(new { ok = true, label });
         }
     }

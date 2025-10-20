@@ -1,134 +1,43 @@
-﻿// -----------------------------------------------------------------------------
-//  ZoneManager – full zoning engine with boot-sweep, pioneer logic, auto-grow
-// -----------------------------------------------------------------------------
+﻿using NetTopologySuite.Geometries;
+using NetTopologySuite.IO;
 using System.Data;
-using System.Diagnostics;
+using Website.App.Database;
+using Website.App.Database.Locations.Tables;
 
 namespace Website.App.Operations.Zoning
 {
-    internal sealed partial class ZoneManager
+    /// <summary>
+    /// Manages Base and RCI zones in relation to addresses.
+    /// Handles:
+    /// - Validation of coordinates within zones.
+    /// - Base zone fallback and reshaping.
+    /// - RCI zone creation and merging by AddressType.
+    /// </summary>
+    /// This class is only ever referenced internally... this is not for PUBLIC API use.
+    internal static partial class ZoneManager
     {
-        private static volatile bool _isRunning = false;
-        private static readonly object _lock = new();
-        private static readonly string NamespaceClass = "App.Operations.Zoning.ZoneManager.";
-        private static string errorMessage = string.Empty;
-        private const int BatchSize = 100; // Number of updates per batch
-
-        private static readonly List<string> _pendingUpdates = [];
-        private static readonly object _batchLock = new();
-
-        private ZoneManager() { } // private constructor
-
-        internal static void StartZoning(bool IsBackground = true)
+        private static readonly GeometryFactory _gf = new(new PrecisionModel(), 4326);
+        private static readonly GeoJsonWriter _gjson = new();
+        private static readonly GeoJsonReader _greader = new();
+        private static readonly string LocationsSchema = Schema.Locations.SchemaName;
+        /// <summary>
+        /// Handles a new address insertion:
+        /// - Finds or creates a Base zone.
+        /// - Finds or creates an RCI zone for the Base zone + AddressType.
+        /// - Returns IDs for both zones.
+        /// </summary>
+        /// public static void AssignZonesForAddress(int addressId, double latitude, double longitude, int placeId, int? localityId)
+        internal static void AssignZonesForAddress(int addressId, int AddressTypeId, double latitude, double longitude, int placeId, int? localityId)
         {
-            if (IsBackground)
-            {
-                lock (_lock)
-                {
-                    if (_isRunning) return;
-                    _isRunning = true;
-
-                    new Thread(() =>
-                    {
-                        try { ExecutePendingZoningBatch(); }
-                        finally { lock (_lock) { _isRunning = false; } }
-                    })
-                    { IsBackground = true }.Start();
-                }
-            }
-            else
-            {
-                try
-                {
-                    ExecutePendingZoningBatch();
-                }
-                catch (Exception ex)
-                {
-                    errorMessage = NamespaceClass + $"StartZoning: {ex.Message}";
-                    Bootstrap.Logger?.Add(errorMessage, Helper.Logger.LogLevel.Error);
-                }
-            }
+          ZoneHelpers.AssignAddressZones(addressId, AddressTypeId, latitude, longitude, placeId, localityId);
         }
-
-        private static void ExecutePendingZoningBatch()
+        internal static int CreatePlaceZoneID(int placeId)
         {
-            using Helper.Connection conn = Database.Shared.Connection(Database.Schema.Locations.Database);
-
-            DataTable addressDT = Database.Shared.GetDataTable(conn, "ADDRESS", "ZONE_ID IS NULL");
-            if (addressDT.Rows.Count == 0)
-            {
-                errorMessage = NamespaceClass + $"ExecutePendingZoningBatch: Sweep finished – no addresses pending.";
-                Bootstrap.Logger?.Add(errorMessage, Helper.Logger.LogLevel.Info);
-                return;
-            }
-
-            string placeIds = string.Join(",", addressDT.AsEnumerable().Select(r => r["PLACE_ID"].ToString()).Distinct());
-            DataTable zoneDT = Database.Shared.GetDataTable(conn, "ZONES", $"PLACE_ID IN ({placeIds})", "CREATEDOADATE DESC");
-
-            if (zoneDT.Rows.Count == 0)
-            {
-                errorMessage = NamespaceClass + $"ExecutePendingZoningBatch: No zones found for pending addresses.";
-                Website.App.Bootstrap.Logger?.Add(errorMessage, Helper.Logger.LogLevel.Warn);
-                return;
-            }
-
-            Stopwatch sw = Stopwatch.StartNew();
-
-            foreach (DataRow addr in addressDT.Rows)
-            {
-                int placeId = (int)addr["PLACE_ID"];
-                object localityObj = addr["LOCALITY_ID"];
-                DataRow[] matchedZones = localityObj != DBNull.Value
-                    ? zoneDT.Select($"PLACE_ID = {placeId} AND LOCALITY_ID = {localityObj}")
-                    : zoneDT.Select($"PLACE_ID = {placeId} AND LOCALITY_ID IS NULL");
-
-                if (matchedZones.Length > 0)
-                {
-                    int zoneId = (int)matchedZones[0]["ID"];
-                    QueueUpdate(addrId: (int)addr["ID"], zoneId: zoneId, conn: conn);
-                }
-            }
-
-            // Execute remaining batch
-            FlushPendingUpdates(conn);
-
-            sw.Stop();
-            errorMessage = NamespaceClass + $"ExecutePendingZoningBatch: Sweep finished – {addressDT.Rows.Count} addresses, {sw.ElapsedMilliseconds} ms";
-            Website.App.Bootstrap.Logger?.Add(errorMessage, Helper.Logger.LogLevel.Info);
+            return ZoneSeeder.CreatePlaceZoneID(placeId);
         }
-
-        private static void QueueUpdate(int addrId, int zoneId, Helper.Connection conn)
+        internal static int CreateLocalityZoneID(int localityId, int placeZoneId)
         {
-            lock (_batchLock)
-            {
-                _pendingUpdates.Add($"UPDATE ADDRESS SET ZONE_ID = {zoneId} WHERE ID = {addrId};");
-
-                if (_pendingUpdates.Count >= BatchSize)
-                {
-                    FlushPendingUpdates(conn);
-                }
-            }
-        }
-
-        private static void FlushPendingUpdates(Website.App.Helper.Connection conn)
-        {
-            if (_pendingUpdates.Count == 0) return;
-
-            try
-            {
-                foreach (string sql in _pendingUpdates)
-                {
-                    _ = conn.ExecuteNonQuery(sql);
-                }
-            }
-            catch
-            {
-                throw;
-            }
-            finally
-            {
-                _pendingUpdates.Clear();
-            }
+            return ZoneSeeder.CreateLocalityZoneID(localityId, placeZoneId);
         }
     }
 }

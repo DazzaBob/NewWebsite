@@ -29,12 +29,12 @@ namespace Website.App.Helper.Table
 
                 try
                 {
-                    using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Locations.Database, Database.Schema.Locations.Tables.AddressType);
+                    using DataTable dt = Database.DataAccessManager.GetDataTable(Database.Schema.Locations.SchemaName, Database.Schema.Locations.AddressType);
                     var items = dt.Rows
                         .Cast<DataRow>()
                         .Select(r => new
                         {
-                            ID = Convert.ToInt32(r.Field<long>("ID")),
+                            ID = Convert.ToInt32(r.Field<int>("ID")),
                             NAME = r.Field<string>("NAME") ?? string.Empty
                         })
                         .ToList();

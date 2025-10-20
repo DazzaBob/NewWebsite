@@ -22,7 +22,6 @@
 
                 // Start the zoning operations, incase we crashed during zoning.
                 // No background zoning, just start the zone manager and let it handle the zoning operations.
-                App.Operations.Zoning.ZoneManager.StartZoning(false);
                 _isInitialized = true;
             }
         }

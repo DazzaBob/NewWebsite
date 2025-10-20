@@ -17,23 +17,21 @@ namespace Website.App.Database.Locations.Tables
                 }
 
             }
-
-            DataRow[] DR = DT.Select($"COUNTRY_ID={countryId} AND NAME={App.Database.Shared.SafeReplace(regionName)} AND SHORTCODE={App.Database.Shared.SafeReplace(regionCode)}");
+            DataRow[] DR = DT.Select($"COUNTRY_ID={countryId} AND NAME={Shared.Sanitize(regionName, true)} AND SHORTCODE={Shared.Sanitize(regionCode, true)}");
             if (DR.Length > 0) return Convert.ToInt32(DR[0]["ID"]);
-
             lock (LockRehydrate)
             {
                 Insert(countryId, regionName, regionCode);
                 RehydrateDT();
             }
-            DR = DT.Select($"COUNTRY_ID={countryId} AND NAME={App.Database.Shared.SafeReplace(regionName)} AND SHORTCODE={App.Database.Shared.SafeReplace(regionCode)}");
+            DR = DT.Select($"COUNTRY_ID={countryId} AND NAME={Shared.Sanitize(regionName, true)} AND SHORTCODE={Shared.Sanitize(regionCode, true)}");
             if (DR.Length > 0) return Convert.ToInt32(DR[0]["ID"]);
 
             return -1;
         }
         private static void RehydrateDT()
         {
-            using DataTable newDT = DataAccessManager.GetDataTable(Database.Schema.Locations.Database, Schema.Locations.Tables.Region);
+            using DataTable newDT = DataAccessManager.GetDataTable(Database.Schema.Locations.SchemaName, Schema.Locations.Region);
             lock (LockRehydrate)
             {
                 DT.Clear();
@@ -43,10 +41,10 @@ namespace Website.App.Database.Locations.Tables
         internal static void Insert(int countryId, string regionName, string regionShortCode)
         {
             double today = DateTime.UtcNow.ToOADate();
-            string sql = "INSERT OR IGNORE INTO REGION(COUNTRY_ID, NAME, SHORTCODE, CREATEDOADATE, UPDATEDOADATE) ";
-            sql += $"VALUES({countryId}, {Shared.SafeReplace(regionName)}, {Shared.SafeReplace(regionShortCode)}, {today}, {today})";
+            string fields = "COUNTRY_ID, NAME, SHORTCODE, CREATEDOADATE, UPDATEDOADATE";
+            string values = $"{countryId}, {Shared.Sanitize(regionName, true)}, {Shared.Sanitize(regionShortCode, true)}, {today}, {today}";
 
-            _ = DataAccessManager.ExecuteNonQuery(Schema.Locations.Database, sql, []);
+           _ = DataAccessManager.Insert(Schema.Locations.SchemaName, Schema.Locations.Region, fields, values);
         }
     }
 }

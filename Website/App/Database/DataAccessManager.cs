@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using Npgsql;
 using System.Collections.Concurrent;
 using System.Collections.Specialized;
 using System.Data;
@@ -17,14 +17,40 @@ namespace Website.App.Database
         // Optional logging delegate
         public static Action<string>? Log { get; set; }
 
-        #region Public Async API
-        public static int Insert(string dbName, string tableName, string fields, string values)
+        #region Public API
+        public static object GetScalar(string schema, string tableName, string field, string? whereClause = null, string? orderBy = null)
         {
-            Database dbPool = GetConnection(dbName);
+            Database dbPool = GetConnection(schema);
             DALConnection conn = dbPool.Acquire();
             try
             {
-                string sql = $"INSERT INTO {tableName} ({fields}) VALUES ({values}); SELECT last_insert_rowid();";
+                StringBuilder sql = new($"SELECT {field} FROM {tableName}");
+                if (!string.IsNullOrWhiteSpace(whereClause))
+                    sql.Append(" WHERE ").Append(whereClause);
+                if (!string.IsNullOrWhiteSpace(orderBy))
+                    sql.Append(" ORDER BY ").Append(orderBy);
+
+                sql.Append(" LIMIT 1;"); // only need one value
+                return conn.ExecuteScalar(sql.ToString());
+            }
+            finally
+            {
+                dbPool.Release(conn);
+            }
+        }
+
+        /// <summary>
+        /// Inserts a new row into the specified table within the given schema using the provided fields and values.
+        /// Acquires a pooled database connection, executes the INSERT statement, retrieves the generated ID, 
+        /// and then releases the connection back to the pool.
+        /// </summary>
+        public static int Insert(string Schema, string tableName, string fields, string values)
+        {
+            Database dbPool = GetConnection(Schema);
+            DALConnection conn = dbPool.Acquire();
+            try
+            {
+                string sql = $"INSERT INTO {tableName} ({fields}) VALUES ({values}) RETURNING id;";
                 object result = conn.ExecuteScalar(sql);
                 return Convert.ToInt32(result);
             }
@@ -33,9 +59,15 @@ namespace Website.App.Database
                 dbPool.Release(conn);
             }
         }
-        public static object Update(string dbName, string tableName, string setClause, string? whereClause = null)
+
+        /// <summary>
+        /// Updates rows in the specified table within the given schema using the provided SET clause and optional WHERE clause.
+        /// Acquires a pooled database connection, executes the UPDATE statement, and returns the number of affected rows.
+        /// The connection is released back to the pool after execution.
+        /// </summary>
+        public static object Update(string Schema, string tableName, string setClause, string? whereClause = null)
         {
-            Database dbPool = GetConnection(dbName);
+            Database dbPool = GetConnection(Schema);
             DALConnection conn = dbPool.Acquire();
             try
             {
@@ -50,9 +82,10 @@ namespace Website.App.Database
                 dbPool.Release(conn);
             }
         }
-        public static DataTable GetDataTable(string dbName, string tableName, string where = "", string orderBy = "")
+
+        public static DataTable GetDataTable(string Schema, string tableName, string where = "", string orderBy = "")
         {
-            Database dbPool = GetConnection(dbName);
+            Database dbPool = GetConnection(Schema);
             DALConnection conn = dbPool.Acquire();
             try
             {
@@ -69,9 +102,9 @@ namespace Website.App.Database
                 dbPool.Release(conn);
             }
         }
-        public static DataTable GetDataTable(string dbName, string sql, params SqliteParameter[] parameters)
+        public static DataTable GetDataTable(string Schema, string sql, params NpgsqlParameter[] parameters)
         {
-            Database dbPool = GetConnection(dbName);
+            Database dbPool = GetConnection(Schema);
             DALConnection conn = dbPool.Acquire();
             try
             {
@@ -82,9 +115,9 @@ namespace Website.App.Database
                 dbPool.Release(conn);
             }
         }
-        public static object ExecuteScalar(string dbName, string sql, params SqliteParameter[] parameters)
+        public static object ExecuteScalar(string Schema, string sql, params NpgsqlParameter[] parameters)
         {
-            Database dbPool = GetConnection(dbName);
+            Database dbPool = GetConnection(Schema);
             DALConnection conn = dbPool.Acquire();
             try
             {
@@ -95,9 +128,9 @@ namespace Website.App.Database
                 dbPool.Release(conn);
             }
         }
-        public static long ExecuteNonQuery(string dbName, string sql, params SqliteParameter[] parameters)
+        public static long ExecuteNonQuery(string Schema, string sql, params NpgsqlParameter[] parameters)
         {
-            Database dbPool = GetConnection(dbName);
+            Database dbPool = GetConnection(Schema);
             DALConnection conn = dbPool.Acquire();
             try
             {
@@ -109,29 +142,33 @@ namespace Website.App.Database
             }
         }
 
-        public static async Task<int> InsertAsync(string dbName, string tableName, string fields, string values)
+        public static async Task<object> GetScalarAsync(string schema, string tableName, string field, string? whereClause = null, string? orderBy = null)
         {
-            return await Task.Run(() => Insert(dbName, tableName, fields, values));
+            return await Task.Run(() => GetScalar(schema, tableName, field, whereClause, orderBy));
         }
-        public static async Task<object> UpdateAsync(string dbName, string tableName, string setClause, string? whereClause = null)
+        public static async Task<int> InsertAsync(string Schema, string tableName, string fields, string values)
         {
-            return await Task.Run(() => Update(dbName, tableName, setClause, whereClause));
+            return await Task.Run(() => Insert(Schema, tableName, fields, values));
         }
-        public static async Task<DataTable> GetDataTableAsync(string dbName, string tableName, string where = "", string orderBy = "")
+        public static async Task<object> UpdateAsync(string Schema, string tableName, string setClause, string? whereClause = null)
         {
-            return await Task.Run(() => GetDataTable(dbName, tableName, where, orderBy));
+            return await Task.Run(() => Update(Schema, tableName, setClause, whereClause));
         }
-        public static async Task<DataTable> GetDataTableAsync(string dbName, string sql, params SqliteParameter[] parameters)
+        public static async Task<DataTable> GetDataTableAsync(string Schema, string tableName, string where = "", string orderBy = "")
         {
-            return await Task.Run(() => GetDataTable(dbName, sql, parameters));
+            return await Task.Run(() => GetDataTable(Schema, tableName, where, orderBy));
         }
-        public static async Task<object> ExecuteScalarAsync(string dbName, string sql, params SqliteParameter[] parameters)
+        public static async Task<DataTable> GetDataTableAsync(string Schema, string sql, params NpgsqlParameter[] parameters)
         {
-            return await Task.Run(() => ExecuteScalar(dbName, sql, parameters));
+            return await Task.Run(() => GetDataTable(Schema, sql, parameters));
         }
-        public static async Task<long> ExecuteNonQueryAsync(string dbName, string sql, params SqliteParameter[] parameters)
+        public static async Task<object> ExecuteScalarAsync(string Schema, string sql, params NpgsqlParameter[] parameters)
         {
-            return await Task.Run(() => ExecuteNonQuery(dbName, sql, parameters));
+            return await Task.Run(() => ExecuteScalar(Schema, sql, parameters));
+        }
+        public static async Task<long> ExecuteNonQueryAsync(string Schema, string sql, params NpgsqlParameter[] parameters)
+        {
+            return await Task.Run(() => ExecuteNonQuery(Schema, sql, parameters));
         }
         #endregion
         public static void ShutdownPools()
@@ -149,9 +186,9 @@ namespace Website.App.Database
             }
             _databases.Clear();
         }
-        private static Database GetConnection(string dbName)
+        private static Database GetConnection(string Schema)
         {
-            return _databases.GetOrAdd(dbName, name => new Database(name, DefaultMaxConnections));
+            return _databases.GetOrAdd(Schema, name => new Database(name, DefaultMaxConnections));
         }
         private class Database : IDisposable
         {
@@ -192,7 +229,7 @@ namespace Website.App.Database
                         if (ActiveConnections < MaxConnections)
                         {
                             ActiveConnections++;
-                            DALConnection newConn = new(Name) { LastUsed = DateTime.UtcNow.ToOADate() };
+                            DALConnection newConn = new() { LastUsed = DateTime.UtcNow.ToOADate() };
                             return newConn;
                         }
 
@@ -229,7 +266,7 @@ namespace Website.App.Database
                     }
 
                     ActiveConnections++;
-                    DALConnection newConn = new(Name) { LastUsed = DateTime.UtcNow.ToOADate() };
+                    DALConnection newConn = new() { LastUsed = DateTime.UtcNow.ToOADate() };
                     return newConn;
                 }
             }
@@ -302,30 +339,17 @@ namespace Website.App.Database
         }
         private class DALConnection : IDisposable
         {
-            private readonly SqliteConnection _connection;
+            private readonly NpgsqlConnection _connection;
             private bool _disposed;
             private readonly string basePath;
             internal double LastUsed { get; set; }
-            private DALConnection()
+            internal DALConnection() // c# sux, with how they name the constructor
             {
                 _connection = null!; // to satisfy compiler
                 basePath = Settings.DatabasePath; // from appsettings.json
                 LastUsed = DateTime.UtcNow.ToOADate();
-            }
-            internal DALConnection(string dbName) : this() // c# sux, with how they name the constructor
-            {
-                string fullPath = Path.Combine(basePath, dbName);
-                string connectionString = $"Data Source={fullPath}";
-
-                _connection = new SqliteConnection(connectionString);
+                _connection = new NpgsqlConnection(App.Settings.DefaultConnectionString);
                 _connection.Open();
-                EnableForeignKeys();
-            }
-            private void EnableForeignKeys()
-            {
-                using var cmd = _connection.CreateCommand();
-                cmd.CommandText = "PRAGMA foreign_keys = ON;";
-                cmd.ExecuteNonQuery();
             }
             private static T ExecuteWithRetry<T>(Func<T> action, int maxRetries = 5, int initialDelayMs = 50)
             {
@@ -333,7 +357,7 @@ namespace Website.App.Database
                 for (int attempt = 0; attempt < maxRetries; attempt++)
                 {
                     try { return action(); }
-                    catch (SqliteException ex) when (ex.SqliteErrorCode == 5) // SQLITE_BUSY
+                    catch (NpgsqlException ex) when (ex is Npgsql.NpgsqlException && ex.IsTransient) // A Fallback, just incase the server is reall busy for some reason.
                     {
                         System.Threading.Thread.Sleep(delay);
                         delay *= 2;
@@ -346,7 +370,7 @@ namespace Website.App.Database
                 if (_connection.State != ConnectionState.Open)
                     _connection.Open();
             }
-            internal DataTable GetDataTable(string commandText, params SqliteParameter[] parameters)
+            internal DataTable GetDataTable(string commandText, params NpgsqlParameter[] parameters)
             {
                 DataTable result = new() { Locale = CultureInfo.InvariantCulture };
                 EnsureOpen();
@@ -367,18 +391,15 @@ namespace Website.App.Database
             {
                 return GetDataTable(commandText, []);
             }
-            internal object ExecuteNonQuery(string commandText, params SqliteParameter[] parameters)
+            internal object ExecuteNonQuery(string commandText, params NpgsqlParameter[] parameters)
             {
                 EnsureOpen();
                 return ExecuteWithRetry(() =>
                 {
-                    using var transaction = _connection.BeginTransaction();
                     using var cmd = _connection.CreateCommand();
                     cmd.CommandText = commandText;
                     cmd.Parameters.AddRange(parameters);
-                    cmd.Transaction = transaction;
                     int rows = cmd.ExecuteNonQuery();
-                    transaction.Commit();
                     return rows;
                 });
             }
@@ -386,32 +407,21 @@ namespace Website.App.Database
             {
                 return ExecuteNonQuery(commandText, []);
             }
-            internal object ExecuteScalar(string commandText, params SqliteParameter[] parameters)
+            internal object ExecuteScalar(string commandText, params NpgsqlParameter[] parameters)
             {
                 EnsureOpen();
                 return ExecuteWithRetry(() =>
                 {
-                    using var transaction = _connection.BeginTransaction();
                     using var cmd = _connection.CreateCommand();
                     cmd.CommandText = commandText;
                     cmd.Parameters.AddRange(parameters);
-                    cmd.Transaction = transaction;
                     var result = cmd.ExecuteScalar();
-                    transaction.Commit();
                     return result ?? DBNull.Value;
                 });
             }
             internal object ExecuteScalar(string commandText)
             {
                 return ExecuteScalar(commandText, []);
-            }
-            internal static SqliteParameter CreateParameter(string name, object value)
-            {
-                return new SqliteParameter(name, value ?? DBNull.Value);
-            }
-            internal static string GetLastInsertId()
-            {
-                return "SELECT last_insert_rowid();";
             }
             #region Implements IDisposable Pattern
             public void Dispose()

@@ -7,7 +7,7 @@ namespace Website.App.Database.Locations.Tables
     {
         internal static object LockRehydrate = new();
         private readonly static DataTable LocalityDT = new();
-        internal static DataTable DataTable(Helper.Connection connection)
+        internal static DataTable DataTable()
         {
             if (LocalityDT.Rows.Count == 0)
             {
@@ -48,7 +48,7 @@ namespace Website.App.Database.Locations.Tables
 
         private static void RehydrateDT()
         {
-            DataTable newDT = DataAccessManager.GetDataTable(Schema.Locations.Database, Schema.Locations.Tables.Locality);
+            DataTable newDT = DataAccessManager.GetDataTable(Schema.Locations.SchemaName, Schema.Locations.Locality);
             lock (LockRehydrate)
             {
                 LocalityDT.Clear();
@@ -73,9 +73,19 @@ namespace Website.App.Database.Locations.Tables
             string minLon = SqlVal(RAF?.Locality?.BBox?.MinLongitude);
             string maxLon = SqlVal(RAF?.Locality?.BBox?.MaxLongitude);
 
-            string sql = "INSERT OR IGNORE INTO LOCALITY (PLACE_ID, NAME, LATITUDE, LONGITUDE, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE) ";
-            sql += $"VALUES ({placeId}, {Shared.SafeReplace(localityName)}, {lat}, {lon}, {minLat}, {maxLat}, {minLon}, {maxLon})";
-            _ = DataAccessManager.ExecuteNonQuery(Schema.Locations.Database, sql, []);
+            string fields = "PLACE_ID, NAME, LATITUDE, LONGITUDE, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE";
+            string values = $"{placeId}, {Shared.Sanitize(localityName, true)}, {lat}, {lon}, {minLat}, {maxLat}, {minLon}, {maxLon}";
+            int LocalityId = DataAccessManager.Insert(Schema.Locations.SchemaName, Schema.Locations.Locality, fields, values);
+
+            if (LocalityId <= 0)
+            {
+                Bootstrap.Logger?.Add($"Database.Locations.Tables.Locality.Insert: Failed to insert locality '{localityName}' for place ID {placeId}.", Helper.Logger.LogLevel.Error);
+                return;
+            }
+
+            //Call the Zone Seeder for Place
+            App.Operations.Zoning.ZoneManager.CreateLocalityZoneID(placeId, LocalityId);
+
         }
     }
 }

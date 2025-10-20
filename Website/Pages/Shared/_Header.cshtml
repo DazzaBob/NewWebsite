@@ -4,34 +4,7 @@
 @{
     bool IsDashboard = App.Helper.Shared.IsDashboard(HttpContextAccessor.HttpContext?.Request.Path.Value?.ToLower() ?? "");
     int userId = User.Id();
-    string DefaultLabelFallback = "Select Address";
-    string label = string.Empty;
-    string currentPath = (HttpContextAccessor.HttpContext?.Request.Path.Value ?? "")
-                     .Trim()
-                     .TrimEnd('/')        // remove trailing slash
-                     .ToLower();          // lowercase for consistent comparison
-
-    System.Data.DataTable DT;
-
-    if (IsDashboard)
-    {
-        using App.Helper.Connection connection = App.Database.Shared.Connection(App.Database.Schema.Entities.Database);
-        DT = Website.App.Database.Shared.GetDataTable(connection, Website.App.Database.Schema.Entities.Tables.UserAddress, $"USER_ID={userId} AND ISDEFAULT=1");
-
-        if (DT.Rows.Count > 0)
-        {
-            label = DT.Rows[0]["LABEL"] == DBNull.Value
-                ? DefaultLabelFallback
-                : DT.Rows[0]["LABEL"].ToString()?.Trim() ?? DefaultLabelFallback;
-        }
-
-        ViewData["DefaultAddressLabel"] = (DT.Rows.Count > 0 ? label : null) ?? DefaultLabelFallback;
-    }
-    else
-    {
-        DefaultLabelFallback = string.Empty;
-        ViewData["DefaultAddressLabel"] = DefaultLabelFallback;
-    }
+    string currentPath = (HttpContextAccessor.HttpContext?.Request.Path.Value ?? "").Trim().TrimEnd('/').ToLower();
 }
 <header class="site-header">
     <div class="header-container">
