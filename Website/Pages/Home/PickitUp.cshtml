@@ -1,0 +1,105 @@
+﻿@page
+@model Website.Pages.Home.PickitUpModel
+@{
+}
+<table style="width: 100%; border-collapse: collapse;"><tr><td style="text-align:center; width:100%; padding:0;"><div style="display:flex; align-items:center; justify-content:center; gap:0.5rem;"><i class="fas fa-box" style="font-size: 1.25rem;"></i><h5 style="margin:0;">Pick It Up!</h5><i class="fas fa-box" style="font-size: 1.25rem;"></i></div></td><td style="text-align:right;"><a href="/Home/Index" class="btn btn-secondary">←&nbsp;Back</a></td></tr></table>
+<div class="grid-canvas" style="width:100%; text-align: center; align-content: center;">
+    <div class="grid">
+        <div class="card" style="text-align: center; align-items: center; padding: 1px 1px 1px 1px; min-width: 300px; max-width: 450px;">
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
+                <label for="Recipient" style="white-space:nowrap; min-width:100px;"><b>Recipient:</b></label>
+                <input type="text" id="Recipient" name="Recipient" class="input-text" placeholder="Full Name" style="flex:1; padding:0.5rem; border-radius:8px; border:1px solid var(--color-primary); font-size: .75rem;" required />
+            </div>
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
+                <label for="Reference" style="white-space:nowrap; min-width:100px;"><b>REF:</b></label>
+                <input type="text" id="Reference" name="Reference" class="input-text" placeholder="AaBbCc123" style="flex:1; padding:0.5rem; border-radius:8px; border:1px solid var(--color-primary); font-size: .75rem;" />
+            </div>
+
+            <!-- Pickup Card -->
+            <div class="card" style="padding:1rem; margin-bottom:1rem; display:flex; flex-direction:column; gap:1rem;">
+                <table>
+                    <tr><td colspan="2"><label for="UserPickupAddressId"><b>Pick it up here:</b></label></td></tr>
+                    <tr>
+                        <td style="width: 100%">
+                            <select id="UserPickupAddressId" name="UserPickupAddressId" class="input-text"
+                                    style="width:100%; font-size:.75rem; border:1px solid var(--color-primary);" required>
+                                <option value="">--Pickup Address--</option>
+                                <option value="PlaceHolder">PlaceHolder</option>
+                            </select>
+                        </td>
+                        <td style="vertical-align: middle;">
+                            <a href="#" onclick="placeholder()" class="icon-btn" style="font-size:1rem; margin-right:0.25rem;">
+                                <i class="fa-solid fa-map-marker-alt"></i>
+                            </a>
+                            <a href="#" onclick="placeholder()" class="icon-btn" style="font-size:1rem; margin-right:0.25rem;">
+                                <i class="fa-solid fa-keyboard"></i>
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+                <div style="display:flex; gap:1rem;">
+                    <div style="flex:1; display:flex; flex-direction:column; gap:0.25rem;">
+                        <label for="PickupAddressTypeId"><b>Address Type:</b></label>
+                        <select id="PickupAddressTypeId" name="PickupAddressTypeId" class="input-text" style="font-size: .75rem; border:1px solid var(--color-primary);" required>
+                            <option value="">--Address type--</option>
+                            @foreach (var item in App.Helper.Table.AddressType.AddressTypeOptions())
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div style="flex:1; display:flex; flex-direction:column; gap:0.25rem;">
+                        <label for="PickupPackageSizeId"><b>Package Size:</b></label>
+                        <select id="PickupPackageSizeId" name="PickupPackageSizeId" class="input-text" style="font-size: .75rem;" required>
+                            <option value="">--Package size--</option>
+                            @* Populate dynamically if you have a helper for package sizes *@
+                        </select>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:0.5rem; width:100%;">
+                    <label for="ReadyTime" style="white-space:nowrap;"><b>Ready:</b></label>
+                    <select id="ReadyTime" name="ReadyTime" class="input-text" style="padding:0.25rem; border-radius:4px; border:1px solid var(--color-primary); font-size:.75rem; flex-grow:1; min-width:140px;">
+                        <option value="now">Ready Now</option>
+                        <option value="specific">Specific Time</option>
+                    </select>
+                    <input type="time" id="SpecificTime" name="SpecificTime" style="display:none; padding:0.25rem; border-radius:4px; border:1px solid var(--color-primary);" />
+                </div>
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
+                    <label for="PickupNotes" style="white-space:nowrap; min-width:100px;"><b>Notes:&nbsp;</b></label>
+                    <textarea id="PickupNotes" name="PickupNotes" class="input-text" placeholder="...." style="flex:1; padding:0.5rem; border-radius:8px; border:1px solid var(--color-primary); font-size:.75rem; resize:vertical; min-height:3rem;"></textarea>
+                </div>
+            </div>
+            <div class="card" style="text-align: center; align-items: center; padding: 1px 1px 1px 1px; width: 100%;">
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
+                    <input type="text" id="DropoffLocation" name="DropoffLocation"
+                           class="address-edit-input"
+                           placeholder="Dropoff Location / Address Type" required
+                           style="flex:1; padding:0.5rem; border-radius:8px; border:1px solid var(--color-primary); font-size:.75rem;" />
+                    <a href="#" onclick="placeholder()"
+                       style="display:inline-flex; align-items:center; justify-content:center; padding:0.25rem; color:var(--color-primary); transition:transform 0.2s;">
+                        <i class="fa-solid fa-home"></i>
+                    </a>
+                </div>
+            </div>
+            <div id="TaskList" style="display:none; flex-direction:column; gap:0.5rem; margin-top:1rem;"></div>
+
+            <!-- Buttons -->
+            <div style="display:flex; justify-content:space-between; gap:0.5rem; margin-top:1rem;">
+                <button type="button" id="AddTask" class="btn btn-primary" onclick="addTask();" style="font-size: .75rem;">Add Another Pickup</button>
+                <button type="button" id="AcceptTasks" class="btn btn-success" onclick="acceptTasks();" style="font-size: .75rem;"><i class="fa-solid fa-flag"></i>&nbsp;All Set!&nbsp;<i class="fa-solid fa-flag"></i></button>
+                <button type="button" id="Cancel" class="btn btn-secondary" onclick="location.href='/Home/Index';" style="font-size: .75rem;">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toggle specific time input
+    document.getElementById('ReadyTime').addEventListener('change', function () {
+        document.getElementById('SpecificTime').style.display = this.value === 'specific' ? 'inline-block' : 'none';
+        if(this.value === 'specific') {
+            const now = new Date();
+            document.getElementById('SpecificTime').value = now.toTimeString().slice(0,5);
+        }
+    });
+</script>

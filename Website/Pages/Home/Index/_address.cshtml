@@ -32,52 +32,14 @@
                     string userAddressId = (row["ID"]?.ToString() ?? string.Empty).Trim();
                     string label = (row["LABEL"]?.ToString() ?? string.Empty).Trim();
                     bool isDefault = (bool)row["ISDEFAULT"];
-                    @Html.Raw(App.StringBuilders.Pages.Index.Modals.Address.AddressCard.Get(modalId, addressId.ToString(), userAddressId, isDefault, label));
+                    @Html.Raw(App.StringBuilders.Pages.Index.Modals.Address.AddressCard.Get(modalId, addressId.ToString(), userAddressId, isDefault, label))
                 }
             }
             <!-- Add New Address Section -->
             <div class="mt-3">
                 <button type="button" class="btn btn-pill btn-outline nav" onclick="var modal=this.closest('.custom-modal');var newCard=modal.querySelector('.new-address-card');if(newCard){newCard.style.display='block';var input=newCard.querySelector('.new-address-label');if(input)input.focus();newCard.scrollIntoView({behavior:'smooth',block:'center'});}return false;">+ Add New Address</button>
             </div>
-            <div class="card address-card new-address-card" style="display:none;">
-                <div class="add-address-form">
-                    <div class="address-option-row">
-                        <label><b>New Address</b></label>
-                    </div>
-                    <br />
-                    <div class="form-group mt-2">
-                        <label><b>Label</b></label>
-                        <input id="AMNAL" type="text" class="form-control new-address-label" placeholder="Home, Work, etc." maxlength="25" />
-                    </div>
-                    <br />
-                    <div class="mapbox-address-autofill" style="position:relative;">
-                        <label>Search Address</label>
-                        <input id="AMNAS" type="text" class="input-text" autocomplete="off" placeholder="Start typing your address…" required />
-                        <ul id="AMACL" hidden></ul>
-                        <input id="AMHJSON" type="hidden" class="location-payload" />
-                    </div>
-                    <br />
-                    <div class="form-group mt-2">
-                        <label><b>Address Type</b></label>
-                        <select id="AMNATID" class="input-text" required>
-                            <option value="">--Select address type--</option>
-                            @foreach (SelectListItem item in AddressOptions)
-                            {
-                                <option value="@item.Value">@item.Text</option>
-                            }
-                        </select>
-                    </div>
-                    <br />
-                    <div class="mt-3">
-                        <table style="width: 100%; padding: 0 0 0 0; border-collapse: collapse;">
-                            <tr>
-                                <td style="width: 50%;"><button id="addressSave" type="button" class="btn btn-primary" onclick="SaveNewAddress(this.closest('.new-address-card'));">Save</button></td>
-                                <td style="text-align: right;"><button id="addressCancel" type="button" class="btn btn-secondary" onclick="CloseNewAddressCard();">Cancel</button></td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            @Html.Raw(App.StringBuilders.Pages.AddNewAddressCard.GenerateAddressCard("AMCI", "AMNAL", "AMNAS", "AMACL", "AMHJSON", "AMNATC", "AMNATID"))
         </div>
         <div class="custom-modal-footer"><span>&nbsp;</span></div>
     </div>

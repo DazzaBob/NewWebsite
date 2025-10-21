@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 /// The Strings must be manaually string built.  because JS sucks!!!
 namespace Website.App.StringBuilders
@@ -29,7 +30,8 @@ namespace Website.App.StringBuilders
                 sb.Append(Common())
                 .AppendLine(SideMenu())
                 .AppendLine(Spinner())
-                .AppendLine(Mapbox());
+                .AppendLine(Mapbox())
+                .AppendLine(MapboxV5Parse());
 
                 return sb.ToString();
             }
@@ -112,14 +114,109 @@ namespace Website.App.StringBuilders
                 .Append($"const c=document.getElementById(hiddenJson); ")
                 .Append("let d=null; ")
                 .Append("function e(fn,d=300){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),d);};} ")
-                .Append("const f=e(async()=>{const q=a.value.trim();if(!q)return b.hidden=true;d?.abort();d=new AbortController(); ")
-                .Append("const u=`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?autocomplete=true&country=nz&limit=5&access_token=${t}`; ")
-                .Append("try{const r=await fetch(u,{signal:d.signal});const{features}=await r.json();g(features||[]);}catch(e){if(e.name!=='AbortError')console.error(e);}},200); ")
-                .Append("function g(f){b.innerHTML='';if(!f.length)return b.hidden=true;f.forEach(x=>{const li=document.createElement('li');li.textContent=x.place_name;li.addEventListener('mousedown',()=>h(x));b.appendChild(li);});b.hidden=false;}")
+
+                .Append("const f=e(async()=>{")
+                .Append("const q=a.value.trim(); ")
+                .Append("if(!q){ b.hidden=true; c.value=''; toggleAddressType(false,null,a.id); return; } ")
+                .Append("d?.abort(); d=new AbortController(); ")
+                .Append("try { ")
+                // fetch POI suggestions from our endpoint
+                .Append("const poiResp = await fetch('/User/Address/EndPoints/POISuggestions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q }) }); ")
+                .Append("const poiData = await poiResp.json(); ")
+                .Append("const poiResults = (poiData && poiData.ok && poiData.results && poiData.results.length) ? poiData.results : []; ")
+                // fetch mapbox suggestions
+                .Append("const u=`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?autocomplete=true&types=address,poi,place,locality&country=nz&limit=5&access_token=${t}`; ")
+                .Append("const r = await fetch(u, { signal: d.signal }); ")
+                .Append("const { features } = await r.json(); ")
+                .Append("const mapboxResults = features || []; ")
+                // merge POIs first, then mapbox
+                .Append("const merged = [")
+                .Append("...poiResults.map(x => ({ place_name: x.place_name, isLocal: true, streetNumber: x.streetNumber, streetName: x.streetName, postcode: x.postcode })),")
+                .Append("...mapboxResults.map(x => ({...x, isLocal: false }))")
+                .Append("]; ")
+                // render merged list
+                .Append("g(merged); ")
+                .Append("} catch(e) { if (e.name !== 'AbortError') console.error(e); }")
+                .Append("},200); ")
+
+                .Append("function g(f) { ")
+                .Append("b.innerHTML = ''; ")
+                .Append("if (!f.length) return b.hidden = true; ")
+                .Append("f.forEach(x => { ")
+                .Append("const li = document.createElement('li'); ")
+                .Append("li.textContent = x.place_name; ")
+                .Append("if (x.isLocal) li.classList.add('local-poi'); ")
+                .Append("const handler = async () => { ")
+
+                .Append("if (x.isLocal) { ")
+                .Append("const fullAddress = `${x.streetNumber} ${x.streetName}, ${x.postcode}`; ")
+                .Append("try { ")
+                .Append("const mbUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(fullAddress)}.json?autocomplete=false&types=address&limit=1&access_token=${t}`; ")
+                .Append("const mbResp = await fetch(mbUrl); ")
+                .Append("const mbJson = await mbResp.json(); ")
+                .Append("if (mbJson && Array.isArray(mbJson.features) && mbJson.features.length > 0) { ")
+                .Append("const feature = mbJson.features[0]; ")
+                .Append("h(feature); ")
+                .Append("const addr = extractAddressParts(feature); ")
+                .Append("const originId = a.id; ")
+                .Append("const payload = { Number: addr.streetNumber, Street: addr.streetName, Postcode: addr.postcode, Origin: originId }; ")
+                .Append("try { ")
+                .Append("const r = await fetch('/User/Address/EndPoints/AddressTypeId', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) }); ")
+                .Append("const d = await r.json(); ")
+                .Append("toggleAddressType(d.success, d.typeId||null, originId); ")
+                .Append("} catch(e) { ")
+                .Append("toggleAddressType(false, null, originId); console.error(e); ")
+                .Append("} ")
+                .Append("} else { ")
+                .Append("a.value = fullAddress; ")
+                .Append("toggleAddressType(false, null, a.id); ")
+                .Append("} ")
+                .Append("} catch (err) { ")
+                .Append("a.value = fullAddress; ")
+                .Append("toggleAddressType(false, null, a.id); ")
+                .Append("} ")
+                .Append("} else { ")
+
+                .Append("h(x); ")
+                .Append("const addr = extractAddressParts(x); ")
+                .Append("const originId = a.id; ")
+                .Append("const payload = { Number: addr.streetNumber, Street: addr.streetName, Postcode: addr.postcode, Origin: originId }; ")
+                .Append("try { const r = await fetch('/User/Address/EndPoints/AddressTypeId', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) }); ")
+                .Append("const d = await r.json(); ")
+                .Append("toggleAddressType(d.success, d.typeId||null, originId); } ")
+                .Append("catch(e){ toggleAddressType(false,null,originId); console.error(e); } ")
+                .Append("} ")
+                .Append("}; ")
+                .Append("li.addEventListener('mousedown', handler); ")
+                .Append("li.addEventListener('touchstart', handler); ")
+                .Append("b.appendChild(li); ")
+                .Append("}); ")
+                .Append("b.hidden = false; ")
+                .Append("} ")
+
+                //.Append("function g(f){b.innerHTML='';if(!f.length)return b.hidden=true;f.forEach(x=>{const li=document.createElement('li');li.textContent=x.place_name;li.addEventListener('mousedown',()=>{ h(x); toggleAddressType(true, x.typeId); }); b.appendChild(li);});b.hidden=false;}")
                 .Append("function h(x){a.value=x.place_name;c.value=JSON.stringify(x);b.hidden=true;}")
                 .Append("a.addEventListener('input',f);document.addEventListener('click',e=>{if(!a.contains(e.target)&&!b.contains(e.target))b.hidden=true;});")
-                .AppendLine("} ");
+                .Append("} ");
 
+                return sb.ToString();
+            }
+            private static string MapboxV5Parse()
+            {
+                StringBuilder sb = new();
+                sb.Append("function extractAddressParts(feature) { ")
+                .Append("let streetNumber = feature.address || ''; ")
+                .Append("let streetName = feature.text || ''; ")
+                .Append("let postcode = ''; ")
+
+                .Append("if (Array.isArray(feature.context)) { ")
+                .Append("const pc = feature.context.find(c => c.id.startsWith('postcode')); ")
+                .Append("if (pc) postcode = pc.text; ")
+                .Append("} ")
+
+                .Append("return { streetNumber, streetName, postcode }; ")
+                .Append("} "); 
+                
                 return sb.ToString();
             }
         }
@@ -142,7 +239,8 @@ namespace Website.App.StringBuilders
                             .Append(SaveEditedAddress())
                             .Append(SaveNewAddress())
                             .Append(DeleteAddressCard())
-                            .Append(AddNewAddressCard());
+                            .Append(AddNewAddressCard())
+                            .Append(ToggleAddressType());
 
                             return sb.ToString();
                         }
@@ -214,7 +312,6 @@ namespace Website.App.StringBuilders
                                 .Append("} ")
                                 .Append("}) ")
                                 .Append(".catch(err => { ")
-                                .Append("console.error(err); ")
                                 .Append("alert(err.message || 'Error saving default address.'); ")
                                 .Append("}) ")
                                 .Append(".finally(() => { ")
@@ -321,7 +418,6 @@ namespace Website.App.StringBuilders
                                 .Append("CancelEditAddress(card); ")
                                 .Append("}) ")
                                 .Append(".catch(err => { ")
-                                .Append("console.error(err); ")
                                 .Append("alert(err.message || 'Error updating address label.'); ")
                                 .Append("}) ")
                                 .Append(".finally(() => { ")
@@ -389,6 +485,32 @@ namespace Website.App.StringBuilders
                               .Append("requestAnimationFrame(() => { newCard.style.opacity = 1; newCard.style.transform = 'translateY(0)'; }); ")
                               .Append("container.scrollTo({ top: newCard.offsetTop, behavior: 'smooth' }); ")
                               .AppendLine("} ");
+
+                            return sb.ToString();
+                        }
+                        private static string ToggleAddressType()
+                        {
+                            StringBuilder sb = new();
+                            sb.Append("window.toggleAddressType = function (isKnown, knownTypeId = null, inputId = null) {")
+                              .Append(" if (!inputId) { return; } ")
+                              .Append(" const input = document.getElementById(inputId); ")
+                              .Append(" if (!input) { return; } ")
+                              .Append(" const container = input.closest('.address-card')?.querySelector('.address-type-container'); ")
+                              .Append(" if (!container) { return; } ")
+                              .Append(" const select = container.querySelector('select'); ")
+                              .Append(" if (!select) { return; } ")
+
+                              .Append(" if (!input.value.trim()) { ")
+                              .Append(" container.style.display = 'none'; ")
+                              .Append(" select.value = ''; ")
+                              .Append(" } else if (isKnown) { ")
+                              .Append(" container.style.display = 'none'; ")
+                              .Append(" if (knownTypeId) select.value = knownTypeId; ")
+                              .Append(" } else { ")
+                              .Append(" container.style.display = 'block'; ")
+                              .Append(" select.value = ''; ")
+                              .Append(" } ")
+                              .Append("};");
 
                             return sb.ToString();
                         }
@@ -565,7 +687,6 @@ namespace Website.App.StringBuilders
 
                             return sb.ToString();
                         }
-
                         private static string GetAddressFromCoords()
                         {
                             StringBuilder sb = new();
