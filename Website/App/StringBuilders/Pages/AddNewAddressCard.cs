@@ -5,7 +5,7 @@ namespace Website.App.StringBuilders.Pages
 {
     public static class AddNewAddressCard
     {
-        public static string GenerateAddressCard(string cardId, string labelInputId, string searchInputId, string listElementId, string hiddenJsonId, string typeContainerId, string typeSelectId)
+        public static string GenerateAddressCard(string cardId, string labelInputId, string searchInputId, string listElementId, string hiddenJsonId, string typeContainerId, string typeSelectId, string cancelClick, string saveClick)
         {
             StringBuilder sb = new();
 
@@ -30,7 +30,7 @@ namespace Website.App.StringBuilders.Pages
               // Address type container
               .Append($"<div class=\"form-group mt-2 address-type-container\" id=\"{typeContainerId}\" style=\"display:none;\">")
               .Append("<label><b>Address Type</b></label>")
-              .Append($"<select id=\"{typeSelectId}\" class=\"input-text\" required>")
+              .Append($"<select id=\"{typeSelectId}\" class=\"input-text new-address-type\" required>") //new-address-type is for save
               .Append("<option value=\"\">--Select address type--</option>");
 
             foreach (SelectListItem item in App.Helper.Table.AddressType.AddressTypeOptions())
@@ -42,13 +42,13 @@ namespace Website.App.StringBuilders.Pages
 
               // Buttons
               .Append("<div class=\"mt-3\">")
-              .Append("<table style=\"width: 100%; padding: 1 1 1 1; border-collapse: collapse;\">")
+              .Append("<table style=\"width: 100%; padding: 1px; 1px; 1px; 1px; border-collapse: collapse;\">")
               .Append("<tr>")
               .Append("<td style=\"width: 50%; text-align: right;\">")
-              .Append("<button type=\"button\" class=\"btn btn-primary\" onclick=\"SaveNewAddress(this.closest('.new-address-card'))\">Save</button>&nbsp;")
+              .Append($"<button type=\"button\" class=\"btn btn-primary\" onclick=\"{saveClick}\">Save</button>&nbsp;")
               .Append("</td>")
               .Append("<td style=\"text-align: left;\">")
-              .Append("&nbsp;<button type=\"button\" class=\"btn btn-secondary\" onclick=\"CloseNewAddressCard();\">Cancel</button>")
+              .Append($"&nbsp;<button type=\"button\" class=\"btn btn-secondary\" onclick=\"{cancelClick}\">Cancel</button>")
               .Append("</td>")
               .Append("</tr></table></div>")
 

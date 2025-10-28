@@ -37,6 +37,13 @@
 
             internal const string VehicleClass = "ent.vehicle_class";
             internal const string VehicleType = "ent.vehicle_type";
+
+            internal const string PackageType = "ent.package_type";
+            internal const string PackageTypeCategory = "ent.package_type_category";
+            internal const string PackageSize = "ent.package_size";
+
+            internal const string DropoffType = "ent.dropoff_type";
+            internal const string RatePolicies = "ent.rate_policies";
         }
         internal static class Operations
         {

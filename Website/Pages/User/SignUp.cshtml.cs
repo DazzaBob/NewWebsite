@@ -124,7 +124,7 @@ namespace Website.Pages.User
                     _ = App.Database.DataAccessManager.ExecuteNonQuery(EntitiesSchema, sql, parameters);
 
                     int userId = 0;
-                    using DataTable DT1 = App.Database.DataAccessManager.GetDataTable(EntitiesSchema, App.Database.Schema.Entities.Users, $"EMAIL={App.Database.Shared.Sanitize(Email.ToLowerInvariant(), true, true)} AND PHONE={App.Database.Shared.Sanitize(Phone,true)}");
+                    using DataTable DT1 = App.Database.DataAccessManager.GetDataTable(EntitiesSchema, App.Database.Schema.Entities.Users, $"EMAIL={App.Database.Shared.Sanitize(Email.ToLowerInvariant(), true, true)} AND PHONE={App.Database.Shared.Sanitize(Phone, true)}");
                     if (DT1 != null && DT1.Rows.Count > 0) userId = Convert.ToInt32(DT1.Rows[0]["ID"]);
 
                     sql = @$"INSERT INTO {App.Database.Schema.Entities.UserRoles} (USER_ID, ROLE_ID, GRANTEDOADATE, EXPIRATIONOADATE, REVOKEDOADATE, REVOKEDREASON, CREATEDBY_USER_ID, UPDATEDBY_USER_ID, ISACTIVE) 

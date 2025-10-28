@@ -31,7 +31,7 @@ namespace Website.Pages.User.Address.EndPoints
             string sql = $"UPDATE {App.Database.Schema.Entities.UserAddress} SET LABEL=@label WHERE USER_ID=@userId AND ID=@id";
             try
             {
-                
+
                 App.Database.DataAccessManager.ExecuteNonQuery(App.Database.Schema.Entities.SchemaName, sql, parameters);
                 return new JsonResult(new { ok = true, msg = input.Label });
             }

@@ -1,16 +1,44 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.StaticFiles;
-using Website.Pages.User.Address.EndPoints;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Make sure the scripts and styles are created
-Website.App.StringBuilders.SiteCSS.Create();
-Website.App.StringBuilders.Javascripts.Create();
 
 // Bootstrap
 Website.App.Settings.Load();
 Website.App.Bootstrap.Logger?.Add("Application starting...");
+
+#region Asset Builder
+string exePath = Path.Combine(AppContext.BaseDirectory, "AssetBuilder.exe");
+string wwwrootPath = builder.Environment.WebRootPath;
+
+if (!File.Exists(exePath))
+    throw new FileNotFoundException("AssetBuilder.exe not found.", exePath);
+
+// Call the builder
+var process = new Process
+{
+    StartInfo = new ProcessStartInfo
+    {
+        FileName = exePath,
+        Arguments = $"\"{wwwrootPath}\"",
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        UseShellExecute = false,
+        CreateNoWindow = true
+    }
+};
+
+process.Start();
+string output = process.StandardOutput.ReadToEnd();
+string error = process.StandardError.ReadToEnd();
+process.WaitForExit();
+
+if (process.ExitCode != 0)
+    throw new Exception($"AssetBuilder failed:\n{error}");
+
+Console.WriteLine(output);
+#endregion
 
 // Services
 builder.Services.AddRazorPages().AddRazorPagesOptions(o =>
@@ -104,7 +132,7 @@ app.UseAuthentication();   // required
 app.UseAuthorization();
 
 #if (!DEBUG)
-    app.UseMiddleware<HtmlMinifyMiddleware>(); // this will minify all HTML responses
+    app.UseMiddleware<Website.App.StringBuilders.HtmlMinifyMiddleware>(); // this will minify all HTML responses
 #endif
 app.MapRazorPages();
 app.Lifetime.ApplicationStopping.Register(() =>

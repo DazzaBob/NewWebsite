@@ -29,10 +29,10 @@ namespace Website.App.Operations.Zoning
                 else
                     localityFilter = " AND LOCALITY_ID IS NULL";
 
-                    using DataTable dt = DataAccessManager.GetDataTable(LocationsSchema, Schema.Locations.ZonesBase, $"PLACE_ID = {placeId}{localityFilter} AND " +
-                        $"MIN_LATITUDE <= {latitude} AND MAX_LATITUDE >= {latitude} AND " +
-                        $"MIN_LONGITUDE <= {longitude} AND MAX_LONGITUDE >= {longitude}"
-                    );
+                using DataTable dt = DataAccessManager.GetDataTable(LocationsSchema, Schema.Locations.ZonesBase, $"PLACE_ID = {placeId}{localityFilter} AND " +
+                    $"MIN_LATITUDE <= {latitude} AND MAX_LATITUDE >= {latitude} AND " +
+                    $"MIN_LONGITUDE <= {longitude} AND MAX_LONGITUDE >= {longitude}"
+                );
 
                 if (dt == null || dt.Rows.Count == 0) return 0;
                 try

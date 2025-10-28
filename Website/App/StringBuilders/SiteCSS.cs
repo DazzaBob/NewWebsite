@@ -116,7 +116,11 @@ namespace Website.App.StringBuilders
                 .spinner-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.35); z-index: 9999; }
                 .spinner-overlay[hidden] { display: none; }
                 @keyframes spin { to { transform: rotate(360deg); }} 
-                .error-msg { color: var(--color-primary); font-size: 0.9rem; margin-top: 0.25rem; display: block; }";
+                .error-msg { color: var(--color-primary); font-size: 0.9rem; margin-top: 0.25rem; display: block; }
+                .loading-bar { position: relative; width: 100%; height: 4px; background: var(--color-border, #333); overflow: hidden; border-radius: 2px; }
+                .loading-bar::before { content: ''; position: absolute; left: -40%; width: 40%; height: 100%; background: linear-gradient( 90deg, transparent, var(--color-primary), transparent); animation: loading-marquee 2.0s linear infinite; } 
+                @keyframes loading-marquee { 0% { left: -40%; } 100% { left: 100%; } }";
+
                 return css;
             }
             private static string BaseElements()

@@ -3,14 +3,14 @@ using System.Data;
 
 namespace Website.App.Helper.Table
 {
-    public class AddressType
+    public class PackageType
     {
         private static SelectList selectlist = new(Enumerable.Empty<SelectListItem>());
         private static readonly object lockAssignSelectListObj = new();
 
-        public static SelectList AddressTypeOptions()
+        public static SelectList PackageTypeOptions()
         {
-            var (list, error) = GetAddressTypeOptions(); // Load the address types for the dropdown
+            var (list, error) = GetPackageTypeOptions(); // Load the address types for the dropdown
 
             SelectList SelectOption = new("");
             if (!string.IsNullOrEmpty(error))
@@ -19,8 +19,7 @@ namespace Website.App.Helper.Table
             SelectOption = list;
             return SelectOption;
         }
-
-        public static (SelectList List, string? Error) GetAddressTypeOptions()
+        public static (SelectList List, string? Error) GetPackageTypeOptions()
         {
             lock (lockAssignSelectListObj)
             {
@@ -29,13 +28,13 @@ namespace Website.App.Helper.Table
 
                 try
                 {
-                    using DataTable dt = Database.DataAccessManager.GetDataTable(Database.Schema.Locations.SchemaName, Database.Schema.Locations.AddressType);
-                    var items = dt.Rows
+                    DataRow[] DR = Database.DataAccessManager.GetDataTable(Database.Schema.Entities.SchemaName, Database.Schema.Entities.PackageType).Select("", "category_id ASC");
+                    var items = DR
                         .Cast<DataRow>()
                         .Select(r => new
                         {
                             ID = Convert.ToInt32(r.Field<int>("ID")),
-                            NAME = r.Field<string>("NAME") ?? string.Empty
+                            NAME = r.Field<string>("NAME") + " (" + r.Field<string>("description") + ")" ?? string.Empty
                         })
                         .ToList();
 
@@ -44,7 +43,7 @@ namespace Website.App.Helper.Table
                 }
                 catch (Exception ex)
                 {
-                    return (new SelectList(Enumerable.Empty<object>()), "AddressType load error: " + ex.Message);
+                    return (new SelectList(Enumerable.Empty<object>()), "Package Type load error: " + ex.Message);
                 }
             }
         }

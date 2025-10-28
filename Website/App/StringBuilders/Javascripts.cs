@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 /// The Strings must be manaually string built.  because JS sucks!!!
 namespace Website.App.StringBuilders
@@ -40,12 +39,13 @@ namespace Website.App.StringBuilders
                 StringBuilder sb = new();
 
                 sb.Append("let _globalSpinner; ")
+
                   .Append("async function openModalByType(modalType) { ")
-                  .Append("const modal = document.querySelector(`.custom-modal[data-modal-type = '${modalType}']`); ")
-                  .Append("if (!modal) return; modal.classList.add('show'); }; ")
+                  .Append("const modal = document.querySelector(`.custom-modal[data-modal-type='${modalType}']`); ")
+                  .Append("if (!modal) return; modal.style.display = ''; modal.classList.add('show'); }; ")
                   .Append("async function closeModalByType(modalType) { ")
-                  .Append("const modal = document.querySelector(`.custom-modal[data-modal-type = '${modalType}']`); ")
-                  .Append("if (!modal) return; modal.classList.remove('show'); }; ")
+                  .Append("const modal = document.querySelector(`.custom-modal[data-modal-type='${modalType}']`); ")
+                  .Append("if (!modal) return; modal.classList.remove('show'); setTimeout(() => { modal.style.display = 'none'; }, 50); }; ")
 
                   .Append("window.addEventListener('pageshow',e=>{if(e.persisted)location.reload();}); ")
 
@@ -53,6 +53,11 @@ namespace Website.App.StringBuilders
                   .Append("const resetButton = document.getElementById('AMBTNCLS'); ")
                   .Append("if (resetButton) { resetButton.addEventListener('click', AMBtnCls);}}); ")
                   .Append("window.AMBtnCls = function () { CloseNewAddressCard(); closeModalByType('address');}; ")
+
+                  .Append("document.addEventListener('DOMContentLoaded', () => { ")
+                  .Append("const resetButton = document.getElementById('NPAMBTNCLS'); ")
+                  .Append("if (resetButton) { resetButton.addEventListener('click', NPAMBtnCls);}}); ")
+                  .Append("window.NPAMBtnCls = function () { ResetNewAddressInputs({labelId: 'NPAMNAL', searchId: 'NPAMNAS', payloadId: 'NPAMHJSON', typeId: 'NPAMNATID', listId: 'NPAMACL'}); closeModalByType('newpickupaddress');}; ")
 
                   .Append("window.togglePasswordVisibility = function() { const pwd = document.getElementById('password'); pwd.type = pwd.type === 'password' ? 'text' : 'password'; };");
                 return sb.ToString();
@@ -215,8 +220,8 @@ namespace Website.App.StringBuilders
                 .Append("} ")
 
                 .Append("return { streetNumber, streetName, postcode }; ")
-                .Append("} "); 
-                
+                .Append("} ");
+
                 return sb.ToString();
             }
         }
@@ -238,27 +243,28 @@ namespace Website.App.StringBuilders
                             .Append(CancelEditAddress())
                             .Append(SaveEditedAddress())
                             .Append(SaveNewAddress())
+                            .Append(SaveNewAddressFlexible())
                             .Append(DeleteAddressCard())
                             .Append(AddNewAddressCard())
-                            .Append(ToggleAddressType());
+                            .Append(ToggleAddressType())
+                            .Append(ShowModalAddressCard())
+                            .Append(InsertLastAddress());
 
                             return sb.ToString();
                         }
                         private static string ResetNewAddressInputs()
                         {
                             StringBuilder sb = new();
-                            sb.Append("window.ResetNewAddressInputs = function () { ")
-                              .Append("const label = document.getElementById('AMNAL'); ")
-                              .Append("const search = document.getElementById('AMNAS'); ")
-                              .Append("const payload = document.getElementById('AMHJSON'); ")
-                              .Append("const type = document.getElementById('AMNATID'); ")
-                              .Append("const list = document.getElementById('AMACL'); ")
-                              .Append("if (label) label.value = ''; ")
-                              .Append("if (search) search.value = ''; ")
-                              .Append("if (payload) payload.value = ''; ")
-                              .Append("if (type) type.selectedIndex = 0; ")
-                              .Append("if (list) list.hidden = true; ")
-                              .AppendLine("};");
+                            sb.Append("window.ResetNewAddressInputs = function (ids) { ")
+                              .Append("if (!ids) return; ")
+                              .Append("try { ")
+                              .Append("if (ids.labelId) { const el = document.getElementById(ids.labelId); if (el) el.value = ''; } ")
+                              .Append("if (ids.searchId) { const el = document.getElementById(ids.searchId); if (el) el.value = ''; } ")
+                              .Append("if (ids.payloadId) { const el = document.getElementById(ids.payloadId); if (el) el.value = ''; } ")
+                              .Append("if (ids.typeId) { const el = document.getElementById(ids.typeId); if (el) el.selectedIndex = 0; } ")
+                              .Append("if (ids.listId) { const el = document.getElementById(ids.listId); if (el) el.hidden = true; } ")
+                              .Append("} catch (err) { console.error('ResetNewAddressInputs failed', err); }")
+                              .Append("};");
                             return sb.ToString();
                         }
                         private static string CloseNewAddressCard()
@@ -267,7 +273,7 @@ namespace Website.App.StringBuilders
                             sb.Append("window.CloseNewAddressCard = function () ")
                             .Append("{")
                             .Append("toggleGlobalSpinner(true); ")
-                            .Append("ResetNewAddressInputs(); ")
+                            .Append("ResetNewAddressInputs({labelId: 'AMNAL', searchId: 'AMNAS', payloadId: 'AMHJSON', typeId: 'AMNATID', listId: 'AMACL'}); ")
                             .Append("const modal = document.querySelector('.custom-modal[data-modal-type=\"address\"]'); ")
                             .Append("if (!modal) return; ")
                             .Append("const newCard = modal.querySelector('.new-address-card'); ")
@@ -427,6 +433,84 @@ namespace Website.App.StringBuilders
 
                             return sb.ToString();
                         }
+                        private static string SaveNewAddressFlexible()
+                        {
+                            StringBuilder sb = new();
+                            sb.Append("window.SaveNewAddressFlexible = async function(element) { ")
+                              .Append("if (!element) { alert('No element passed'); return; } ")
+
+                              // find the modal first
+                              .Append("const modal = element.closest('.custom-modal'); ")
+                              .Append("if (!modal) { alert('No modal found'); return; } ")
+                              .Append("const modalId = modal.getAttribute('data-modal-id'); ")
+
+                              // then find the card within that modal
+                              .Append("const card = modal.querySelector('.new-address-card'); ")
+                              .Append("if (!card) { alert('No card found'); return; } ")
+
+                              // get input elements from the card
+                              .Append("const labelEl = card.querySelector('.new-address-label'); ")
+                              .Append("const addressEl = card.querySelector('.location-payload'); ")
+                              .Append("const typeEl = card.querySelector('.new-address-type'); ")
+                              .Append("if (!labelEl || !addressEl || !typeEl) { alert('Validation failed: missing field data.'); return; } ")
+
+                              // spinner and fetch
+                              .Append("toggleGlobalSpinner(true); ")
+                              .Append("try { ")
+                              .Append("const resp = await fetch('/User/Address/EndPoints/AddAddress', { ")
+                              .Append("method: 'POST', ")
+                              .Append("headers: { 'Content-Type': 'application/json' }, ")
+                              .Append("body: JSON.stringify({ ModalId: modalId, Label: labelEl.value, AddressJSON: addressEl.value, TypeID: parseInt(typeEl.value) }) ")
+                              .Append("}); ")
+                              .Append("if (!resp.ok) throw new Error('Server error'); ")
+                              .Append("const data = await resp.json(); ")
+                              .Append("AddNewAddressCard(data); ")
+
+                              // get latest address info
+                              .Append("const lastResp = await fetch('/User/Address/EndPoints/GetLastAddress', { method: 'POST' }); ")
+                              .Append("if(lastResp.ok) { ")
+                              .Append("const lastData = await lastResp.json(); ")
+                              .Append("if(lastData.ok) { ")
+                              .Append("const id = lastData.id; ")
+                              .Append("const label = lastData.label; ")
+                              .Append("const address = lastData.address; ")
+
+                              // Insert into both selects (pickup and dropoff)
+                              .Append("const allSelects = [document.getElementById('UserPickupAddressId'), document.getElementById('UserDropoffAddressId')]; ")
+                              .Append("allSelects.forEach(sel => { ")
+                              .Append("if(sel) { ")
+                              .Append("let opt = Array.from(sel.options).find(o => o.value == id); ")
+                              .Append("if(!opt) { ")
+                              .Append("opt = document.createElement('option'); ")
+                              .Append("opt.value = id; ")
+                              .Append("opt.textContent = `${label} — ${address}`; ")
+                              .Append("sel.appendChild(opt); ")
+                              .Append("} ")
+                              .Append("} ")
+                              .Append("}); ")
+
+                              // Auto-select the nearest select with .location
+                              .Append("let nearestSelect = null; ")
+                              .Append("let parent = element; ")
+                              .Append("while(parent && !nearestSelect) { ")
+                              .Append("nearestSelect = parent.querySelector('select.location'); ")
+                              .Append("parent = parent.parentElement; ")
+                              .Append("} ")
+                              .Append("if(nearestSelect) { ")
+                              .Append("nearestSelect.value = id; ")
+                              .Append("nearestSelect.dispatchEvent(new Event('change')); ")
+                              .Append("} else { console.log('No nearest select with .location found'); } ")
+
+                              .Append("} else { alert('Internal Error: missing lastData'); } ")
+                              .Append("} else { alert('Unexpected server response from GetLastAddress'); } ")
+
+                              .Append("} catch(err) { alert('ERROR: ' + (err.message || 'Unknown error')); } ")
+                              .Append("finally { toggleGlobalSpinner(false); } ")
+                              .AppendLine("}; ");
+
+                            return sb.ToString();
+                        }
+
                         private static string SaveNewAddress()
                         {
                             StringBuilder sb = new();
@@ -548,6 +632,52 @@ namespace Website.App.StringBuilders
                             .Append("toggleGlobalSpinner(false); ")
                             .Append("} ")
                             .AppendLine("} ");
+
+                            return sb.ToString();
+                        }
+                        private static string ShowModalAddressCard()
+                        {
+                            StringBuilder sb = new();
+                            sb.Append("function showAddressCard(cardId, modalType) { ")
+                              .Append("const card = document.getElementById(cardId); ")
+                              .Append("if (!card) return; ")
+                              .Append("const modal = document.querySelector(`.custom-modal[data-modal-type='${modalType}']`); ")
+                              .Append("let el = card; ")
+                              .Append("while(el && el !== document.body && el !== modal) { ")
+                              .Append("const style = window.getComputedStyle(el); ")
+                              .Append("if(style.display === 'none') el.style.display = 'block'; ")
+                              .Append("el = el.parentElement; ")
+                              .Append("} ")
+                              .Append("card.style.display = 'block'; ")
+                              .Append("const input = card.querySelector('.new-address-label'); ")
+                              .Append("if(input) input.focus(); ")
+                              .Append("card.scrollIntoView({ behavior:'smooth', block:'center' }); ")
+                              .AppendLine("} ");
+
+                            return sb.ToString();
+                        }
+                        private static string InsertLastAddress()
+                        {
+                            StringBuilder sb = new();
+                            sb.Append("window.InsertLastAddress = async function(buttonElement) { ")
+                              .Append("if (!buttonElement) return; ")
+                              .Append("try { ")
+                              .Append("const resp = await fetch('/User/Address/EndPoints/GetLastAddress', { method: 'POST' }); ")
+                              .Append("if (!resp.ok) throw new Error('Failed to fetch last address'); ")
+                              .Append("const data = await resp.json(); ")
+                              .Append("if (!data.ok) throw new Error(data.msg || 'No address returned'); ")
+                              .Append("const { label, address } = data; ")
+                              // Find closest select inside the same card
+                              .Append("const closestSelect = buttonElement.closest('.card').querySelector('select'); ")
+                              .Append("if (!closestSelect) throw new Error('No select element found near the button'); ")
+                              // Create and insert new option
+                              .Append("const newOption = document.createElement('option'); ")
+                              .Append("newOption.value = address; ")
+                              .Append("newOption.textContent = label; ")
+                              .Append("closestSelect.appendChild(newOption); ")
+                              .Append("closestSelect.value = newOption.value; ")
+                              .Append("} catch (err) { alert('ERROR inserting address: ' + (err.message || 'Unknown error')); } ")
+                              .AppendLine("};");
 
                             return sb.ToString();
                         }

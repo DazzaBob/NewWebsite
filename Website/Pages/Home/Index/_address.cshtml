@@ -39,7 +39,7 @@
             <div class="mt-3">
                 <button type="button" class="btn btn-pill btn-outline nav" onclick="var modal=this.closest('.custom-modal');var newCard=modal.querySelector('.new-address-card');if(newCard){newCard.style.display='block';var input=newCard.querySelector('.new-address-label');if(input)input.focus();newCard.scrollIntoView({behavior:'smooth',block:'center'});}return false;">+ Add New Address</button>
             </div>
-            @Html.Raw(App.StringBuilders.Pages.AddNewAddressCard.GenerateAddressCard("AMCI", "AMNAL", "AMNAS", "AMACL", "AMHJSON", "AMNATC", "AMNATID"))
+            @Html.Raw(App.StringBuilders.Pages.AddNewAddressCard.GenerateAddressCard("AMCI", "AMNAL", "AMNAS", "AMACL", "AMHJSON", "AMNATC", "AMNATID", "CloseNewAddressCard();", "SaveNewAddress(this.closest('.new-address-card'))"))
         </div>
         <div class="custom-modal-footer"><span>&nbsp;</span></div>
     </div>

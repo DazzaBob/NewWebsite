@@ -227,8 +227,8 @@ namespace Website.App.Operations.Zoning
                     }
                     return nearestId;
                 }
-                catch 
-                { 
+                catch
+                {
                     return 0;
                 }
             }
@@ -244,7 +244,7 @@ namespace Website.App.Operations.Zoning
             /// <returns>ID of the existing or newly created RCI zone.</returns>
             private static int FindOrCreateRciZone(int baseZoneId, int addressTypeId, double latitude, double longitude)
             {
-                using DataTable dt = DataAccessManager.GetDataTable( LocationsSchema, Schema.Locations.ZonesRCI, $"BASE_ZONE_ID = {baseZoneId} AND ADDRESS_TYPE_ID = {addressTypeId}"
+                using DataTable dt = DataAccessManager.GetDataTable(LocationsSchema, Schema.Locations.ZonesRCI, $"BASE_ZONE_ID = {baseZoneId} AND ADDRESS_TYPE_ID = {addressTypeId}"
                 );
                 if (dt.Rows.Count > 0)
                 {

@@ -36,7 +36,7 @@ namespace Website.Pages.User.Address.EndPoints
 
             int addressTypeId = (int)dt.Rows[0]["ADDRESS_TYPE_ID"];
 
-            return new JsonResult(new {success = true, typeId = addressTypeId, origin = input.Origin });
+            return new JsonResult(new { success = true, typeId = addressTypeId, origin = input.Origin });
         }
     }
 }

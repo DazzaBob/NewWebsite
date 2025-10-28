@@ -7,7 +7,7 @@ namespace Website.App.StringBuilders.Pages.Index.Modals.Address
     {
         public static string Get(string modalId, string addressId, string userAddressId, bool IsDefault, string label)
         {
-          using DataTable DT = App.Database.Views.UserAddress.DataTable(userId: 0, addressId: long.Parse(addressId));
+            using DataTable DT = App.Database.Views.UserAddress.DataTable(userId: 0, addressId: long.Parse(addressId));
             if (DT == null) { return string.Empty; }
             if (DT.Rows.Count == 0) { return string.Empty; }
 
@@ -15,7 +15,7 @@ namespace Website.App.StringBuilders.Pages.Index.Modals.Address
             var placeLine = string.IsNullOrWhiteSpace(DT.Rows[0]["LOCALITY_NAME"]?.ToString())
                 ? DT.Rows[0]["PLACE_NAME"]?.ToString()
                 : $"{DT.Rows[0]["LOCALITY_NAME"]}, {DT.Rows[0]["PLACE_NAME"]}";
-            
+
             StringBuilder sb = new();
             sb.Clear();
             sb.Append("<div class=\"card address-card\">")

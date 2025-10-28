@@ -1,105 +1,170 @@
 ﻿@page
+@using App.Security;
 @model Website.Pages.Home.PickitUpModel
 @{
+    string UserName = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.SchemaName, App.Database.Schema.Entities.Users, $"id={User.Id()}").Rows[0]["FULLNAME"].ToString() ?? string.Empty;
 }
 <table style="width: 100%; border-collapse: collapse;"><tr><td style="text-align:center; width:100%; padding:0;"><div style="display:flex; align-items:center; justify-content:center; gap:0.5rem;"><i class="fas fa-box" style="font-size: 1.25rem;"></i><h5 style="margin:0;">Pick It Up!</h5><i class="fas fa-box" style="font-size: 1.25rem;"></i></div></td><td style="text-align:right;"><a href="/Home/Index" class="btn btn-secondary">←&nbsp;Back</a></td></tr></table>
 <div class="grid-canvas" style="width:100%; text-align: center; align-content: center;">
     <div class="grid">
-        <div class="card" style="text-align: center; align-items: center; padding: 1px 1px 1px 1px; min-width: 300px; max-width: 450px;">
-            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
-                <label for="Recipient" style="white-space:nowrap; min-width:100px;"><b>Recipient:</b></label>
-                <input type="text" id="Recipient" name="Recipient" class="input-text" placeholder="Full Name" style="flex:1; padding:0.5rem; border-radius:8px; border:1px solid var(--color-primary); font-size: .75rem;" required />
+        <div id="CreateTasks" class="card" style="text-align: center; align-items: center; padding: 1px 1px 1px 1px; min-width: 300px; max-width: 450px;">
+            <div class="card" style="padding:1rem; margin-bottom:1rem; display:flex; flex-direction:column; gap:1rem; border: none;">
+                <table style="width:100%;">
+                    <tr>
+                        <td><label for="Recipient" style="white-space:nowrap; min-width:100px;"><b>Recipient:</b></label></td>
+                        <td style="width:100%;"><input type="text" id="Recipient" name="Recipient" class="input-text" placeholder="@UserName" value="@UserName" style="flex:1; padding:0.5rem; border-radius:8px; border:1px solid var(--color-primary);" required /></td>
+                    </tr>
+                    <tr>
+                        <td><label for="PIUR" style="white-space:nowrap; min-width:100px;"><b>REF:</b></label></td>
+                        <td><input type="text" id="PIUR" name="PIUR" class="input-text" placeholder="AaBbCc123" style="flex:1; padding:0.5rem; border-radius:8px; border:1px solid var(--color-primary);" /></td>
+                    </tr>
+                </table>
             </div>
-            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
-                <label for="Reference" style="white-space:nowrap; min-width:100px;"><b>REF:</b></label>
-                <input type="text" id="Reference" name="Reference" class="input-text" placeholder="AaBbCc123" style="flex:1; padding:0.5rem; border-radius:8px; border:1px solid var(--color-primary); font-size: .75rem;" />
-            </div>
-
-            <!-- Pickup Card -->
             <div class="card" style="padding:1rem; margin-bottom:1rem; display:flex; flex-direction:column; gap:1rem;">
                 <table>
-                    <tr><td colspan="2"><label for="UserPickupAddressId"><b>Pick it up here:</b></label></td></tr>
+                    <tr><td colspan="2"><label for="PIUPAID"><i class="fas fa-box" style="font-size: 1.25rem;"></i><b>&nbsp;Pick it up here:&nbsp;</b><i class="fas fa-box" style="font-size: 1.25rem;"></i></label></td></tr>
                     <tr>
                         <td style="width: 100%">
-                            <select id="UserPickupAddressId" name="UserPickupAddressId" class="input-text"
-                                    style="width:100%; font-size:.75rem; border:1px solid var(--color-primary);" required>
-                                <option value="">--Pickup Address--</option>
-                                <option value="PlaceHolder">PlaceHolder</option>
+                            <select id="PIUPAID" name="PIUPAID" class="input-text location" style="width:100%; border:1px solid var(--color-primary);" required>
+                                <option value="" disabled selected hidden>--Select Pickup Address--</option>
+                                @foreach (var item in App.Helper.Table.Address.AddressOptions(User.Id()))
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
                             </select>
                         </td>
                         <td style="vertical-align: middle;">
-                            <a href="#" onclick="placeholder()" class="icon-btn" style="font-size:1rem; margin-right:0.25rem;">
-                                <i class="fa-solid fa-map-marker-alt"></i>
-                            </a>
-                            <a href="#" onclick="placeholder()" class="icon-btn" style="font-size:1rem; margin-right:0.25rem;">
+                            <a href="#" onclick="openModalByType('newpickupaddress'); showAddressCard('NPAMCI', 'newpickupaddress');" class="icon-btn" style="font-size:1rem; margin-right:0.75rem;">
                                 <i class="fa-solid fa-keyboard"></i>
                             </a>
                         </td>
                     </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div style="display:flex; align-items:center; gap:0.5rem; width:100%;">
+                                <label for="PIURT" style="white-space:nowrap;"><b>Ready:</b></label>
+                                <select id="PIURT" name="PIURT" class="input-text" style="width:100%; border:1px solid var(--color-primary);">
+                                    <option value="now">Ready Now</option>
+                                    <option value="specific">Time</option>
+                                </select>
+                                <input type="time" id="PIUST" name="PIUST" class="input-text" style="display:none;" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div style="flex:1; display:flex; flex-direction:column; gap:0.25rem;">
+                                <select id="PIUPTID" name="PIUPTID" class="input-text" style="border:1px solid var(--color-primary);" required>
+                                    <option value="" disabled selected hidden>--Package Type--</option>
+                                    @foreach (var item in App.Helper.Table.PackageType.PackageTypeOptions())
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div style="flex:1; display:flex; flex-direction:column; gap:0.25rem;">
+                                <select id="PIUPSID" name="PIUPSID" class="input-text" required>
+                                    <option value="" disabled selected hidden>--Package Size--</option>
+                                    @foreach (var item in App.Helper.Table.PackageSize.PackageSizeOptions())
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div style="flex:1; display:flex; gap:0.25rem;">
+                                <label for="PIUPN"><b>Notes:&nbsp;</b></label>
+                                <textarea id="PIUPN" name="PIUPN" class="input-text" placeholder="Details about the pickup ..." style="flex:1; padding:0.5rem; border-radius:8px; border:1px solid var(--color-primary); resize:vertical; min-height:6rem;"></textarea>
+                            </div>
+                        </td>
+                    </tr>
                 </table>
-                <div style="display:flex; gap:1rem;">
-                    <div style="flex:1; display:flex; flex-direction:column; gap:0.25rem;">
-                        <label for="PickupAddressTypeId"><b>Address Type:</b></label>
-                        <select id="PickupAddressTypeId" name="PickupAddressTypeId" class="input-text" style="font-size: .75rem; border:1px solid var(--color-primary);" required>
-                            <option value="">--Address type--</option>
-                            @foreach (var item in App.Helper.Table.AddressType.AddressTypeOptions())
-                            {
-                                <option value="@item.Value">@item.Text</option>
-                            }
-                        </select>
-                    </div>
-                    <div style="flex:1; display:flex; flex-direction:column; gap:0.25rem;">
-                        <label for="PickupPackageSizeId"><b>Package Size:</b></label>
-                        <select id="PickupPackageSizeId" name="PickupPackageSizeId" class="input-text" style="font-size: .75rem;" required>
-                            <option value="">--Package size--</option>
-                            @* Populate dynamically if you have a helper for package sizes *@
-                        </select>
-                    </div>
-                </div>
-                <div style="display:flex; align-items:center; gap:0.5rem; width:100%;">
-                    <label for="ReadyTime" style="white-space:nowrap;"><b>Ready:</b></label>
-                    <select id="ReadyTime" name="ReadyTime" class="input-text" style="padding:0.25rem; border-radius:4px; border:1px solid var(--color-primary); font-size:.75rem; flex-grow:1; min-width:140px;">
-                        <option value="now">Ready Now</option>
-                        <option value="specific">Specific Time</option>
-                    </select>
-                    <input type="time" id="SpecificTime" name="SpecificTime" style="display:none; padding:0.25rem; border-radius:4px; border:1px solid var(--color-primary);" />
-                </div>
-                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
-                    <label for="PickupNotes" style="white-space:nowrap; min-width:100px;"><b>Notes:&nbsp;</b></label>
-                    <textarea id="PickupNotes" name="PickupNotes" class="input-text" placeholder="...." style="flex:1; padding:0.5rem; border-radius:8px; border:1px solid var(--color-primary); font-size:.75rem; resize:vertical; min-height:3rem;"></textarea>
-                </div>
             </div>
-            <div class="card" style="text-align: center; align-items: center; padding: 1px 1px 1px 1px; width: 100%;">
-                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
-                    <input type="text" id="DropoffLocation" name="DropoffLocation"
-                           class="address-edit-input"
-                           placeholder="Dropoff Location / Address Type" required
-                           style="flex:1; padding:0.5rem; border-radius:8px; border:1px solid var(--color-primary); font-size:.75rem;" />
-                    <a href="#" onclick="placeholder()"
-                       style="display:inline-flex; align-items:center; justify-content:center; padding:0.25rem; color:var(--color-primary); transition:transform 0.2s;">
-                        <i class="fa-solid fa-home"></i>
-                    </a>
-                </div>
+            <div class="card" style="padding:1rem; margin-bottom:1rem; display:flex; flex-direction:column; gap:1rem;">
+                <table>
+                    <tr><td colspan="2"><label for="PIUPAID"><i class="fas fa-box" style="font-size: 1.25rem;"></i><b>&nbsp;Drop it off here:&nbsp;</b><i class="fas fa-box" style="font-size: 1.25rem;"></i></label></td></tr>
+                    <tr>
+                        <td style="width: 100%">
+                            <select id="PIUUDAID" name="PIUUDAID" class="input-text location" style="width:100%; border:1px solid var(--color-primary);" required>
+                                <option value="" disabled selected hidden>--Select Dropoff Address--</option>
+                                @foreach (var item in App.Helper.Table.Address.AddressOptions(User.Id()))
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </td>
+                        <td style="vertical-align: middle;">
+                            <a href="#" onclick="openModalByType('newpickupaddress'); showAddressCard('NPAMCI', 'newpickupaddress');" class="icon-btn" style="font-size:1rem; margin-right:0.75rem;">
+                                <i class="fa-solid fa-keyboard"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div style="flex:1; display:flex; flex-direction:column; gap:0.25rem;">
+                                <select id="PIUDTID" name="DropoffType" class="input-text" required>
+                                    <option value="" disabled selected hidden>--Dropoff Type--</option>
+                                    @foreach (var item in App.Helper.Table.DropoffType.DropoffTypeOptions())
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div style="flex:1; display:flex; gap:0.25rem;">
+                                <label for="PIUDN"><b>Notes:&nbsp;</b></label>
+                                <textarea id="PIUDN" name="PIUDN" class="input-text" placeholder="Details about the Dropoff ..." style="flex:1; padding:0.5rem; border-radius:8px; border:1px solid var(--color-primary); resize:vertical; min-height:6rem;"></textarea>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
             </div>
-            <div id="TaskList" style="display:none; flex-direction:column; gap:0.5rem; margin-top:1rem;"></div>
-
-            <!-- Buttons -->
             <div style="display:flex; justify-content:space-between; gap:0.5rem; margin-top:1rem;">
-                <button type="button" id="AddTask" class="btn btn-primary" onclick="addTask();" style="font-size: .75rem;">Add Another Pickup</button>
-                <button type="button" id="AcceptTasks" class="btn btn-success" onclick="acceptTasks();" style="font-size: .75rem;"><i class="fa-solid fa-flag"></i>&nbsp;All Set!&nbsp;<i class="fa-solid fa-flag"></i></button>
+                <button type="button" id="AddTask" class="btn btn-primary" onclick="PIUaddTask();" style="font-size: .75rem;">Add Another Pickup</button>
+                <button type="button" id="AcceptTasks" class="btn btn-success" onclick="PIUonAllSetClick();" style="font-size: .75rem;"><i class="fa-solid fa-flag"></i>&nbsp;All Set!&nbsp;<i class="fa-solid fa-flag"></i></button>
                 <button type="button" id="Cancel" class="btn btn-secondary" onclick="location.href='/Home/Index';" style="font-size: .75rem;">Cancel</button>
+                <input type="hidden" id="TaskData" name="TaskData" value="[]" />
             </div>
+        </div>
+        <div id="CardTaskList" class="card" style="display:none !important; padding:1px; min-width:300px; max-width:450px; display:flex; flex-direction: column; justify-content:flex-start; align-items:stretch; align-self:flex-start;">
+            <table style="width:100%; border-collapse: collapse;">
+                <tr>
+                    <td style="text-align:center; width:100%; padding:0;">
+                        <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem;"><i class="fas fa-box" style="font-size: 1.25rem;"></i><h5 id="CardTaskListTitle" style="margin:0;">Tasks</h5><i class="fas fa-box" style="font-size: 1.25rem;"></i></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><div class="tasklist" style="display:none; flex-direction:column; gap:0.5rem; margin-top:0;"></div></td>
+                </tr>
+                <tr id="PIUStatus" style="display:none;">
+                    <td style="width:100%;">
+                        <span id="PIUStatusText" style="color: var(--color-primary); text-align:center;">Fetching price for tasks.</span>
+                        <div class="loading-bar"></div>
+                    </td>
+                </tr>
+                <tr><td>
+                        <table style="width:100%; padding: 1px 1px 1px 1px; border-collapse: collapse;">
+                            <tr>
+                                <td style="width: 50%; text-align: right;"><button id="PIUConfirm" type="button" class="btn btn-primary" onclick="{saveClick}" style="display:none;">Confirm</button>&nbsp;</td>
+                                <td style="text-align: left;">&nbsp;<button id="PIUCancel" type="button" class="btn btn-secondary" onclick="PIUcancelClick();" style=" display:none;">Cancel</button></td>
+                            </tr>
+                        </table>
+                </td></tr>
+            </table>
         </div>
     </div>
 </div>
-
+<partial name="~/Pages/Home/PickitUp/_NewPickupAddress.cshtml" />
 <script>
-    // Toggle specific time input
-    document.getElementById('ReadyTime').addEventListener('change', function () {
-        document.getElementById('SpecificTime').style.display = this.value === 'specific' ? 'inline-block' : 'none';
-        if(this.value === 'specific') {
-            const now = new Date();
-            document.getElementById('SpecificTime').value = now.toTimeString().slice(0,5);
-        }
-    });
+    document.getElementById('PIURT').addEventListener('change', function () { document.getElementById('PIUST').style.display = this.value === 'specific' ? 'inline-block' : 'none'; if(this.value === 'specific') { const now = new Date(); document.getElementById('PIUST').value = now.toTimeString().slice(0,5); } });
 </script>

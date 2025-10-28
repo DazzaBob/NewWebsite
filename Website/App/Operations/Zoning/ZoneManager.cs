@@ -1,8 +1,6 @@
 ﻿using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
-using System.Data;
 using Website.App.Database;
-using Website.App.Database.Locations.Tables;
 
 namespace Website.App.Operations.Zoning
 {
@@ -29,7 +27,7 @@ namespace Website.App.Operations.Zoning
         /// public static void AssignZonesForAddress(int addressId, double latitude, double longitude, int placeId, int? localityId)
         internal static void AssignZonesForAddress(int addressId, int AddressTypeId, double latitude, double longitude, int placeId, int? localityId)
         {
-          ZoneHelpers.AssignAddressZones(addressId, AddressTypeId, latitude, longitude, placeId, localityId);
+            ZoneHelpers.AssignAddressZones(addressId, AddressTypeId, latitude, longitude, placeId, localityId);
         }
         internal static int CreatePlaceZoneID(int placeId)
         {

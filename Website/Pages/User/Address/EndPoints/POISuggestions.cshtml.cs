@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
-using Website.App.Database.Views;
 using Website.App.Security;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Website.Pages.User.Address.EndPoints
 {
