@@ -2,7 +2,7 @@
 @using App.Security;
 @model Website.Pages.Home.PickitUpModel
 @{
-    string UserName = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.SchemaName, App.Database.Schema.Entities.Users, $"id={User.Id()}").Rows[0]["FULLNAME"].ToString() ?? string.Empty;
+    string UserName = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.Users, $"id={User.Id()}").Rows[0]["FULLNAME"].ToString() ?? string.Empty;
 }
 <table style="width: 100%; border-collapse: collapse;"><tr><td style="text-align:center; width:100%; padding:0;"><div style="display:flex; align-items:center; justify-content:center; gap:0.5rem;"><i class="fas fa-box" style="font-size: 1.25rem;"></i><h5 style="margin:0;">Pick It Up!</h5><i class="fas fa-box" style="font-size: 1.25rem;"></i></div></td><td style="text-align:right;"><a href="/Home/Index" class="btn btn-secondary">←&nbsp;Back</a></td></tr></table>
 <div class="grid-canvas" style="width:100%; text-align: center; align-content: center;">
@@ -152,19 +152,60 @@
                         <div class="loading-bar"></div>
                     </td>
                 </tr>
-                <tr><td>
+                <tr>
+                    <td>
                         <table style="width:100%; padding: 1px 1px 1px 1px; border-collapse: collapse;">
                             <tr>
-                                <td style="width: 50%; text-align: right;"><button id="PIUConfirm" type="button" class="btn btn-primary" onclick="{saveClick}" style="display:none;">Confirm</button>&nbsp;</td>
-                                <td style="text-align: left;">&nbsp;<button id="PIUCancel" type="button" class="btn btn-secondary" onclick="PIUcancelClick();" style=" display:none;">Cancel</button></td>
+                                <td style="width: 50%; text-align: right;"><button id="PIUConfirm" type="button" class="btn btn-primary" onclick="PIUOPMM();" style="display:none;">Confirm & Pay</button>&nbsp;</td>
+                                <td style="text-align: left;">&nbsp;<button id="PIUCancel" type="button" class="btn btn-secondary" onclick="PIUcancelClick();" style="display:none; height:100%; min-height:2.4em; box-sizing:border-box;">Cancel</button></td>
                             </tr>
                         </table>
-                </td></tr>
+                    </td>
+                </tr>
             </table>
+            
         </div>
     </div>
 </div>
+<input type="hidden" id="PIUpricingJSON" value="" />
 <partial name="~/Pages/Home/PickitUp/_NewPickupAddress.cshtml" />
 <script>
     document.getElementById('PIURT').addEventListener('change', function () { document.getElementById('PIUST').style.display = this.value === 'specific' ? 'inline-block' : 'none'; if(this.value === 'specific') { const now = new Date(); document.getElementById('PIUST').value = now.toTimeString().slice(0,5); } });
+
+    function PIUOPMM() { // Pick It Up - Open Payment Method Modal
+      const hidden = document.getElementById('PIUpricingJSON');
+      if (!hidden || !hidden.value) {
+        alert('No valid pricing found. Please review your request.');
+        return;
+      }
+
+      let pricingData;
+      try {
+        pricingData = JSON.parse(hidden.value);
+      } catch {
+        alert('Invalid pricing data format.');
+        return;
+      }
+
+      if (!pricingData || pricingData.total <= 0) {
+        alert('No valid pricing found. Please review your request.');
+        return;
+      }
+
+      toggleGlobalSpinner(true);
+      setTimeout(() => {
+        toggleGlobalSpinner(false);
+        openModalByType('paymentmethod');
+
+        // Inject footer buttons for the Pick It Up context *now*, from here.
+        const modal = document.querySelector("[data-modal-type='paymentmethod']");
+        if (modal) {
+          modal.dataset.context = 'pickitup'; // mark context explicitly
+          const footer = modal.querySelector('.custom-modal-footer');
+          if (footer) {
+            footer.innerHTML = `<table style="width:100%; padding:1px; border-collapse:collapse;"><tr><td style="width:50%; text-align:right;"><button id="PMMCJ" type="button" class="btn btn-primary" onclick="PMM_CFJ();" style="min-width:6rem;">Confirm &amp; Pay</button>&nbsp;</td><td style="text-align:left;">&nbsp;<button id="PMMCJ" type="button" class="btn btn-secondary" onclick="PMMC();" style="min-width:6rem;">Cancel</button></td></tr></table>`;
+          }
+        }
+      }, 250);
+    }
 </script>

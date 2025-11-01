@@ -31,7 +31,7 @@ namespace Website.App.Database.Locations.Tables
         }
         private static void RehydrateDT()
         {
-            using DataTable newDT = DataAccessManager.GetDataTable(Database.Schema.Locations.SchemaName, Schema.Locations.Region);
+            using DataTable newDT = DataAccessManager.GetDataTable(Database.Schema.Locations.Name, Schema.Locations.Tables.Region);
             lock (LockRehydrate)
             {
                 DT.Clear();
@@ -44,7 +44,7 @@ namespace Website.App.Database.Locations.Tables
             string fields = "COUNTRY_ID, NAME, SHORTCODE, CREATEDOADATE, UPDATEDOADATE";
             string values = $"{countryId}, {Shared.Sanitize(regionName, true)}, {Shared.Sanitize(regionShortCode, true)}, {today}, {today}";
 
-            _ = DataAccessManager.Insert(Schema.Locations.SchemaName, Schema.Locations.Region, fields, values);
+            _ = DataAccessManager.Insert(Schema.Locations.Name, Schema.Locations.Tables.Region, fields, values);
         }
     }
 }

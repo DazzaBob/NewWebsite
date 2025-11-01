@@ -19,7 +19,7 @@ namespace Website.Pages.User.Address.EndPoints
             if (!User.IsAuthorised()) { return Unauthorized(); }
             if (input is null || input.query == string.Empty) return BadRequest(new { ok = false, msg = "Invalid address." });
 
-            using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Locations.SchemaName, App.Database.Schema.Locations.Address, $"LABEL IS NOT NULL AND LOWER(LABEL) LIKE {App.Database.Shared.Sanitize("%" + input.query.Trim().ToLowerInvariant() + "%", true, true)} AND ADDRESS_TYPE_ID <> 1");
+            using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Locations.Name, App.Database.Schema.Locations.Tables.Address, $"LABEL IS NOT NULL AND LOWER(LABEL) LIKE {App.Database.Shared.Sanitize("%" + input.query.Trim().ToLowerInvariant() + "%", true, true)} AND ADDRESS_TYPE_ID <> 1");
 
             var results = dt.AsEnumerable().Select(row => new
             {

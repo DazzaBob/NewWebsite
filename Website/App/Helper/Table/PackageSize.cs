@@ -28,7 +28,7 @@ namespace Website.App.Helper.Table
 
                 try
                 {
-                    DataRow[] DR = Database.DataAccessManager.GetDataTable(Database.Schema.Entities.SchemaName, Database.Schema.Entities.PackageSize).Select("");
+                    DataRow[] DR = Database.DataAccessManager.GetDataTable(Database.Schema.Config.Name, Database.Schema.Config.Tables.PackageSize).Select("");
                     var items = DR
                         .Cast<DataRow>()
                         .Select(r => new

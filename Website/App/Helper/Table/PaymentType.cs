@@ -3,13 +3,13 @@ using System.Data;
 
 namespace Website.App.Helper.Table
 {
-    public class DropoffType
+    public class PaymentType
     {
         private static SelectList selectlist = new(Enumerable.Empty<SelectListItem>());
         private static readonly object lockAssignSelectListObj = new();
-        public static SelectList DropoffTypeOptions()
+        public static SelectList PaymentTypeOptions()
         {
-            var (list, error) = GetDropoffTypeOptions(); // Load the address types for the dropdown
+            var (list, error) = GetPaymentTypeOptions(); // Load the address types for the dropdown
 
             SelectList SelectOption = new("");
             if (!string.IsNullOrEmpty(error))
@@ -18,7 +18,7 @@ namespace Website.App.Helper.Table
             SelectOption = list;
             return SelectOption;
         }
-        public static (SelectList List, string? Error) GetDropoffTypeOptions()
+        public static (SelectList List, string? Error) GetPaymentTypeOptions()
         {
             lock (lockAssignSelectListObj)
             {
@@ -27,13 +27,13 @@ namespace Website.App.Helper.Table
 
                 try
                 {
-                    DataRow[] DR = Database.DataAccessManager.GetDataTable(Database.Schema.Config.Name, Database.Schema.Config.Tables.DropoffType).Select("");
-                    var items = DR
+                    using DataTable dt = Database.DataAccessManager.GetDataTable(Database.Schema.Config.Name, Database.Schema.Config.Tables.PaymentType, "is_enabled=true");
+                    var items = dt.Rows
                         .Cast<DataRow>()
                         .Select(r => new
                         {
-                            ID = Convert.ToInt32(r.Field<int>("id")),
-                            NAME = r.Field<string>("name") + " (" + r.Field<string>("description") + ")" ?? string.Empty
+                            ID = Convert.ToInt64(r.Field<long>("ID")),
+                            NAME = r.Field<string>("NAME") ?? string.Empty
                         })
                         .ToList();
 
@@ -42,7 +42,7 @@ namespace Website.App.Helper.Table
                 }
                 catch (Exception ex)
                 {
-                    return (new SelectList(Enumerable.Empty<object>()), "Dropoff Type load error: " + ex.Message);
+                    return (new SelectList(Enumerable.Empty<object>()), "PaymentType load error: " + ex.Message);
                 }
             }
         }

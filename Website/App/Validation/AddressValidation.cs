@@ -6,8 +6,8 @@ namespace Website.App.Validation
     public static partial class AddressValidation
     {
         private const string NamespaceClass = "App.Validation.AddressValidation.";
-        private const string ADSLD = App.Database.Schema.Locations.SchemaName;
-        private const string ADSED = App.Database.Schema.Locations.SchemaName;
+        private const string ADSLD = App.Database.Schema.Locations.Name;
+        private const string ADSED = App.Database.Schema.Locations.Name;
         public static long SaveAddressAndGetId(string payload, long addressTypeId, long userId, bool SetAsDefault, string label = "")
         {
             if (string.IsNullOrWhiteSpace(payload)) { LogError("SaveAddressAndGetId: JSON payload is empty."); return -1; }
@@ -77,7 +77,7 @@ namespace Website.App.Validation
             string pc = Database.Shared.Sanitize(postcode, forSql: true);
 
             string whereClause = $"STREET_NUMBER={sn} AND STREET_NAME={sname} AND POSTCODE={pc}";
-            using DataTable dt = Database.DataAccessManager.GetDataTable(ADSLD, Database.Schema.Locations.Address, whereClause, "LASTUSEDOADATE DESC");
+            using DataTable dt = Database.DataAccessManager.GetDataTable(ADSLD, Database.Schema.Locations.Tables.Address, whereClause, "LASTUSEDOADATE DESC");
 
             return (dt != null && dt.Rows.Count > 0) ? dt.Rows[0] : null;
         }
@@ -85,7 +85,7 @@ namespace Website.App.Validation
         {
             try
             {
-                _ = Database.DataAccessManager.Update(ADSLD, Database.Schema.Locations.Address, $"LASTUSEDOADATE={DateTime.UtcNow.ToOADate()}", $"ID={addressId}");
+                _ = Database.DataAccessManager.Update(ADSLD, Database.Schema.Locations.Tables.Address, $"LASTUSEDOADATE={DateTime.UtcNow.ToOADate()}", $"ID={addressId}");
             }
             catch (Exception ex)
             {
@@ -94,7 +94,7 @@ namespace Website.App.Validation
         }
         private static long? GetUserAddressId(long userId, long addressId)
         {
-            using DataTable data = Database.DataAccessManager.GetDataTable(ADSED, Database.Schema.Entities.UserAddress, $"USER_ID = {userId} AND ADDRESS_ID = {addressId}");
+            using DataTable data = Database.DataAccessManager.GetDataTable(ADSED, Database.Schema.Entities.Tables.UserAddress, $"USER_ID = {userId} AND ADDRESS_ID = {addressId}");
             if (data != null && data.Rows.Count > 0)
                 return Convert.ToInt64(data.Rows[0]["ID"]);
             return null;
@@ -104,7 +104,7 @@ namespace Website.App.Validation
             try
             {
                 string safeLabel = Database.Shared.Sanitize(newLabel, true, true);
-                _ = Database.DataAccessManager.Update(ADSED, Database.Schema.Entities.UserAddress, $"LABEL={safeLabel}", $"ID={userAddressId}");
+                _ = Database.DataAccessManager.Update(ADSED, Database.Schema.Entities.Tables.UserAddress, $"LABEL={safeLabel}", $"ID={userAddressId}");
             }
             catch (Exception ex)
             {
@@ -185,7 +185,7 @@ namespace Website.App.Validation
               .Append(resolved.Coords.RoutableLatitude > 0 ? resolved.Coords.RoutableLatitude : "NULL").Append(", ")
               .Append(DateTime.UtcNow.ToOADate());
 
-            long addressId = Database.DataAccessManager.Insert(ADSLD, Database.Schema.Locations.Address, fields, sb.ToString());
+            long addressId = Database.DataAccessManager.Insert(ADSLD, Database.Schema.Locations.Tables.Address, fields, sb.ToString());
             if (addressId <= 0)
             {
                 LogError($"SaveAddressCore: failed to insert address '{resolved.Address?.Number} {resolved.Address?.Name}'");
@@ -220,12 +220,12 @@ namespace Website.App.Validation
 
             try
             {
-                long userAddressId = Database.DataAccessManager.Insert(ADSED, Database.Schema.Entities.UserAddress, userFields, userValues);
+                long userAddressId = Database.DataAccessManager.Insert(ADSED, Database.Schema.Entities.Tables.UserAddress, userFields, userValues);
 
                 if (setAsDefault && addressId > 0)
                 {
-                    _ = Database.DataAccessManager.Update(ADSED, Database.Schema.Entities.UserAddress, "ISDEFAULT=false", $"USER_ID={userId}");
-                    _ = Database.DataAccessManager.Update(ADSED, Database.Schema.Entities.UserAddress, "ISDEFAULT=true", $"USER_ID={userId} AND ADDRESS_ID={addressId}");
+                    _ = Database.DataAccessManager.Update(ADSED, Database.Schema.Entities.Tables.UserAddress, "ISDEFAULT=false", $"USER_ID={userId}");
+                    _ = Database.DataAccessManager.Update(ADSED, Database.Schema.Entities.Tables.UserAddress, "ISDEFAULT=true", $"USER_ID={userId} AND ADDRESS_ID={addressId}");
                 }
 
                 return userAddressId;

@@ -48,7 +48,7 @@ namespace Website.App.Database.Locations.Tables
 
         private static void RehydrateDT()
         {
-            DataTable newDT = DataAccessManager.GetDataTable(Schema.Locations.SchemaName, Schema.Locations.Locality);
+            DataTable newDT = DataAccessManager.GetDataTable(Schema.Locations.Name, Schema.Locations.Tables.Locality);
             lock (LockRehydrate)
             {
                 LocalityDT.Clear();
@@ -75,7 +75,7 @@ namespace Website.App.Database.Locations.Tables
 
             string fields = "PLACE_ID, NAME, LATITUDE, LONGITUDE, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE";
             string values = $"{placeId}, {Shared.Sanitize(localityName, true)}, {lat}, {lon}, {minLat}, {maxLat}, {minLon}, {maxLon}";
-            int LocalityId = DataAccessManager.Insert(Schema.Locations.SchemaName, Schema.Locations.Locality, fields, values);
+            int LocalityId = DataAccessManager.Insert(Schema.Locations.Name, Schema.Locations.Tables.Locality, fields, values);
 
             if (LocalityId <= 0)
             {

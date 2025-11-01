@@ -39,7 +39,7 @@ namespace Website.Pages.User
                 else
                     WhereClause = $"(PHONE={App.Database.Shared.Sanitize(identifier.ToLowerInvariant(), true, true)})";
 
-                using DataTable DT = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.SchemaName, App.Database.Schema.Entities.Users, WhereClause);
+                using DataTable DT = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.Users, WhereClause);
                 if (DT.Rows.Count == 0)
                 {
                     ErrorMessage = ErrorText;

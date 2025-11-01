@@ -10,12 +10,13 @@
 </head>
 <body>
     <table style="width: 100%; height: 100dvh; border-collapse: collapse;">
-        <thead><tr style="height:auto;"><td colspan="1"><partial name="~/Pages/Home/Index/_Header.cshtml" /></td></tr></thead>
+        <thead><tr style="height:auto;"><td colspan="1"><partial name="~/Pages/Home/_Header.cshtml" /></td></tr></thead>
         <tbody style="display: block; overflow-y: auto; height: calc(100dvh - 200px); width: 100%;"><tr style="display: table; table-layout: fixed; width: 100%;"><td style="width: 100%;">@RenderBody()</td></tr></tbody>
-        <tfoot><tr><td colspan="1"><partial name="~/Pages/Home/Index/_Footer.cshtml" /></td></tr></tfoot>
+        <tfoot><tr><td colspan="1"><partial name="~/Pages/Home/_Footer.cshtml" /></td></tr></tfoot>
     </table>
     <partial name="~/Pages/Home/Index/_address.cshtml" />
     <partial name="~/Pages/Home/Index/_location.cshtml" />
+    <partial name="~/Pages/Settings/_PaymentMethod.cshtml" />
     <script src="/js/site.js" defer asp-append-version="true"></script>
 </body>
 </html>

@@ -11,7 +11,7 @@ namespace Website.Pages.User
 {
     public class SignUpModel : PageModel
     {
-        private readonly string EntitiesSchema = App.Database.Schema.Entities.SchemaName;
+        private readonly string EntitiesSchema = App.Database.Schema.Entities.Name;
 
         [BindProperty]
         [Required(ErrorMessage = "Full name is required.")]
@@ -99,7 +99,7 @@ namespace Website.Pages.User
             {
                 try
                 {
-                    using DataTable DT = App.Database.DataAccessManager.GetDataTable(EntitiesSchema, App.Database.Schema.Entities.Users, $"(EMAIL={App.Database.Shared.Sanitize(Email.ToLowerInvariant(), true, true)}) OR (PHONE={App.Database.Shared.Sanitize(Phone.ToLowerInvariant(), true, true)})");
+                    using DataTable DT = App.Database.DataAccessManager.GetDataTable(EntitiesSchema, App.Database.Schema.Entities.Tables.Users, $"(EMAIL={App.Database.Shared.Sanitize(Email.ToLowerInvariant(), true, true)}) OR (PHONE={App.Database.Shared.Sanitize(Phone.ToLowerInvariant(), true, true)})");
                     if (DT.Rows.Count > 0)
                     {
                         TempData["RecoverEmail"] = Email.ToLowerInvariant();
@@ -107,9 +107,9 @@ namespace Website.Pages.User
                         return RedirectToPage("/User/Recover");
                     }
                     string hash = App.Helper.Shared.HashPassword(Password);
-                    var CustomerRoleId = App.Database.DataAccessManager.GetScalar(EntitiesSchema, App.Database.Schema.Entities.Roles, "ID", "NAME='Customer'");
+                    var CustomerRoleId = App.Database.DataAccessManager.GetScalar(EntitiesSchema, App.Database.Schema.Entities.Tables.Roles, "ID", "NAME='Customer'");
 
-                    string sql = @$"INSERT INTO {App.Database.Schema.Entities.Users} (FULLNAME, EMAIL, PHONE, PASSWORDHASH, CREATEDOADATE, UPDATEDOADATE) 
+                    string sql = @$"INSERT INTO {App.Database.Schema.Entities.Tables.Users} (FULLNAME, EMAIL, PHONE, PASSWORDHASH, CREATEDOADATE, UPDATEDOADATE) 
                     VALUES (@FullName, @Email, @Phone, @PasswordHash, @Created, @Updated)";
 
                     Npgsql.NpgsqlParameter[] parameters =
@@ -124,10 +124,10 @@ namespace Website.Pages.User
                     _ = App.Database.DataAccessManager.ExecuteNonQuery(EntitiesSchema, sql, parameters);
 
                     int userId = 0;
-                    using DataTable DT1 = App.Database.DataAccessManager.GetDataTable(EntitiesSchema, App.Database.Schema.Entities.Users, $"EMAIL={App.Database.Shared.Sanitize(Email.ToLowerInvariant(), true, true)} AND PHONE={App.Database.Shared.Sanitize(Phone, true)}");
+                    using DataTable DT1 = App.Database.DataAccessManager.GetDataTable(EntitiesSchema, App.Database.Schema.Entities.Tables.Users, $"EMAIL={App.Database.Shared.Sanitize(Email.ToLowerInvariant(), true, true)} AND PHONE={App.Database.Shared.Sanitize(Phone, true)}");
                     if (DT1 != null && DT1.Rows.Count > 0) userId = Convert.ToInt32(DT1.Rows[0]["ID"]);
 
-                    sql = @$"INSERT INTO {App.Database.Schema.Entities.UserRoles} (USER_ID, ROLE_ID, GRANTEDOADATE, EXPIRATIONOADATE, REVOKEDOADATE, REVOKEDREASON, CREATEDBY_USER_ID, UPDATEDBY_USER_ID, ISACTIVE) 
+                    sql = @$"INSERT INTO {App.Database.Schema.Entities.Tables.UserRoles} (USER_ID, ROLE_ID, GRANTEDOADATE, EXPIRATIONOADATE, REVOKEDOADATE, REVOKEDREASON, CREATEDBY_USER_ID, UPDATEDBY_USER_ID, ISACTIVE) 
                     VALUES (@UserId, @RoleId, @Granted, NULL, NULL, NULL, @CreatedBy, @UpdatedBy, true);";
 
                     Npgsql.NpgsqlParameter[] roleParams =

@@ -28,7 +28,7 @@ namespace Website.App.Helper.Table
 
                 try
                 {
-                    DataRow[] DR = Database.DataAccessManager.GetDataTable(Database.Schema.Entities.SchemaName, Database.Schema.Entities.PackageType).Select("", "category_id ASC");
+                    DataRow[] DR = Database.DataAccessManager.GetDataTable(Database.Schema.Config.Name, Database.Schema.Config.Tables.PackageType).Select("", "category_id ASC");
                     var items = DR
                         .Cast<DataRow>()
                         .Select(r => new

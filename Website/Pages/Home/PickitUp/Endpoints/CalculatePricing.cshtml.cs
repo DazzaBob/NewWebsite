@@ -41,8 +41,8 @@ namespace Website.Pages.Home.PickitUp.Endpoints
                 var coordsLookup = LoadAddressCoords(allAddressIds);
 
                 // Map coordinates to task indices
-                Dictionary<string, List<int>> coordMap = new();
-                List<string> uniqueCoords = new();
+                Dictionary<string, List<int>> coordMap = [];
+                List<string> uniqueCoords = [];
                 for (int i = 0; i < tasks.Count; i++)
                 {
                     var t = tasks[i];
@@ -53,7 +53,7 @@ namespace Website.Pages.Home.PickitUp.Endpoints
                     {
                         if (!coordMap.TryGetValue(c, out List<int>? value))
                         {
-                            value = new List<int>();
+                            value = [];
                             coordMap[c] = value;
                             uniqueCoords.Add(c);
                         }
@@ -107,7 +107,7 @@ namespace Website.Pages.Home.PickitUp.Endpoints
                     legIndex++;
 
                     // If single-task job, enforce per-task minimum
-                    decimal baseCost = flagfall + (perMeter * (decimal)distanceMeters) + (perSecond * (decimal)durationSeconds);
+                    decimal baseCost = flagfall + (perMeter * distanceMeters) + (perSecond * durationSeconds);
                     if (tasks.Count == 1 && baseCost < minimumCharge) baseCost = minimumCharge;
 
                     jobSubtotal += baseCost;
@@ -178,10 +178,10 @@ namespace Website.Pages.Home.PickitUp.Endpoints
         private DataTable RatePolicyDT()
         {
             StringBuilder sb = new();
-            sb.Append("SELECT * FROM ent.rate_policies rp ")
+            sb.Append("SELECT * FROM cfg.rate_policies rp ")
               .Append($"WHERE (rp.user_id IS NULL OR rp.user_id = {User.Id()}) ");
 
-            DataTable DT = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.SchemaName, sb.ToString(), []);
+            DataTable DT = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, sb.ToString(), []);
             if (DT.Rows.Count == 0)
             {
                 if (DT.Columns.Count == 0)
@@ -214,8 +214,8 @@ namespace Website.Pages.Home.PickitUp.Endpoints
 
             string idsCsv = string.Join(",", addressIds.Distinct());
             string sql = $@"SELECT ua.ID, ua.USER_ID, a.ID AS ADDRESS_ID, a.LONGITUDE, a.LATITUDE
-            FROM {App.Database.Schema.Entities.UserAddress} ua
-            LEFT JOIN {App.Database.Schema.Locations.Address} a ON ua.ADDRESS_ID = a.ID 
+            FROM {App.Database.Schema.Entities.Tables.UserAddress} ua
+            LEFT JOIN {App.Database.Schema.Locations.Tables.Address} a ON ua.ADDRESS_ID = a.ID 
             WHERE ua.ID IN({idsCsv}); ";
 
             DataTable DT = App.Database.DataAccessManager.GetDataTable("loc", sql, []);

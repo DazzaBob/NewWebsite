@@ -29,7 +29,7 @@ namespace Website.Pages.User.Address.EndPoints
             string street = App.Database.Shared.Sanitize(input.Street, true);
             string pc = App.Database.Shared.Sanitize(input.Postcode, true);
 
-            using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Locations.SchemaName, App.Database.Schema.Locations.Address, $"STREET_NUMBER = {num} AND STREET_NAME = {street} AND POSTCODE = {pc}");
+            using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Locations.Name, App.Database.Schema.Locations.Tables.Address, $"STREET_NUMBER = {num} AND STREET_NAME = {street} AND POSTCODE = {pc}");
 
             if (dt.Rows.Count == 0)
                 return new JsonResult(new { success = false, typeId = (int?)null });

@@ -1,7 +1,7 @@
 ﻿@using System.Data
 @using App.Security
 @{
-    using DataTable DT = App.Database.Views.UserAddress.DataTable(User.Id());
+    using DataTable DT = App.Database.Views.DataTables.UserAddress.DataTable(User.Id());
     DataRow[] DR = DT.Select("");
 
     SelectList AddressOptions = App.Helper.Table.AddressType.AddressTypeOptions();

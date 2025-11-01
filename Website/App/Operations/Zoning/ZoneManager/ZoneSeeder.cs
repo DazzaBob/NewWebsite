@@ -25,7 +25,7 @@ namespace Website.App.Operations.Zoning
             private static readonly GeoJsonWriter _gjson = new();
 
             private const double EarthRadiusMeters = 6378137;
-            private static readonly string LocationsSchema = Schema.Locations.SchemaName;
+            private static readonly string LocationsSchema = Schema.Locations.Name;
 
             /// <summary>
             /// Creates a new base zone for a specified Place. 
@@ -42,7 +42,7 @@ namespace Website.App.Operations.Zoning
             {
                 if (placeId <= 0) ArgumentOutOfRangeException.ThrowIfLessThan(placeId, 1, nameof(placeId));
 
-                DataRow[] DR = DataAccessManager.GetDataTable(LocationsSchema, Schema.Locations.Place, $"ID = {placeId}").Select();
+                DataRow[] DR = DataAccessManager.GetDataTable(LocationsSchema, Schema.Locations.Tables.Place, $"ID = {placeId}").Select();
                 if (DR.Length == 0) return 0; // we couldnt find any Places that matched with the provided placeid, lets return 0; 
 
                 string shapeJson = ShapeToGeoJson(
@@ -62,7 +62,7 @@ namespace Website.App.Operations.Zoning
 
                 string fields = "NAME, PLACE_ID, LOCALITY_ID, CENTEROID_LATITUDE, CENTEROID_LONGITUDE, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, CREATEDOADATE, UPDATEDOADATE, SHAPE_JSON";
 
-                return DataAccessManager.Insert(LocationsSchema, Schema.Locations.ZonesBase, fields, values); // returns the INSERTed ID.
+                return DataAccessManager.Insert(LocationsSchema, Schema.Locations.Tables.ZonesBase, fields, values); // returns the INSERTed ID.
             }
 
             /// <summary>
@@ -80,7 +80,7 @@ namespace Website.App.Operations.Zoning
                 if (placeId <= 0) ArgumentOutOfRangeException.ThrowIfLessThan(placeId, 1, nameof(placeId));
                 if (localityId <= 0) ArgumentOutOfRangeException.ThrowIfLessThan(localityId, 1, nameof(localityId));
 
-                using DataTable DT = DataAccessManager.GetDataTable(LocationsSchema, Schema.Locations.ZonesBase, $"PLACE_ID = {placeId} AND LOCALITY_ID IS NULL");
+                using DataTable DT = DataAccessManager.GetDataTable(LocationsSchema, Schema.Locations.Tables.ZonesBase, $"PLACE_ID = {placeId} AND LOCALITY_ID IS NULL");
                 if (DT.Rows.Count == 0)
                 {
                     Bootstrap.Logger?.Add($"Could not create Locality Zone Id, PlaceId: {placeId} is invalid", Helper.Logger.LogLevel.Error);
@@ -89,7 +89,7 @@ namespace Website.App.Operations.Zoning
                 Geometry placePoly = new GeoJsonReader().Read<Geometry>(DT.Rows[0]["SHAPE_JSON"].ToString());
 
                 // Load locality bbox
-                DataRow[] DR = DataAccessManager.GetDataTable(LocationsSchema, Schema.Locations.Locality, $"ID = {localityId}").Select();
+                DataRow[] DR = DataAccessManager.GetDataTable(LocationsSchema, Schema.Locations.Tables.Locality, $"ID = {localityId}").Select();
                 if (DR.Length == 0)
                 {
                     Bootstrap.Logger?.Add($"Could not create Locality Zone Id, Locality Id: {localityId} is invalid", Helper.Logger.LogLevel.Error);
@@ -145,7 +145,7 @@ namespace Website.App.Operations.Zoning
 
                 string fields = "NAME, PLACE_ID, LOCALITY_ID, CENTEROID_LATITUDE, CENTEROID_LONGITUDE, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, CREATEDOADATE, UPDATEDOADATE, SHAPE_JSON";
 
-                return DataAccessManager.Insert(LocationsSchema, Schema.Locations.ZonesBase, fields, values); // returns the INSERTed ZONE_ID
+                return DataAccessManager.Insert(LocationsSchema, Schema.Locations.Tables.ZonesBase, fields, values); // returns the INSERTed ZONE_ID
             }
             internal static string ShapeToGeoJson(double minLat, double maxLat, double minLon, double maxLon)
             {
@@ -197,7 +197,7 @@ namespace Website.App.Operations.Zoning
                     // Assign RCI overlay
                 }
                 int rciZoneId = FindOrCreateRciZone(baseZoneId, addressTypeId, latitude, longitude);
-                _ = DataAccessManager.Update(LocationsSchema, App.Database.Schema.Locations.Address, $"ZONE_BASE_ID = {baseZoneId}, ZONE_RCI_ID = {rciZoneId}", $"ID = {addressId}");
+                _ = DataAccessManager.Update(LocationsSchema, App.Database.Schema.Locations.Tables.Address, $"ZONE_BASE_ID = {baseZoneId}, ZONE_RCI_ID = {rciZoneId}", $"ID = {addressId}");
             }
 
             /// <summary>
@@ -209,7 +209,7 @@ namespace Website.App.Operations.Zoning
                 try
                 {
                     // simplified nearest search using bounding boxes
-                    using DataTable dt = DataAccessManager.GetDataTable(Schema.Locations.SchemaName, Schema.Locations.ZonesBase, $"PLACE_ID = {placeId}");
+                    using DataTable dt = DataAccessManager.GetDataTable(Schema.Locations.Name, Schema.Locations.Tables.ZonesBase, $"PLACE_ID = {placeId}");
                     if (dt.Rows.Count == 0) return 0;
 
                     double minDistance = double.MaxValue;
@@ -244,7 +244,7 @@ namespace Website.App.Operations.Zoning
             /// <returns>ID of the existing or newly created RCI zone.</returns>
             private static int FindOrCreateRciZone(int baseZoneId, int addressTypeId, double latitude, double longitude)
             {
-                using DataTable dt = DataAccessManager.GetDataTable(LocationsSchema, Schema.Locations.ZonesRCI, $"BASE_ZONE_ID = {baseZoneId} AND ADDRESS_TYPE_ID = {addressTypeId}"
+                using DataTable dt = DataAccessManager.GetDataTable(LocationsSchema, Schema.Locations.Tables.ZonesRCI, $"BASE_ZONE_ID = {baseZoneId} AND ADDRESS_TYPE_ID = {addressTypeId}"
                 );
                 if (dt.Rows.Count > 0)
                 {
@@ -272,7 +272,7 @@ namespace Website.App.Operations.Zoning
                 string values = $"{baseZoneId},{addressTypeId},{minLat},{maxLat},{minLon},{maxLon},{latitude},{longitude},'{shapeJson.Replace("'", "''")}',NULL,'Mapbox',{now}, {now}";
                 string fields = "BASE_ZONE_ID,ADDRESS_TYPE_ID,MIN_LATITUDE,MAX_LATITUDE,MIN_LONGITUDE,MAX_LONGITUDE,CENTEROID_LATITUDE,CENTEROID_LONGITUDE,SHAPE_JSON,DENSITY_LEVEL,SOURCE,CREATEDOADATE,UPDATEDOADATE";
 
-                return DataAccessManager.Insert(LocationsSchema, Schema.Locations.ZonesRCI, fields, values);
+                return DataAccessManager.Insert(LocationsSchema, Schema.Locations.Tables.ZonesRCI, fields, values);
             }
 
             /// <summary>

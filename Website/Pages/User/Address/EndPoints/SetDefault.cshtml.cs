@@ -8,8 +8,8 @@ namespace Website.Pages.User.Address.EndPoints
     [IgnoreAntiforgeryToken]
     public class SetDefaultModel : PageModel
     {
-        private readonly string EntitiesSchema = App.Database.Schema.Entities.SchemaName;
-        private readonly string UserAddress = App.Database.Schema.Entities.UserAddress;
+        private readonly string EntitiesSchema = App.Database.Schema.Entities.Name;
+        private readonly string UserAddress = App.Database.Schema.Entities.Tables.UserAddress;
         public class SetDefaultInput { public int Id { get; set; } }
         public IActionResult OnGet() => NotFound();
         public IActionResult OnPost([FromBody] SetDefaultInput input)

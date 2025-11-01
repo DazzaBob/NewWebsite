@@ -34,9 +34,9 @@ namespace Website.Pages.Home.PickitUp.Endpoints
             string pickupLabel = BuilldAddress(Convert.ToInt64(task.PickupAddressId));
             string dropoffLabel = BuilldAddress(Convert.ToInt64(task.DropoffAddressId));
 
-            var packageTypeName = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.SchemaName, App.Database.Schema.Entities.PackageType, $"id={task.PackageTypeId}").Rows[0]["NAME"].ToString();
-            var packageSizeName = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.SchemaName, App.Database.Schema.Entities.PackageSize, $"id={task.PackageSizeId}").Rows[0]["NAME"].ToString();
-            var dropoffTypeName = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.SchemaName, App.Database.Schema.Entities.DropoffType, $"id={task.DropoffTypeId}").Rows[0]["NAME"].ToString();
+            var packageTypeName = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Config.Name, App.Database.Schema.Config.Tables.PackageType, $"id={task.PackageTypeId}").Rows[0]["NAME"].ToString();
+            var packageSizeName = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Config.Name, App.Database.Schema.Config.Tables.PackageSize, $"id={task.PackageSizeId}").Rows[0]["NAME"].ToString();
+            var dropoffTypeName = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Config.Name, App.Database.Schema.Config.Tables.DropoffType, $"id={task.DropoffTypeId}").Rows[0]["NAME"].ToString();
             var readyTimeDisplay = task.ReadyTime == "now" ? "Ready Now" : task.SpecificTime;
 
             // Build the HTML card
@@ -84,7 +84,7 @@ namespace Website.Pages.Home.PickitUp.Endpoints
         }
         private static string BuilldAddress(long AddressId)
         {
-            DataRow[] r = App.Database.Views.UserAddress.DataTable(0, 0, AddressId).Select("");
+            DataRow[] r = App.Database.Views.DataTables.UserAddress.DataTable(0, 0, AddressId).Select("");
 
             string label = r[0]["LABEL"] != DBNull.Value ? r[0]["LABEL"].ToString()!.Trim() : "No Label";
             string streetNumber = r[0]["STREET_NUMBER"] != DBNull.Value ? r[0]["STREET_NUMBER"].ToString()!.Trim() : "";

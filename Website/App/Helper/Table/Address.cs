@@ -27,7 +27,7 @@ namespace Website.App.Helper.Table
 
                 try
                 {
-                    using DataTable dt = Database.Views.UserAddress.DataTable(userId);
+                    using DataTable dt = Database.Views.DataTables.UserAddress.DataTable(userId);
 
                     var items = dt.Rows
                         .Cast<DataRow>()

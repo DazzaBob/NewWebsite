@@ -28,11 +28,11 @@ namespace Website.Pages.User.Address.EndPoints
                 new Npgsql.NpgsqlParameter("@label", input.Label)
             ];
 
-            string sql = $"UPDATE {App.Database.Schema.Entities.UserAddress} SET LABEL=@label WHERE USER_ID=@userId AND ID=@id";
+            string sql = $"UPDATE {App.Database.Schema.Entities.Tables.UserAddress} SET LABEL=@label WHERE USER_ID=@userId AND ID=@id";
             try
             {
 
-                App.Database.DataAccessManager.ExecuteNonQuery(App.Database.Schema.Entities.SchemaName, sql, parameters);
+                App.Database.DataAccessManager.ExecuteNonQuery(App.Database.Schema.Entities.Name, sql, parameters);
                 return new JsonResult(new { ok = true, msg = input.Label });
             }
             catch (Exception ex)

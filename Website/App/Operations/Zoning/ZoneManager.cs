@@ -17,7 +17,7 @@ namespace Website.App.Operations.Zoning
         private static readonly GeometryFactory _gf = new(new PrecisionModel(), 4326);
         private static readonly GeoJsonWriter _gjson = new();
         private static readonly GeoJsonReader _greader = new();
-        private static readonly string LocationsSchema = Schema.Locations.SchemaName;
+        private static readonly string LocationsSchema = Schema.Locations.Name;
         /// <summary>
         /// Handles a new address insertion:
         /// - Finds or creates a Base zone.

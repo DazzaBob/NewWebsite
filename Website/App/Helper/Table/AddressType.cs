@@ -29,7 +29,7 @@ namespace Website.App.Helper.Table
 
                 try
                 {
-                    using DataTable dt = Database.DataAccessManager.GetDataTable(Database.Schema.Locations.SchemaName, Database.Schema.Locations.AddressType);
+                    using DataTable dt = Database.DataAccessManager.GetDataTable(Database.Schema.Locations.Name, Database.Schema.Locations.Tables.AddressType);
                     var items = dt.Rows
                         .Cast<DataRow>()
                         .Select(r => new

@@ -59,6 +59,21 @@ namespace Website.App.Database
                 dbPool.Release(conn);
             }
         }
+        public static int Insert(string schema, string tableName, string fields, NpgsqlParameter[] parameters)
+        {
+            Database dbPool = GetConnection(schema);
+            DALConnection conn = dbPool.Acquire();
+            try
+            {
+                string sql = $"INSERT INTO {tableName} ({fields}) VALUES ({string.Join(",", parameters.Select(p => p.ParameterName))}) RETURNING id;";
+                object result = conn.ExecuteScalar(sql, parameters);
+                return Convert.ToInt32(result);
+            }
+            finally
+            {
+                dbPool.Release(conn);
+            }
+        }
 
         /// <summary>
         /// Updates rows in the specified table within the given schema using the provided SET clause and optional WHERE clause.

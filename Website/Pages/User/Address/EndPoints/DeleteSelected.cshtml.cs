@@ -12,7 +12,7 @@ namespace Website.Pages.User.Address.EndPoints
     [IgnoreAntiforgeryToken]
     public class DeleteSelectedModel : PageModel
     {
-        private readonly string ADSED = App.Database.Schema.Entities.SchemaName;
+        private readonly string ADSED = App.Database.Schema.Entities.Name;
         public class SetDefaultInput { public int Id { get; set; } }
         public IActionResult OnGet() => NotFound();
         public IActionResult OnPost([FromBody] SetDefaultInput input)
@@ -22,7 +22,7 @@ namespace Website.Pages.User.Address.EndPoints
 
             int userId = User.Id();
 
-            string checkSql = $"SELECT ISDEFAULT FROM {App.Database.Schema.Entities.UserAddress} WHERE USER_ID={userId} AND ID={input.Id} LIMIT 1";
+            string checkSql = $"SELECT ISDEFAULT FROM {App.Database.Schema.Entities.Tables.UserAddress} WHERE USER_ID={userId} AND ID={input.Id} LIMIT 1";
             object? checkResult = App.Database.DataAccessManager.ExecuteScalar(ADSED, checkSql, []);
             if (checkResult is null) return BadRequest(new { ok = false, msg = "Address not found." });
             bool isDefault = Convert.ToInt32(checkResult) == 1;
@@ -30,7 +30,7 @@ namespace Website.Pages.User.Address.EndPoints
             if (isDefault) return new JsonResult(new { ok = false, msg = "Cannot delete default address." });
             try
             {
-                string sql = $"DELETE FROM {App.Database.Schema.Entities.UserAddress} WHERE USER_ID={userId} AND ID={input.Id}";
+                string sql = $"DELETE FROM {App.Database.Schema.Entities.Tables.UserAddress} WHERE USER_ID={userId} AND ID={input.Id}";
                 long affected = App.Database.DataAccessManager.ExecuteNonQuery(ADSED, sql, []);
                 if (affected > 0)
                     return new JsonResult(new { ok = true, msg = "Deleted." });

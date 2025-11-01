@@ -14,7 +14,7 @@ namespace Website.Pages.User.Address.EndPoints
             if (!User.IsAuthorised()) return Unauthorized();
             int userId = User.Id();
 
-            DataRow[] DR = App.Database.Views.UserAddress.DataTable(userId).Select("", "ID DESC");
+            DataRow[] DR = App.Database.Views.DataTables.UserAddress.DataTable(userId).Select("", "ID DESC");
             if (DR.Length == 0) return NotFound(new { ok = false, msg = "Address not found." });
             string Id = DR[0]["ID"] != DBNull.Value ? DR[0]["ID"].ToString()!.Trim() : "";
             string label = DR[0]["LABEL"] != DBNull.Value ? DR[0]["LABEL"].ToString()!.Trim() : "No Label";
