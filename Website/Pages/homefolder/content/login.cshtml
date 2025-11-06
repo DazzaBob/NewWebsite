@@ -1,0 +1,25 @@
+﻿@page
+@{
+    Layout = null;
+    ViewData["Title"] = "Login";
+}
+<div style="max-width:400px;margin:0 auto;padding:2rem 0;">
+    <h1 style="text-align:center;margin-bottom:1rem;">Log In</h1>
+
+    <div style="margin-bottom:1rem;">
+        <label for="loginEmail">Email or Mobile</label>
+        <input type="text" id="loginEmail" autocomplete="username" required />
+    </div>
+
+    <div class="password-wrapper" style="margin-bottom:1rem;">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" autocomplete="current-password" required />
+        <button type="button" class="password-toggle" onclick="togglePasswordVisibility()" aria-label="Toggle password visibility">👁</button>
+    </div>
+
+    <div id="loginError" class="error-msg" style="display:none;color:var(--color-error);text-align:center;margin-top:1rem;"></div>
+
+    <div style="margin-top:2rem;text-align:center;">
+        <button id="btnLogin" type="button" class="btn btn-primary" onclick="ValidateLogin();">Log In</button>
+    </div>
+</div>

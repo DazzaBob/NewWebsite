@@ -1,0 +1,215 @@
+﻿@using System.Data
+@using App.Security
+@{
+    int userId = User.Id(); 
+
+    // Resolve default address label
+    string label = "Select Address";
+
+    using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.UserAddress, $"USER_ID={userId} AND ISDEFAULT=true");
+    if (dt.Rows.Count > 0)
+    {
+        var temp = dt.Rows[0]["LABEL"] as string;
+        if (!string.IsNullOrWhiteSpace(temp))
+            label = temp.Trim();
+    }
+    // border-collapse:collapse; border-spacing:0;">
+}
+<table style="width:100%; margin:0 auto; border-collapse:collapse; border-spacing:0;">
+    <tr><th style="width: 33%;"></th><th style="width: 34%;"></th><th style="width: 33%;"></th></tr>
+    <tr>
+        <td style="text-align:left">
+            <a href="/Index">
+                <img src="/assets/images/logo_96.png" alt="" height="40" />
+            </a>
+        </td>
+        <td style="text-align:right;" colspan="2">
+            <div class="nav-group">
+                <button type="button" class="btn btn-pill btn-outline" onclick="window.location.href='/Home'"><i class="fa-solid fa-th-large"></i>&nbsp;Home</button>
+                <button type="button" class="btn btn-pill btn-outline" onclick="window.location.href='/Account/Settings'">Settings</button>
+                <button type="button" class="btn btn-pill btn-outline" onclick="window.location.href='/User/Logout'">Logout</button>
+            </div>
+        </td>
+    </tr>
+
+    <tr style="background: var(--color-primary); color: var(--color-text);">
+        <td style="text-align:left; vertical-align:middle;">
+            <button style="background:none; border:none; font-size:2rem; color:inherit; cursor:pointer;" aria-label="Open Menu" onclick="document.body.classList.toggle('menu-open')">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </td>
+        <td style="text-align:center; vertical-align:middle; font-weight:600;">
+            <i class="fa-solid fa-th-large"></i>&nbsp;Home&nbsp;<i class="fa-solid fa-th-large"></i>
+        </td>
+        <td style="text-align:right; vertical-align:middle;">
+            <button id="notificationButton" class="CommsButton" aria-label="Open Notifications" onclick="NMON();">
+                <i class="fa-solid fa-bell"></i>
+                <span id="unreadNotifications" class="UnreadComms" aria-hidden="true"></span>
+            </button>
+            <button id="messageButton" class="CommsButton" aria-label="Open Messaging" onclick="toggleMessaging();">
+            <i class="fa-solid fa-comments"></i>
+                <span id="unreadMessages" class="UnreadComms" aria-hidden="true"></span>
+            </button>
+        </td>
+    </tr>
+
+    <tr>
+        <td style="text-align:left; vertical-align:middle;">
+            <button id="addressToggle" class="btn btn-pill btn-outline" onclick="openModalByType('address')">
+                <i class="fa-solid fa-home" style="margin-right:.5rem;"></i>
+                @label&nbsp;<i class="fa-solid fa-chevron-down dropdown-icon"></i>
+            </button>
+        </td>
+        <td></td>
+        <td style="text-align:right; vertical-align:middle;">
+            <button id="useCurrentLocation" class="btn btn-pill btn-outline" onclick="openModalByType('location'); ResolveCurrentLocation();">
+                <i class="fa-solid fa-map-marker-alt" style="margin-right:.5rem;"></i>
+                Current location
+            </button>
+        </td>
+    </tr>
+</table>
+<nav class="side-menu" aria-label="Side navigation">
+    <ul>
+        <li><a href="PlaceHolder"><i class="fa-solid fa-gauge"></i>Dashboard</a></li>
+        <li><a href="PlaceHolder"><i class="fa-solid fa-list-check"></i>Orders</a></li>
+        <li><a href="PlaceHolder"><i class="fa-solid fa-location-dot"></i>Addresses</a></li>
+        <li><a href="PlaceHolder"><i class="fa-solid fa-sliders"></i>Settings</a></li>
+        <li><a href="#" onclick="document.body.classList.toggle('menu-open'); openModalByType('paymentmethod'); return false;"><i class="fa-solid fa-credit-card"></i>&nbsp;Payment Method</a></li>
+        <li><a href="PlaceHolder"><i class="fa-solid fa-scale-balanced"></i>Terms</a></li>
+        <li><a href="/User/Logout"><i class="fa-solid fa-right-from-bracket"></i>Logout</a></li>
+    </ul>
+</nav>
+<div class="menu-backdrop" aria-hidden="true"></div>
+<script>
+    function TURN()
+    {
+        const modal = document.querySelector(".custom-modal[data-modal-type='notifications']");
+        const dot   = document.getElementById('unreadNotifications');
+        if (!modal || !dot) return;
+
+        const panel = modal.querySelector('.notifications-panel');
+        if (!panel) { dot.classList.remove('active'); return; }
+
+        const hasAny = panel.querySelector('.notif-item') !== null;
+        if (!hasAny) { dot.classList.remove('active'); return; }
+
+        const hasUnread = panel.querySelector('.notif-item.unread') !== null;
+        if (!hasUnread) { dot.classList.remove('active'); return; }
+
+        dot.classList.add('active');
+    }
+
+    function RNL() // Reset notification list.
+    {
+        const modal = document.querySelector("[data-modal-type='notifications']");
+        if (!modal) return;
+
+        const list = modal.querySelector('.notifications-panel');
+        if (!list) return;
+
+        list.innerHTML = '';
+    };
+
+    async function LNL() // Load notification list.
+    {
+        RNL(); // Reset the Notification list
+        try
+        {
+            const res = await fetch('/Home/Endpoints/Initloadnotifications', { method: 'POST' });
+            if (!res.ok) throw new Error('Network error loading notifications.');
+            const data = await res.json();
+
+            if (!data.ok) { alert(data.message || 'Failed to load notifications.'); return; }
+
+            const modal = document.querySelector("[data-modal-type='notifications']");
+            if (!modal) return;
+
+            const list = modal.querySelector('.notifications-panel');
+            if (!list) return;
+
+            if (data.html && data.html.trim().length > 0) { list.innerHTML = data.html; }
+            TURN();
+        }
+        catch (err) {
+            console.error('LNL failed:', err);
+            alert('Error loading notifications: ' + (err.message || 'Unknown error'));
+        }
+    }
+
+    window.NMON = async function ()
+    {
+        toggleGlobalSpinner(true);
+        try {
+            await LNL(); // simply load list
+            openModalByType('notifications');
+        }
+        catch (err) {
+            console.error('NMON failed:', err);
+            alert('Error loading notifications: ' + (err.message || 'Unknown error'));
+        }
+        finally {
+            toggleGlobalSpinner(false);
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Load current notifications silently
+            if (typeof LNL === 'function') {
+                await LNL();
+
+                // Check unread count right after load
+                const modal = document.querySelector("[data-modal-type='notifications']");
+                if (modal) {
+                    const unreadItems = modal.querySelectorAll('.notif-item.unread').length;
+                    if (unreadItems > 0) {
+                        const modalOpen = modal.classList.contains('show');
+                        if (!modalOpen) playDing();
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('Silent LNL preload failed:', err);
+        }
+    });
+    let dingUnlocked = false;
+    let dingAudio = new Audio('/assets/sounds/Nding.mp3');
+
+    function unlockDingAudio() {
+        if (dingUnlocked) return;
+
+        // Attempt a silent play to unlock audio context
+        dingAudio.muted = true;
+        dingAudio.play().then(() => {
+            dingAudio.pause();
+            dingAudio.currentTime = 0;
+            dingAudio.muted = false;
+            dingUnlocked = true;
+            console.log("🔓 Audio unlocked (user gesture detected)");
+
+            // Remove all gesture listeners after unlock
+            document.removeEventListener('pointerdown', unlockDingAudio);
+            document.removeEventListener('keydown', unlockDingAudio);
+            document.removeEventListener('mousemove', unlockDingAudio);
+            document.removeEventListener('touchstart', unlockDingAudio);
+        }).catch(err => {
+            console.warn("Unlock failed:", err.message);
+        });
+    }
+
+    // Attach to any reasonable human interaction
+    document.addEventListener('pointerdown', unlockDingAudio);
+    document.addEventListener('keydown', unlockDingAudio);
+    document.addEventListener('mousemove', unlockDingAudio);
+    document.addEventListener('touchstart', unlockDingAudio);
+    function playDing() {
+        if (!dingUnlocked) return; // skip if not unlocked yet
+        try {
+            dingAudio.currentTime = 0;
+            dingAudio.play().catch(err => console.warn("Ding blocked:", err.message));
+        } catch (err) {
+            console.warn("Ding failed:", err.message);
+        }
+    }
+</script>

@@ -10,7 +10,7 @@ namespace Website.Pages.User
         {
             User.SignOut(HttpContext);
             Response.Cookies.Delete(".AspNetCore.Antiforgery", new CookieOptions { Path = "/" }); // optional
-            return RedirectToPage("/User/Login");
+            return RedirectToPage("/index");
         }
     }
 }

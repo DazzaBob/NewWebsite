@@ -1,19 +1,21 @@
-﻿@using System.Data
+﻿@page
+@using System.Data
 @using App.Security
 @{
-    int userId = User.Id(); 
-
+    Layout = null;  // Our home.cs does the layout for us, not Razor!
     // Resolve default address label
     string label = "Select Address";
 
-    using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.UserAddress, $"USER_ID={userId} AND ISDEFAULT=true");
-    if (dt.Rows.Count > 0)
+    int userId = User.Id();
+    if (userId > 0)
     {
-        var temp = dt.Rows[0]["LABEL"] as string;
-        if (!string.IsNullOrWhiteSpace(temp))
-            label = temp.Trim();
+        using DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.UserAddress, $"USER_ID={userId} AND ISDEFAULT=true");
+        if (dt.Rows.Count > 0)
+        {
+            var temp = dt.Rows[0]["LABEL"] as string;
+            if (!string.IsNullOrWhiteSpace(temp)) label = temp.Trim();
+        }
     }
-    // border-collapse:collapse; border-spacing:0;">
 }
 <table style="width:100%; margin:0 auto; border-collapse:collapse; border-spacing:0;">
     <tr><th style="width: 33%;"></th><th style="width: 34%;"></th><th style="width: 33%;"></th></tr>
@@ -42,22 +44,27 @@
             <i class="fa-solid fa-th-large"></i>&nbsp;Home&nbsp;<i class="fa-solid fa-th-large"></i>
         </td>
         <td style="text-align:right; vertical-align:middle;">
-            <button style="background:none; border:none; font-size:2rem; color:inherit; cursor:pointer;" aria-label="Settings">
-                <i class="fa-solid fa-cog"></i>
+            <button id="notificationButton" class="CommsButton" aria-label="Open Notifications" onclick="btnNotificationClick();">
+                <i class="fa-solid fa-bell"></i>
+                <span id="unreadNotifications" class="UnreadComms" aria-hidden="true"></span>
+            </button>
+            <button id="messageButton" class="CommsButton" aria-label="Open Messaging" onclick="toggleMessaging();">
+            <i class="fa-solid fa-comments"></i>
+                <span id="unreadMessages" class="UnreadComms" aria-hidden="true"></span>
             </button>
         </td>
     </tr>
 
     <tr>
         <td style="text-align:left; vertical-align:middle;">
-            <button id="addressToggle" class="btn btn-pill btn-outline" onclick="openModalByType('address')">
+            <button id="addressToggle" class="btn btn-pill btn-outline" onclick="btnAddressClick();">
                 <i class="fa-solid fa-home" style="margin-right:.5rem;"></i>
                 @label&nbsp;<i class="fa-solid fa-chevron-down dropdown-icon"></i>
             </button>
         </td>
         <td></td>
         <td style="text-align:right; vertical-align:middle;">
-            <button id="useCurrentLocation" class="btn btn-pill btn-outline" onclick="openModalByType('location'); ResolveCurrentLocation();">
+            <button id="useCurrentLocation" class="btn btn-pill btn-outline" onclick="btnLocationClick();">
                 <i class="fa-solid fa-map-marker-alt" style="margin-right:.5rem;"></i>
                 Current location
             </button>
@@ -66,12 +73,12 @@
 </table>
 <nav class="side-menu" aria-label="Side navigation">
     <ul>
-        <li><a href="/User/Dashboard"><i class="fa-solid fa-gauge"></i>Dashboard</a></li>
-        <li><a href="/User/Dashboard/Orders"><i class="fa-solid fa-list-check"></i>Orders</a></li>
-        <li><a href="/User/Dashboard/Addresses"><i class="fa-solid fa-location-dot"></i>Addresses</a></li>
-        <li><a href="/User/Dashboard/Settings"><i class="fa-solid fa-sliders"></i>Settings</a></li>
-        <li><a href="#" onclick="document.body.classList.toggle('menu-open'); openModalByType('paymentmethod'); return false;"><i class="fa-solid fa-credit-card"></i>&nbsp;Payment Method</a></li>
-        <li><a href="/Legal/Terms"><i class="fa-solid fa-scale-balanced"></i>Terms</a></li>
+        <li><a href="PlaceHolder"><i class="fa-solid fa-gauge"></i>Dashboard</a></li>
+        <li><a href="PlaceHolder"><i class="fa-solid fa-list-check"></i>Orders</a></li>
+        <li><a href="PlaceHolder"><i class="fa-solid fa-location-dot"></i>Addresses</a></li>
+        <li><a href="PlaceHolder"><i class="fa-solid fa-sliders"></i>Settings</a></li>
+        <li><a href="#" onclick="SMPMClick();"><i class="fa-solid fa-credit-card"></i>&nbsp;Payment Method</a></li>
+        <li><a href="PlaceHolder"><i class="fa-solid fa-scale-balanced"></i>Terms</a></li>
         <li><a href="/User/Logout"><i class="fa-solid fa-right-from-bracket"></i>Logout</a></li>
     </ul>
 </nav>

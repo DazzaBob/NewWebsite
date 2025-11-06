@@ -98,7 +98,11 @@ app.UseStaticFiles(new StaticFileOptions
 {
     ContentTypeProvider = new FileExtensionContentTypeProvider
     {
-        Mappings = { [".webp"] = "image/webp" }
+        Mappings =
+        {
+            [".webp"] = "image/webp",
+            [".mp3"]  = "audio/mpeg"   // ✅ add this line
+        }
     },
     OnPrepareResponse = ctx =>
     {
@@ -106,6 +110,7 @@ app.UseStaticFiles(new StaticFileOptions
         {
             ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=31536000,immutable");
         }
+
         string ext = Path.GetExtension(ctx.File.Name).ToLowerInvariant();
         if (ext == ".woff2" && ctx.File.Name.StartsWith("fa-solid", StringComparison.OrdinalIgnoreCase))
         {
@@ -113,11 +118,19 @@ app.UseStaticFiles(new StaticFileOptions
         }
     }
 });
+
 app.UseRouting();
+
+// move session up here, immediately after routing
+app.UseSession(); // session before auth
+
+app.UseAuthentication(); // required
+app.UseAuthorization(); 
+
+// your custom cache-control middleware should come *after* session/auth*
 app.Use(async (ctx, next) =>
 {
     await next();
-
     var endpoint = ctx.GetEndpoint();
     var needsAuth = endpoint?.Metadata.GetMetadata<Microsoft.AspNetCore.Authorization.IAuthorizeData>() != null;
     if (needsAuth)
@@ -127,9 +140,6 @@ app.Use(async (ctx, next) =>
         //ctx.Response.Headers.Expires = "0";
     }
 });
-app.UseSession();          // session before auth
-app.UseAuthentication();   // required
-app.UseAuthorization();
 
 #if (!DEBUG)
     app.UseMiddleware<Website.App.StringBuilders.HtmlMinifyMiddleware>(); // this will minify all HTML responses

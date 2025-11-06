@@ -1,0 +1,43 @@
+﻿@page
+@using App.Security
+@*
+*@
+@{
+    Layout = null;
+    ViewData["Title"] = "Home";
+}
+<div class="grid-canvas" style="width:100%; text-align: center; align-content: center;">
+    <div class="grid">
+        <div class="card">
+            <a href="/Home/Pickitup" class="btn btn-outline">
+                <i class="fas fa-box" style="font-size: 1.25rem;"></i>&nbsp;&nbsp;<h3>Pick it up!</h3>&nbsp;&nbsp;<i class="fas fa-box" style="font-size: 1.25rem;"></i>
+            </a>
+            <a href="" onclick="Placeholder" class="btn btn-pill-disabled btn-outline">
+                <i class="fas fa-car" style="font-size: 1.25rem;"></i>&nbsp;&nbsp;<h3>Lets Go!</h3>&nbsp;&nbsp;<i class="fas fa-car" style="font-size: 1.25rem;"></i>
+            </a>
+        </div>
+        <div class="card">
+            <a href="" onclick="Placeholder" class="btn btn-pill-disabled btn-outline">
+                <i class="fas fa-briefcase" style="font-size: 1.25rem;"></i>&nbsp;&nbsp;<h3>Work with Us</h3>&nbsp;&nbsp;<i class="fas fa-briefcase" style="font-size: 1.25rem;"></i>
+            </a>
+            <a href="" onclick="Placeholder" class="btn btn-pill-disabled btn-outline">
+                <i class="fas fa-layer-group" style="font-size: 1.25rem;"></i>&nbsp;&nbsp;<h3>Other Services</h3>&nbsp;&nbsp;<i class="fas fa-layer-group" style="font-size: 1.25rem;"></i>
+            </a>
+        </div>
+    </div>
+</div>
+<div class="grid-canvas">
+    <div class="card">
+        <h3>Manage Addresses</h3>
+        <ul class="task-list">
+            <li><a asp-page="/User/Addresses" class="btn">View / Edit Addresses</a></li>
+            <li><a asp-page="/User/Addresses/Add" class="btn">Add New Address</a></li>
+            <li><a asp-page="/User/Addresses/Delete" class="btn btn-outline-danger">Remove Address</a></li>
+        </ul>
+    </div>
+    <!-- 1. Account Balance -->
+    <div class="card">
+        <h3>Account Balance</h3>
+        <p>0.00</p>
+    </div>
+</div>

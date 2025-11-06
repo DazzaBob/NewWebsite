@@ -1,0 +1,184 @@
+﻿@page
+@using App.Security
+@model Website.Pages.homeModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>@ViewData["Title"] - That's Handy</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <link rel="stylesheet" href="/css/all.min.css">
+        <link rel="stylesheet" href="/css/site.css" />
+        <link rel="preload" href="/assets/sounds/Nding.mp3" as="fetch" crossorigin="anonymous">
+        <meta name="t" content="@App.Settings.MapboxToken" />
+    </head>
+    <body>
+        <table style="width: 100%; height: 100dvh; border-collapse: collapse;">
+            <thead>
+                <tr style="height:auto;">
+                <td colspan="1"><header id="header-container"></header></td>
+                </tr>
+            </thead>
+            <tbody style="display: block; overflow-y: auto; height: calc(100dvh - 200px); width: 100%;">
+                <tr style="display: table; table-layout: fixed; width: 100%;">
+                <td style="width: 100%;"><main id="app-content"></main></td>
+                </tr>
+            </tbody>
+            <tfoot><tr><td colspan="1"><partial name="~/Pages/homefolder/_Footer.cshtml" /></td></tr></tfoot>
+        </table>
+        <div id="Modal-Container"></div>
+        <script src="/js/site.js" defer asp-append-version="true"></script>
+    <script>
+        window.addEventListener("DOMContentLoaded", async () => {
+            if (!window.__audioUnlockAttached) {
+                window.__audioUnlockAttached = true;
+                document.addEventListener('pointerdown', unlockAudioOnce, { once: true });
+                document.addEventListener('keydown', unlockAudioOnce, { once: true });
+                document.addEventListener('touchstart', unlockAudioOnce, { once: true });
+            }
+
+            await LoadContext();
+        });
+
+        async function LoadContext() {
+            const ctx = sessionStorage.getItem("home_context");
+            sessionStorage.removeItem("home_context");
+
+            let target = ctx ? ctx.toLowerCase() : "initial";
+
+            switch (target) {
+                case "login":
+                    await loadPartial("app-content", "/homefolder/content/login");
+                    stopNotifications();
+                    break;
+
+                case "signup":
+                    await loadPartial("app-content", "/homefolder/content/signup");
+                    stopNotifications();
+                    break;
+
+                default: // "initial"
+                    await loadPartial('header-container', '/homefolder/header');
+                    await loadPartial("app-content", "/homefolder/content/initial");
+                    InitNotifications();
+                    showWelcomeBack();
+                    break;
+            }
+        }
+        async function showWelcomeBack() {
+            try {
+                const res = await fetch('/homefolder/content/endpoints/WelcomeBack', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin'
+                });
+                const data = await res.json();
+                if (!data.ok || !data.html) return;
+
+                const modalContainer = document.getElementById('Modal-Container');
+                modalContainer.innerHTML = data.html;
+
+                const okBtn = document.getElementById('welcomeOk');
+                if (okBtn) {
+                    okBtn.addEventListener('click', () => {
+                        // Unlock audio + dismiss modal
+                        unlockAudioOnce();
+                        modalContainer.innerHTML = '';
+                    }, { once: true });
+                }
+                
+                openModalByType('welcomeback');
+            } catch (err) {
+                alert('Welcome modal failed: ' + (err.message || 'Unknown error'));
+            }
+        }
+
+        // --------------------------------------------------------------
+        // 🔊 Audio ding system
+        // --------------------------------------------------------------
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let dingBuffer = null;
+        let audioReady = false;
+        let pendingDing = false;
+
+        async function loadDingBuffer() {
+            if (dingBuffer) return dingBuffer;
+            const res = await fetch('/assets/sounds/Nding.mp3');
+            const arr = await res.arrayBuffer();
+            dingBuffer = await audioCtx.decodeAudioData(arr);
+            audioReady = true;
+            return dingBuffer;
+        }
+
+        function unlockAudioOnce() {
+            if (window.__audioUnlocked) return;
+
+            const p = audioCtx.resume();
+            if (p && typeof p.then === 'function') {
+                p.then(() => {
+                    if (audioCtx.state === 'running') {
+                        window.__audioUnlocked = true;
+                        loadDingBuffer().then(() => {
+                            if (pendingDing) {
+                                pendingDing = false;
+                                playDing();
+                            }
+                        });
+                    }
+                }).catch(e => {});
+            }
+        }
+
+        function playDing() {
+            if (!audioReady || !dingBuffer) {
+                pendingDing = true;
+                return;
+            }
+            const src = audioCtx.createBufferSource();
+            src.buffer = dingBuffer;
+            src.connect(audioCtx.destination);
+            src.start(0);
+        }
+
+        // --------------------------------------------------------------
+        // 🔔 Notifications polling system
+        // --------------------------------------------------------------
+
+        function stopNotifications() {
+            if (window.__notifPollId) {
+                clearInterval(window.__notifPollId);
+                window.__notifPollId = null;
+            }
+        }
+
+        async function pollNotifications(isInitial = false) {
+            if (window.__pollInProgress) return;
+            window.__pollInProgress = true;
+            try {
+                const res = await fetch('/homefolder/content/endpoints/notifications/Poll', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ IsInitial: isInitial })
+                });
+                const data = await res.json();
+            if (data.ok) {
+                const count = data.unreadCount || 0;
+                document.body.dataset.unreadCount = count;
+                TURN(count);
+
+                if (data.shouldDing) playDing();
+            }
+            } catch (err) {
+                alert('Polling failed: ' + (err.message || 'Unknown error'));
+            } finally {
+                window.__pollInProgress = false;
+            }
+        }
+    </script>
+    </body>
+</html>

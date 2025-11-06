@@ -1,30 +1,39 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
+
 namespace Website.App.Security
 {
     internal static class UserExtensions
     {
-        internal static bool IsAuthorised(this ClaimsPrincipal user) => user?.Identity?.IsAuthenticated ?? false;
-        internal static int Id(this ClaimsPrincipal user) => int.TryParse(user?.FindFirst("UserId")?.Value, out var id) ? id : 0;
-        internal static void SetId(this ClaimsPrincipal user, HttpContext http, int value) => UpdateClaim(user, http, "UserId", value.ToString());
+        // READS: ClaimsPrincipal-only (no HttpContext here)
+        internal static bool IsAuthorised(this ClaimsPrincipal user)
+            => user?.Identity?.IsAuthenticated ?? false;
+
+        internal static int Id(this ClaimsPrincipal user)
+            => int.TryParse(user?.FindFirst("UserId")?.Value, out var id) ? id : 0;
+
+        // WRITES: HttpContext is required only where we mutate auth state
+        internal static void SetId(this ClaimsPrincipal user, HttpContext http, int value)
+            => UpdateClaim(user, http, "UserId", value.ToString());
+
         internal static void SignOut(this ClaimsPrincipal user, HttpContext http)
         {
-            // Use 'user' to meet standard and guard call
             if (user?.Identity?.IsAuthenticated != true) return;
             http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme)
                 .GetAwaiter().GetResult();
         }
+
         internal static void SignInUser(this HttpContext http, int userId)
         {
-            List<Claim> claims =
-            [
-                new Claim("UserId", userId.ToString()),
-                new Claim(ClaimTypes.Name, "Placeholder") // optional, if needed
-            ];
+            var claims = new List<Claim>
+            {
+                new("UserId", userId.ToString()),
+                new(ClaimTypes.Name, "Placeholder")
+            };
 
-            ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            ClaimsPrincipal principal = new(identity);
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
 
             http.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal)
                 .GetAwaiter().GetResult();
@@ -36,13 +45,12 @@ namespace Website.App.Security
 
             var existing = identity.FindFirst(type);
             if (existing != null) identity.RemoveClaim(existing);
-
             identity.AddClaim(new Claim(type, value));
 
             http.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(identity)
-            ).GetAwaiter().GetResult(); // no await at call site
+            ).GetAwaiter().GetResult();
         }
     }
 }

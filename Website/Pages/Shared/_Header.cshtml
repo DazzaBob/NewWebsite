@@ -2,7 +2,6 @@
 @using Website.App.Security;
 @inject IHttpContextAccessor HttpContextAccessor
 @{
-    bool IsDashboard = App.Helper.Shared.IsDashboard(HttpContextAccessor.HttpContext?.Request.Path.Value?.ToLower() ?? "");
     int userId = User.Id();
     string currentPath = (HttpContextAccessor.HttpContext?.Request.Path.Value ?? "").Trim().TrimEnd('/').ToLower();
 }
@@ -14,21 +13,27 @@
         <nav class="nav-links"> 
             @if (userId > 0) 
             { // Logged in
-            <a href="/Home">Home</a>
+              <a href="/home" onclick="setHomeContext('initial')">Home</a>
             <a href="/Account/Settings">Settings</a>
               <a href="/User/Logout" class="btn btn-outline">Logout</a>
      }
             else { // Not logged in
                 if (currentPath != "/user/login")
                 {
-                    <a href="/User/Login" class="btn btn-outline">Log In</a>
+                    <a href="/home" onclick="setHomeContext('login')" class="btn btn-outline">Log In</a>
                 }
                 if (currentPath != "/user/signup")
                 {
-                    <a href="/User/SignUp" class="btn btn-outline">Sign Up</a>
+                    <a href="/home" onclick="setHomeContext('signup')" class="btn btn-outline">Sign Up</a>
                 }
                     <a href="/Faq">FAQ</a>
             }
         </nav>
     </div>
 </header>
+<script>
+    function setHomeContext(ctx) {
+        // store the intent for just this transition
+        sessionStorage.setItem("home_context", ctx);
+    }
+</script>
