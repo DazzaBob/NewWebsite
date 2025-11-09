@@ -2,6 +2,10 @@
 {
     internal static class Schema
     {
+        internal static class Public
+        {
+            internal const string Name = "pub";
+        }
         internal static class Locations
         {
             internal const string Name = "loc";

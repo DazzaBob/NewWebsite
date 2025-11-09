@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
 using Website.App.Security;
 
@@ -63,11 +64,8 @@ namespace Website.Pages.homefolder.content.endpoints.messages
                         return new JsonResult(new { ok = false, msg = "Invalid recipient id." });
 
                     // Verify user exists and get name
-                    string sqlUser = $"SELECT id, fullname FROM ent.users WHERE id = {recipientId};";
-                    DataTable u = App.Database.DataAccessManager.GetDataTable(ENT, sqlUser, []);
-                    if (u.Rows.Count == 0)
-                        return new JsonResult(new { ok = false, msg = "User not found." });
-
+                    using DataTable u = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.Users, $"id = {recipientId}");
+                    if (u.Rows.Count == 0) return new JsonResult(new { ok = false, msg = "User not found." });
                     contactName = u.Rows[0]["fullname"]?.ToString() ?? $"User #{recipientId}";
                 }
 
@@ -89,44 +87,24 @@ namespace Website.Pages.homefolder.content.endpoints.messages
                     if (found != null && found != DBNull.Value)
                     {
                         threadId = Convert.ToInt64(found);
-                        string sqlUnhide = $@"
-                            UPDATE msg.message_thread_user
-                               SET is_hidden = false
-                             WHERE thread_id = {threadId}
-                               AND user_id IN ({me},{recipientId});";
-                        App.Database.DataAccessManager.ExecuteNonQuery(MSG, sqlUnhide, []);
+
+                        _ = App.Database.DataAccessManager.Update(App.Database.Schema.Messaging.Name, App.Database.Schema.Messaging.Tables.MessageThreadUser, "is_hidden = false", $"thread_id = {threadId} AND user_id IN ({me},{recipientId})");
                     }
                 }
 
                 // Create if none found
                 if (threadId == 0)
                 {
-                    string safeSubject = contactName.Replace("'", "''");
-                    string sqlCreate = $@"
-                        INSERT INTO msg.message_thread (subject, is_closed, created_on_oad, updated_on_oad)
-                        VALUES ('{safeSubject}', false,
-                                ((EXTRACT(epoch FROM (now() AT TIME ZONE 'utc'))/86400.0)+25569.0),
-                                ((EXTRACT(epoch FROM (now() AT TIME ZONE 'utc'))/86400.0)+25569.0))
-                        RETURNING id;";
-                    object? tidObj = App.Database.DataAccessManager.ExecuteScalar(MSG, sqlCreate, []);
-                    if (tidObj == null || tidObj == DBNull.Value)
-                        return new JsonResult(new { ok = false, msg = "Failed to create thread." });
+                    string safeSubject = App.Database.Shared.Sanitize(contactName, true);
+                    threadId = App.Database.DataAccessManager.Insert(App.Database.Schema.Messaging.Name, App.Database.Schema.Messaging.Tables.MessageThread, "subject, is_closed, created_on_oad, updated_on_oad", $"{safeSubject}, false, {DateTime.UtcNow.ToOADate()}, {DateTime.UtcNow.ToOADate()}");
+                    if (threadId == 0) return new JsonResult(new { ok = false, msg = "Failed to create thread." });
 
-                    threadId = Convert.ToInt64(tidObj);
-
-                    // Link current user
-                    string sqlLinkMe = $@"
-                        INSERT INTO msg.message_thread_user (thread_id, user_id, is_hidden)
-                        VALUES ({threadId}, {me}, false);";
-                    App.Database.DataAccessManager.ExecuteNonQuery(MSG, sqlLinkMe, []);
+                    _ = App.Database.DataAccessManager.Insert(App.Database.Schema.Messaging.Name, App.Database.Schema.Messaging.Tables.MessageThreadUser, "thread_id, user_id, is_hidden", $"{threadId}, {me}, false");
 
                     // Link recipient only if it exists
                     if (recipientId > 0)
                     {
-                        string sqlLinkThem = $@"
-                            INSERT INTO msg.message_thread_user (thread_id, user_id, is_hidden)
-                            VALUES ({threadId}, {recipientId}, false);";
-                        App.Database.DataAccessManager.ExecuteNonQuery(MSG, sqlLinkThem, []);
+                        _ = App.Database.DataAccessManager.Insert(App.Database.Schema.Messaging.Name, App.Database.Schema.Messaging.Tables.MessageThreadUser, "thread_id, user_id, is_hidden", $"{threadId}, {recipientId}, false");
                     }
                 }
 

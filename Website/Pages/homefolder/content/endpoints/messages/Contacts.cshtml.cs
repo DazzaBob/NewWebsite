@@ -8,7 +8,6 @@ namespace Website.Pages.homefolder.content.endpoints.messages
     [IgnoreAntiforgeryToken]
     public class ContactsModel : PageModel
     {
-        private const string SchemaOps = "ops";
         private const string SchemaEnt = "ent";
 
         public IActionResult OnGet()
@@ -20,47 +19,18 @@ namespace Website.Pages.homefolder.content.endpoints.messages
             try
             {
                 long userId = User.Id();
-
-                // Try to find the real Support user ID from ent.users (role-based)
-                string sqlSupport = @"
-                    SELECT u.id
-                    FROM ent.users u
-                    INNER JOIN ent.user_roles ur ON ur.user_id = u.id
-                    INNER JOIN ent.roles r ON r.id = ur.role_id
-                    WHERE LOWER(r.name) = 'support'
-                    LIMIT 1;";
-                object? supObj = App.Database.DataAccessManager.ExecuteScalar(SchemaEnt, sqlSupport, []);
-                long? supportId = supObj == null || supObj == DBNull.Value ? null : Convert.ToInt64(supObj);
+                long supportId = App.Database.Views.Messages.Contacts.SupportId();
 
                 // Start building contact list
                 var contacts = new List<object>();
 
-                if (supportId.HasValue)
+                if (supportId > 0)
                 {
-                    contacts.Add(new
-                    {
-                        id = supportId.Value,
-                        name = "Support",
-                        icon = "fa-headset"
-                    });
+                    contacts.Add(new { id = supportId, name = "Support", icon = "fa-headset" });
                 }
 
                 // Gather contacts linked to jobs for this user
-                string sql = @$"
-                    SELECT DISTINCT
-                        CASE
-                            WHEN j.user_id = {userId} AND pa.participant_id <> {userId} THEN pa.participant_id
-                            WHEN pa.participant_id = {userId} AND j.user_id <> {userId} THEN j.user_id
-                            ELSE NULL
-                        END AS contact_id
-                    FROM ops.job j
-                    LEFT JOIN ops.participant_assignment pa ON pa.job_id = j.id
-                    WHERE ({userId} IN (j.user_id, pa.participant_id))
-                      AND pa.participant_id IS NOT NULL
-                      AND j.allocation_status_id IS NOT NULL;";
-
-                DataTable dt = App.Database.DataAccessManager.GetDataTable(SchemaOps, sql, []);
-
+                using DataTable dt = App.Database.Operations.Tables.GetLinkedJobsForUser(userId);
                 var validIds = dt.AsEnumerable()
                     .Where(r => r["contact_id"] != DBNull.Value)
                     .Select(r => Convert.ToInt64(r["contact_id"]))
@@ -70,8 +40,7 @@ namespace Website.Pages.homefolder.content.endpoints.messages
                 if (validIds.Count > 0)
                 {
                     string idList = string.Join(",", validIds);
-                    string sqlNames = $"SELECT id, fullname FROM ent.users WHERE id IN ({idList});";
-                    DataTable names = App.Database.DataAccessManager.GetDataTable(SchemaEnt, sqlNames, []);
+                    using DataTable names = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.Users, $"id IN({idList})");
 
                     foreach (DataRow n in names.Rows)
                     {
