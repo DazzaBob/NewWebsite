@@ -94,6 +94,20 @@
                 internal const string ViewGstSummary = $"{Name}.gst_summary";
             }
         }
+        internal static class Messaging
+        {
+            internal const string Name = "msg";
+            internal static class Tables
+            {
+                internal const string MessageType = $"{Name}.message_type";
+                internal const string MessageThread = $"{Name}.message_thread";
+                internal const string MessageThreadUser = $"{Name}.message_thread_user";
+                internal const string Message = $"{Name}.message";
 
+                internal const string Notification = $"{Name}.notification";
+                internal const string NotificationEvent = $"{Name}.notification_event";
+                internal const string NotificationType = $"{Name}.notification_type";
+            }
+        }
     }
 }

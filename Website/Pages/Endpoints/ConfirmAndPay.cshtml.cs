@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System;
 using System.Data;
 using Website.App.Accounting;
 using Website.App.Database;
@@ -79,7 +78,7 @@ namespace Website.Pages.Endpoints
 
                 if (jobId > 0)
                 {
-                    _ = DataAccessManager.Update(Schema.Operations.Name, Schema.Operations.Tables.Job, $"total_amount_cents={(int)(totalAmount * 100)}, updated_on_oad={DateTime.UtcNow.ToOADate()}", $"id={jobId}" );
+                    _ = DataAccessManager.Update(Schema.Operations.Name, Schema.Operations.Tables.Job, $"total_amount_cents={(int)(totalAmount * 100)}, updated_on_oad={DateTime.UtcNow.ToOADate()}", $"id={jobId}");
                 }
                 else
                 {

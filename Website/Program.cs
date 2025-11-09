@@ -125,7 +125,7 @@ app.UseRouting();
 app.UseSession(); // session before auth
 
 app.UseAuthentication(); // required
-app.UseAuthorization(); 
+app.UseAuthorization();
 
 // your custom cache-control middleware should come *after* session/auth*
 app.Use(async (ctx, next) =>

@@ -63,7 +63,7 @@
                 default: // "initial"
                     await loadPartial('header-container', '/homefolder/header');
                     await loadPartial("app-content", "/homefolder/content/initial");
-                    InitNotifications();
+                    InitNotifications(); InitMessages();
                     showWelcomeBack();
                     break;
             }

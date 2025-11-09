@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Website.App.Accounting;
-
-namespace Website.App.Accounting
+﻿namespace Website.App.Accounting
 {
     /// <summary>
     /// Translates operational events (job acceptance, completion, payouts, refunds, write-offs)
@@ -408,13 +404,13 @@ namespace Website.App.Accounting
         // -----------------------------
 
         private static AccountingHelper.JournalModel NewJournal(DateTime date, string description, string currencyCode, long createdByUserEntityId)
-            => new AccountingHelper.JournalModel
+            => new()
             {
                 Date = date,
                 Description = description,
                 CurrencyCode = currencyCode,
                 CreatedByUserId = createdByUserEntityId,
-                Lines = new List<AccountingHelper.JournalLineModel>()
+                Lines = []
             };
 
         /// <summary>

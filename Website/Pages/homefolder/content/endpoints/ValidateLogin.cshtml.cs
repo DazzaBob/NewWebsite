@@ -46,7 +46,7 @@ namespace Website.Pages.homefolder.content.endpoints
                 // login successful
                 HttpContext.Session.SetInt32("UserId", Convert.ToInt32(dt.Rows[0]["ID"]));
                 HttpContext.Session.SetInt32("IsAuthorised", 1);
-                HttpContext.SignInUser( Convert.ToInt32(dt.Rows[0]["ID"]));
+                HttpContext.SignInUser(Convert.ToInt32(dt.Rows[0]["ID"]));
 
                 HttpContext.Session.CommitAsync().GetAwaiter().GetResult();
 

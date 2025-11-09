@@ -6,7 +6,7 @@ namespace Website.App.Database.Views
     {
         private static string Schema = "pub"; // Just use the public schema, these a joined tables across schema.
         internal static class UserAddress
-        { 
+        {
             internal static DataTable DataTable(long userId = 0, long addressId = 0, long userAddressId = 0)
             {
                 string sql = $@"SELECT ua.ID, ua.USER_ID, ua.LABEL, ua.ISDEFAULT, a.ID AS ADDRESS_ID, a.STREET_NUMBER, a.STREET_NAME, l.NAME AS LOCALITY_NAME, p.NAME AS PLACE_NAME

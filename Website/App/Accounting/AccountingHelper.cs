@@ -11,7 +11,7 @@ namespace Website.App.Accounting
         // ------------------------------------------------------------
         // Account ID cache (resolves live from DB, one-time per code)
         // ------------------------------------------------------------
-        private static readonly Dictionary<string, long> AccountCache = new();
+        private static readonly Dictionary<string, long> AccountCache = [];
 
         /// <summary>
         /// Returns the account ID for a given code, caching results to avoid repeat lookups.

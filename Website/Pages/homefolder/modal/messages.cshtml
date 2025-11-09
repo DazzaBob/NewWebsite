@@ -1,0 +1,100 @@
+﻿@page
+@using App.Security
+@{
+    string modalId = Guid.NewGuid().ToString("N");
+}
+<div class="custom-modal" data-modal-type="messages" data-modal-id="@modalId">
+    <div class="custom-modal-content"
+         role="dialog" aria-modal="true" aria-labelledby="messagesmodaltitle_@modalId"
+         style="display:flex;flex-direction:column;max-height:90vh;">
+        <div class="custom-modal-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <input type="hidden" class="messagesModalId" value="@modalId" />
+            <table style="width:100%;">
+                <tr>
+                    <td style="text-align:center;width:90%;">
+                        <h5 id="messagesmodaltitle_@modalId">
+                            <i class="fa-solid fa-comments"></i>&nbsp;Messages
+                        </h5>
+                    </td>
+                    <td style="text-align:right;width:10%;">
+                        <button id="MMBTNCLS" class="btn btn-close" aria-label="Close">×</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <div class="message-list-header" style="display:flex;align-items:center;gap:.5rem;">
+                            <label for="newChatSelect" style="font-weight:bold;">Contact:</label>
+                            <select id="newChatSelect" class="input-text" onchange="StartNewChat(this.value);">
+                                <option value="">Select contact…</option>
+                                <option value="support">Support</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="custom-modal-body" id="MMBODY_@modalId"
+             style="display:flex;flex-direction:column;gap:0.5rem;flex:1;min-height:0;overflow:auto;">
+            <div id="MM_EMPTY_@modalId" class="empty-state" style="display:none;">
+                <p>No messages yet.</p>
+            </div>
+
+            <div class="messages-view">
+                <!-- LIST VIEW -->
+                <div class="message-list" id="messageListView" style="display:block;">
+                    <div id="MNM_EMPTY_@modalId" class="empty-state" style="display:none;">
+                        <p>No messages yet.</p>
+                    </div>
+                    <div class="messages-panel">
+                        <div class="notif-group">
+                            <h4 class="notif-group-title">New</h4>
+                        </div>
+                        <div class="notif-group">
+                            <h4 class="notif-group-title">Today</h4>
+                        </div>
+                    </div>
+                    <div class="message-threads">
+                    </div>
+                </div>
+
+                <!-- THREAD VIEW (hidden by default) -->
+                <div class="message-thread" id="messageThreadView" style="display:none;flex-direction:column;gap:.5rem;">
+                    <div class="thread-header" style="display:flex;align-items:center;gap:.5rem;">
+                        <!-- Title left -->
+                        <div class="thread-title" style="display:flex;align-items:center;gap:.5rem;">
+                            <i class="fa-solid fa-user" aria-hidden="true" style="font-size: 2rem;"></i>
+                            <h4 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></h4>
+                        </div>
+                        <!-- Back right -->
+                        <button type="button" class="btn btn-outline" onclick="backToList(this)" style="margin-left:auto;">
+                            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                            <span class="sr-only">&nbsp;Back</span>
+                        </button>
+                    </div>
+
+                    <!-- Messages container -->
+                    <div class="messages-detail" style="flex:1; overflow-y:auto; overflow-x:hidden;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SINGLE footer: hidden until a thread is opened -->
+        <div id="messagesFooter" class="custom-modal-footer"
+             style="display:none;justify-content:space-between;align-items:center;width:100%;">
+            <div style="display:flex;align-items:center;gap:.5rem;width:100%;">
+            <textarea class="msg-input" id="msgInput" rows="1"
+                      placeholder="Type a message…" style="flex:1;resize:none; color: var(--color-text);"
+                      oninput="document.getElementById('msgSendBtn').disabled = (this.value.trim().length===0)"
+                      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault(); SendMessage();}"></textarea>
+                <button id="msgSendBtn"
+                        class="btn btn-primary"
+                        disabled
+                        aria-label="Send" onclick="SendMessage()" 
+                        style="width:2.5rem; height:2.5rem; border-radius:9999px; display:inline-flex; align-items:center; justify-content:center;">
+                    <i class="fa-solid fa-play" aria-hidden="true" style="font-size:1rem; margin-left:1px;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

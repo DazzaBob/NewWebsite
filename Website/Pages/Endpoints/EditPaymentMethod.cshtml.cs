@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Npgsql;
 using Website.App.Database;
 using Website.App.Security;
 

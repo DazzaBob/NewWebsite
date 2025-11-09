@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Website.App.Database;
 using Website.App.Security;
-using static Website.Pages.Endpoints.ConfirmAndPayModel;
 
 namespace Website.Pages.Endpoints
 {
@@ -22,7 +21,8 @@ namespace Website.Pages.Endpoints
                 return new JsonResult(new { ok = false, msg = "Invalid payment reference." })
                 { StatusCode = StatusCodes.Status400BadRequest };
 
-            try { 
+            try
+            {
                 // 1️ Verify that the job exists and belongs to the current user
                 string sqlCheck = $@"SELECT j.id FROM ops.job j JOIN ent.users u ON u.id = j.user_id WHERE j.id = {input.JobId} AND u.id = {User.Id()} LIMIT 1;";
                 object? jobCheck = DataAccessManager.ExecuteScalar("pub", sqlCheck, []); // Use the pub schema, its a cross table operation.
@@ -53,11 +53,11 @@ namespace Website.Pages.Endpoints
                 });
 
                 // 5️ Return immediate response
-                return new JsonResult(new { ok = true, msg = "Allocation started.", job_id = input.JobId});
+                return new JsonResult(new { ok = true, msg = "Allocation started.", job_id = input.JobId });
             }
             catch (Exception ex)
             {
-                return new JsonResult(new { ok = false, msg = ex.Message}) { StatusCode = StatusCodes.Status500InternalServerError};
+                return new JsonResult(new { ok = false, msg = ex.Message }) { StatusCode = StatusCodes.Status500InternalServerError };
             }
         }
     }

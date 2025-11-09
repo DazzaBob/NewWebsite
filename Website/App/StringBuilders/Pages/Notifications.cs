@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using Website.Pages.homefolder.content.endpoints.notifications;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace Website.App.StringBuilders.Pages
 {

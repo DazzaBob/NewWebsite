@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Npgsql;
 using System.Data;
-using System.Text;
 using Website.App.Security;
 
 namespace Website.Pages.homefolder.content.endpoints.notifications

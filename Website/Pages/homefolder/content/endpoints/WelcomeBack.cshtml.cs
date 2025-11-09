@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Website.App.Security;
-using System.Globalization;
 using System.Text;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using Website.App.Security;
 
 namespace Website.Pages.homefolder.content.endpoints
 {
@@ -23,7 +21,7 @@ namespace Website.Pages.homefolder.content.endpoints
                 >= 12 and < 17 => "Good afternoon",
                 _ => "Good evening"
             };
-                
+
             var vuser = App.Database.DataAccessManager.ExecuteScalar(App.Database.Schema.Entities.Name, $"select fullname from {App.Database.Schema.Entities.Tables.Users} where id={User.Id()}", []);
             if (vuser == null)
                 return new JsonResult(new { ok = false, html = "" });

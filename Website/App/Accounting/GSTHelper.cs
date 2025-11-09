@@ -1,5 +1,4 @@
 ﻿using Npgsql;
-using System.Data;
 using Website.App.Database;
 namespace Website.App.Accounting
 {
