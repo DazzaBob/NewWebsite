@@ -1,0 +1,55 @@
+﻿@page
+@**@
+@{}
+@using App.Security
+@{
+    string modalId = Guid.NewGuid().ToString("N");
+}
+<div class="custom-modal" data-modal-type="network" data-modal-id="@modalId">
+    <div class="custom-modal-content" role="dialog" aria-modal="true" aria-labelledby="networkmodaltitle_@modalId">
+        <div class="custom-modal-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <table style="width:100%;">
+                <tr>
+                    <td style="text-align:center;width:90%;"><h5 id="networkmodaltitle_@modalId"><i class="fa-solid fa-user-group"></i>&nbsp;&nbsp;Network</h5></td>
+                    <td style="text-align:right;width:10%;"><button id="NETBTNCLS" class="btn btn-close" aria-label="Close" onclick="NETC();">×</button></td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align:left;">
+                        <h5 class="section-title">Connect with someone:</h5>
+                        <div class="card">
+                            <div style="text-align:center;">
+                                <button type="button" onclick="NETGenCode();" id="btn-make-invite" class="btn btn-primary">Generate Invite Code</button>
+                                <div id="invite-result" class="invite-box" hidden>
+                                    <h3 class="invite-code" data-invite-code></h3>
+                                    <div class="muted">Share this single use code. It expires automatically in 72 hours.</div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="row" style="display:flex;align-items:center;gap:0.5rem;">
+                                    <label for="invite-input" class="label" style="white-space:nowrap;">Enter a code:</label>&nbsp;
+                                    <input id="invite-input" class="text-input" type="text" maxlength="8" placeholder="8H3WKT" style="flex:1;min-width:0;" />
+                                    <button id="btn-redeem" type="button" class="btn btn-primary" aria-label="Connect" onclick="NETCon();" style="width:2.5rem; height:2.5rem; border-radius:9999px; display:inline-flex; align-items:center; justify-content:center;">
+                                        <i class="fa-solid fa-play" aria-hidden="true" style="font-size:1rem; margin-left:1px;"></i>
+                                    </button>
+                                </div>
+                                <div id="redeem-msg" class="muted" style="margin-top:0.25rem;"></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="NET_EMPTY_@modalId" class="empty-state" style="display:none;">
+            <p>No one in your network yet.</p>
+        </div>
+        <div class="custom-modal-body" id="NETBODY_@modalId" style="display:flex;flex-direction:column;gap:0.5rem;">
+            <div class="card" style="display:flex;flex-direction:column;align-items:stretch;">
+                <h3 style="display:flex;align-items:center;gap:0.5rem;width:100%;"><i class="fa-solid fa-user-group"></i><span>Connected Users</span></h3>
+                <div id="NET_LIST_@modalId" style="display:none;flex-direction:column;gap:0.5rem;"></div>
+            </div>
+        </div>
+        <div class="custom-modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
+            <span>&nbsp;</span>
+        </div>
+    </div>
+</div>

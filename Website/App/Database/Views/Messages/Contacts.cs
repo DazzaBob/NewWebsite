@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-namespace Website.App.Database.Views.Messages
+﻿namespace Website.App.Database.Views.Messages
 {
     internal static class Contacts
     {

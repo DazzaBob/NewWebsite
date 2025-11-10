@@ -60,37 +60,33 @@ namespace Website.Pages.User
         public void OnGet()
         {
             MapboxPublicToken = App.Settings.MapboxToken;
-            var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
+            var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions();
             AddressTypeOptions = list;
             ErrorMessage = error;
         }
+
         public IActionResult OnPost()
         {
-            ModelState.Remove("AddressSearch"); // Clear the Address Search
+            ModelState.Remove("AddressSearch");
 
             if (!ModelState.IsValid)
             {
-                var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
+                var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions();
                 AddressTypeOptions = list;
                 ErrorMessage = error;
 
-                // Repopulate AddressSearch if we still have MapboxAddressJSON
                 if (!string.IsNullOrWhiteSpace(HJSON))
                 {
                     try
                     {
                         var feature = JsonDocument.Parse(HJSON).RootElement;
-
                         if (feature.TryGetProperty("place_name", out var placeName) &&
                             placeName.ValueKind == JsonValueKind.String)
                         {
                             AddressSearch = placeName.GetString() ?? string.Empty;
                         }
                     }
-                    catch
-                    {
-                        // Silent fail
-                    }
+                    catch { }
                 }
 
                 return Page();
@@ -99,18 +95,35 @@ namespace Website.Pages.User
             {
                 try
                 {
-                    using DataTable DT = App.Database.DataAccessManager.GetDataTable(EntitiesSchema, App.Database.Schema.Entities.Tables.Users, $"(EMAIL={App.Database.Shared.Sanitize(Email.ToLowerInvariant(), true, true)}) OR (PHONE={App.Database.Shared.Sanitize(Phone.ToLowerInvariant(), true, true)})");
+                    using DataTable DT = App.Database.DataAccessManager.GetDataTable(
+                        EntitiesSchema,
+                        App.Database.Schema.Entities.Tables.Users,
+                        $"(EMAIL={App.Database.Shared.Sanitize(Email.ToLowerInvariant(), true, true)}) OR (PHONE={App.Database.Shared.Sanitize(Phone.ToLowerInvariant(), true, true)})");
+
                     if (DT.Rows.Count > 0)
                     {
                         TempData["RecoverEmail"] = Email.ToLowerInvariant();
                         TempData["RecoverPhone"] = Phone;
                         return RedirectToPage("/User/Recover");
                     }
-                    string hash = App.Helper.Shared.HashPassword(Password);
-                    var CustomerRoleId = App.Database.DataAccessManager.GetScalar(EntitiesSchema, App.Database.Schema.Entities.Tables.Roles, "ID", "NAME='Customer'");
 
-                    string sql = @$"INSERT INTO {App.Database.Schema.Entities.Tables.Users} (FULLNAME, EMAIL, PHONE, PASSWORDHASH, CREATEDOADATE, UPDATEDOADATE) 
-                    VALUES (@FullName, @Email, @Phone, @PasswordHash, @Created, @Updated)";
+                    string hash = App.Helper.Shared.HashPassword(Password);
+
+                    object? customerRoleObj = App.Database.DataAccessManager.GetScalar(
+                        EntitiesSchema,
+                        App.Database.Schema.Entities.Tables.Roles,
+                        "ID",
+                        "NAME='Customer'");
+
+                    if (customerRoleObj == null)
+                        throw new InvalidOperationException("Role 'Customer' not found.");
+
+                    int CustomerRoleId = Convert.ToInt32(customerRoleObj);
+
+                    string sql = @$"INSERT INTO {App.Database.Schema.Entities.Tables.Users}
+                    (FULLNAME, EMAIL, PHONE, PASSWORDHASH, CREATEDOADATE, UPDATEDOADATE)
+                    VALUES (@FullName, @Email, @Phone, @PasswordHash, @Created, @Updated)
+                    RETURNING ID;";
 
                     Npgsql.NpgsqlParameter[] parameters =
                     [
@@ -121,30 +134,30 @@ namespace Website.Pages.User
                         new Npgsql.NpgsqlParameter("@Created", DateTime.UtcNow.ToOADate()),
                         new Npgsql.NpgsqlParameter("@Updated", DateTime.UtcNow.ToOADate())
                     ];
-                    _ = App.Database.DataAccessManager.ExecuteNonQuery(EntitiesSchema, sql, parameters);
 
-                    int userId = 0;
-                    using DataTable DT1 = App.Database.DataAccessManager.GetDataTable(EntitiesSchema, App.Database.Schema.Entities.Tables.Users, $"EMAIL={App.Database.Shared.Sanitize(Email.ToLowerInvariant(), true, true)} AND PHONE={App.Database.Shared.Sanitize(Phone, true)}");
-                    if (DT1 != null && DT1.Rows.Count > 0) userId = Convert.ToInt32(DT1.Rows[0]["ID"]);
+                    object? newIdObj = App.Database.DataAccessManager.ExecuteScalar(EntitiesSchema, sql, parameters);
+                    if (newIdObj == null) throw new InvalidOperationException("User insert failed to return ID.");
+                    int userId = Convert.ToInt32(newIdObj);
 
-                    sql = @$"INSERT INTO {App.Database.Schema.Entities.Tables.UserRoles} (USER_ID, ROLE_ID, GRANTEDOADATE, EXPIRATIONOADATE, REVOKEDOADATE, REVOKEDREASON, CREATEDBY_USER_ID, UPDATEDBY_USER_ID, ISACTIVE) 
+                    sql = @$"INSERT INTO {App.Database.Schema.Entities.Tables.UserRoles}
+                    (USER_ID, ROLE_ID, GRANTEDOADATE, EXPIRATIONOADATE, REVOKEDOADATE, REVOKEDREASON, CREATEDBY_USER_ID, UPDATEDBY_USER_ID, ISACTIVE)
                     VALUES (@UserId, @RoleId, @Granted, NULL, NULL, NULL, @CreatedBy, @UpdatedBy, true);";
 
                     Npgsql.NpgsqlParameter[] roleParams =
                     [
                         new Npgsql.NpgsqlParameter("@UserId", userId),
-                        new Npgsql.NpgsqlParameter("@RoleId", CustomerRoleId), // "Customer"
+                        new Npgsql.NpgsqlParameter("@RoleId", CustomerRoleId),
                         new Npgsql.NpgsqlParameter("@Granted", DateTime.UtcNow.ToOADate()),
-                        new Npgsql.NpgsqlParameter("@CreatedBy", userId), // The user themselves, or could be 0/admin
-                        new Npgsql.NpgsqlParameter("@UpdatedBy", userId)  // Same as CreatedBy
+                        new Npgsql.NpgsqlParameter("@CreatedBy", userId),
+                        new Npgsql.NpgsqlParameter("@UpdatedBy", userId)
                     ];
+
                     _ = App.Database.DataAccessManager.ExecuteNonQuery(EntitiesSchema, sql, roleParams);
 
-                    // Set ClaimsPrincipal (Authinticate the user and sign them in)
                     HttpContext.SignInUser(userId);
+
                     try
                     {
-                        // 1) Persist the address & enqueue zoning
                         long addressId = App.Validation.AddressValidation.SaveAddressAndGetId(HJSON, AddressTypeID, userId, true);
                         if (addressId <= 0)
                         {
@@ -157,15 +170,14 @@ namespace Website.Pages.User
                         ModelState.AddModelError(string.Empty, "Address error: " + ex.Message);
                         return Page();
                     }
-                    // Yay! Registration successful.
+
                     return RedirectToPage("/Home/Index");
                 }
                 catch (Exception ex)
                 {
-                    // Log the error and show a generic message
                     ErrorMessage = "An unexpected error occurred: " + ex.Message;
 
-                    var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions(); // Load the address types for the dropdown
+                    var (list, error) = App.Helper.Table.AddressType.GetAddressTypeOptions();
                     AddressTypeOptions = list;
                     ErrorMessage = error;
 

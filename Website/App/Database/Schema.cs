@@ -37,6 +37,8 @@
                 internal const string DriverVehicles = $"{Name}.driver_vehicles";
 
                 internal const string UserPayment = $"{Name}.user_payment";
+                internal const string UserInvite = $"{Name}.user_invite";
+                internal const string UserLink = $"{Name}.user_link";
             }
         }
         internal static class Config
