@@ -6,10 +6,10 @@ using Website.App.Database;
 using Website.App.Security;
 using Website.App.StringBuilders.Pages;
 
-namespace Website.Pages.Endpoints
+namespace Website.Pages.homefolder.content.endpoints.paymentmethod
 {
     [IgnoreAntiforgeryToken]
-    public class AddPaymentMethodModel : PageModel
+    public class AddModel : PageModel
     {
         public class PaymentMethodInput
         {
@@ -47,7 +47,7 @@ namespace Website.Pages.Endpoints
                 string? tokenHash = !string.IsNullOrWhiteSpace(input.Token) ? App.Helper.Shared.HashPassword(input.Token) : null;
                 string? accountHash = !string.IsNullOrWhiteSpace(input.Account) ? App.Helper.Shared.HashPassword(input.Account) : null;
 
-                int countDefault = DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.UserPayment, $"user_id = {User.Id()} AND is_active = true").Rows.Count;
+                int countDefault = DataAccessManager.GetDataTable(Schema.Entities.Name, Schema.Entities.Tables.UserPayment, $"user_id = {User.Id()} AND is_active = true").Rows.Count;
                 bool makeDefault;
                 if (countDefault == 0) { makeDefault = true; } else { makeDefault = false; }
                 // Keep columns aligned with your table; rely on defaults for booleans if you prefer

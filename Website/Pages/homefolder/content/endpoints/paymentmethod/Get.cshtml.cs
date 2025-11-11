@@ -5,10 +5,10 @@ using System.Text;
 using Website.App.Security;
 using Website.App.StringBuilders.Pages;
 
-namespace Website.Pages.Endpoints
+namespace Website.Pages.homefolder.content.endpoints.paymentmethod
 {
     [IgnoreAntiforgeryToken]
-    public class GetPaymentMethodsModel : PageModel
+    public class GetModel : PageModel
     {
         public class InputPayload
         {

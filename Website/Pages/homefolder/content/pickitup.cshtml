@@ -1,10 +1,11 @@
 ﻿@page
 @using App.Security;
-@model Website.Pages.Home.PickitUpModel
 @{
+        Layout = null;
+    ViewData["Title"] = "Home";
     string UserName = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.Users, $"id={User.Id()}").Rows[0]["FULLNAME"].ToString() ?? string.Empty;
 }
-<table style="width: 100%; border-collapse: collapse;"><tr><td style="text-align:center; width:100%; padding:0;"><div style="display:flex; align-items:center; justify-content:center; gap:0.5rem;"><i class="fas fa-box" style="font-size: 1.25rem;"></i><h5 style="margin:0;">Pick It Up!</h5><i class="fas fa-box" style="font-size: 1.25rem;"></i></div></td><td style="text-align:right;"><a href="/Home/Index" class="btn btn-secondary">←&nbsp;Back</a></td></tr></table>
+<table style="width: 100%; border-collapse: collapse;"><tr><td style="text-align:center; width:100%; padding:0;"><div style="display:flex; align-items:center; justify-content:center; gap:0.5rem;"><i class="fas fa-box" style="font-size: 1.25rem;"></i><h5 style="margin:0;">Pick It Up!</h5><i class="fas fa-box" style="font-size: 1.25rem;"></i></div></td><td style="text-align:right;"><a href="/Home" class="btn btn-secondary">←&nbsp;Back</a></td></tr></table>
 <div class="grid-canvas" style="width:100%; text-align: center; align-content: center;">
     <div class="grid">
         <div id="CreateTasks" class="card" style="text-align: center; align-items: center; padding: 1px 1px 1px 1px; min-width: 300px; max-width: 450px;">
@@ -34,7 +35,7 @@
                             </select>
                         </td>
                         <td style="vertical-align: middle;">
-                            <a href="#" onclick="openModalByType('newpickupaddress'); showAddressCard('NPAMCI', 'newpickupaddress');" class="icon-btn" style="font-size:1rem; margin-right:0.75rem;">
+                            <a href="#" onclick="PIUNPAClick();" class="icon-btn" style="font-size:1rem; margin-right:0.75rem;">
                                 <i class="fa-solid fa-keyboard"></i>
                             </a>
                         </td>
@@ -163,9 +164,8 @@
                     </td>
                 </tr>
             </table>
-            
+
         </div>
     </div>
 </div>
 <input type="hidden" id="PIUpricingJSON" value="" />
-<partial name="~/Pages/Home/PickitUp/_NewPickupAddress.cshtml" />

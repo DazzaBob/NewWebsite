@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 using Website.App.Security;
 
-namespace Website.Pages.Home.PickitUp.Endpoints
+namespace Website.Pages.homefolder.content.endpoints
 {
     [IgnoreAntiforgeryToken]
     public class TaskCardModel : PageModel

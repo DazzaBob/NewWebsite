@@ -5,7 +5,7 @@ using Website.App.Accounting;
 using Website.App.Database;
 using Website.App.Security;
 
-namespace Website.Pages.Endpoints
+namespace Website.Pages.homefolder.content.endpoints.paymentmethod
 {
     [IgnoreAntiforgeryToken]
     public class ConfirmAndPayModel : PageModel
@@ -53,7 +53,7 @@ namespace Website.Pages.Endpoints
 
                     static string GetStr(System.Text.Json.JsonElement el, string name, string fallback = "")
                         => el.TryGetProperty(name, out var v) && v.ValueKind == System.Text.Json.JsonValueKind.String
-                            ? (v.GetString() ?? fallback) : fallback;
+                            ? v.GetString() ?? fallback : fallback;
 
                     static bool GetBool(System.Text.Json.JsonElement el, string name, bool fallback = false)
                         => el.TryGetProperty(name, out var v) && v.ValueKind == System.Text.Json.JsonValueKind.True ? true
@@ -74,7 +74,7 @@ namespace Website.Pages.Endpoints
                 // 3️ Find or create job
                 string findJobSql = $@"SELECT id FROM ops.job WHERE user_id = {userId} AND payment_id = {input.PaymentId} AND job_status_id = (SELECT id FROM cfg.job_status WHERE code IN ('CREATED', 'PENDING_ALLOCATION') LIMIT 1);";
                 object? jobIdObj = DataAccessManager.ExecuteScalar("pub", findJobSql, []);
-                long jobId = (jobIdObj == null || jobIdObj == DBNull.Value) ? 0L : Convert.ToInt64(jobIdObj);
+                long jobId = jobIdObj == null || jobIdObj == DBNull.Value ? 0L : Convert.ToInt64(jobIdObj);
 
                 if (jobId > 0)
                 {

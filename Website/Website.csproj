@@ -30,6 +30,8 @@
 
   <ItemGroup>
     <Folder Include="App\Database\Entities\" />
+    <Folder Include="Pages\Endpoints\" />
+    <Folder Include="Pages\Home_old\Index\" />
     <Folder Include="wwwroot\webfonts\" />
   </ItemGroup>
 

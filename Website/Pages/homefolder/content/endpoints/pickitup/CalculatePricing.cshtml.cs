@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Website.App.Security;
 
-namespace Website.Pages.Home.PickitUp.Endpoints
+namespace Website.Pages.homefolder.content.endpoints.pickitup
 {
     [IgnoreAntiforgeryToken]
     public class CalculatePricingModel : PageModel
@@ -107,7 +107,7 @@ namespace Website.Pages.Home.PickitUp.Endpoints
                     legIndex++;
 
                     // If single-task job, enforce per-task minimum
-                    decimal baseCost = flagfall + (perMeter * distanceMeters) + (perSecond * durationSeconds);
+                    decimal baseCost = flagfall + perMeter * distanceMeters + perSecond * durationSeconds;
                     if (tasks.Count == 1 && baseCost < minimumCharge) baseCost = minimumCharge;
 
                     jobSubtotal += baseCost;
@@ -141,7 +141,7 @@ namespace Website.Pages.Home.PickitUp.Endpoints
                 // Sliding scale minimum for multi-task jobs
                 if (tasks.Count > 1)
                 {
-                    decimal scaledMinimum = (minimumChargeTotal / tasks.Count) + ((tasks.Count - 1) * (minimumChargeTotal / tasks.Count * 0.5m));
+                    decimal scaledMinimum = minimumChargeTotal / tasks.Count + (tasks.Count - 1) * (minimumChargeTotal / tasks.Count * 0.5m);
                     if (jobSubtotal < scaledMinimum) jobSubtotal = scaledMinimum;
                 }
 
@@ -163,7 +163,7 @@ namespace Website.Pages.Home.PickitUp.Endpoints
                     tasks = taskResponses,
                     totalDistanceMeters = (int)Math.Round(totalDistanceMetersFromMapbox),
                     totalTravelTimeMinutes = Math.Round(totalDurationSecondsFromMapbox / 60.0),
-                    serviceFee = (jobSubtotal * jobMarkup) - jobSubtotal,
+                    serviceFee = jobSubtotal * jobMarkup - jobSubtotal,
                     total = grandTotal,
                     warning
                 };

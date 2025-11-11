@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Website.App.Database;
 using Website.App.Security;
 
-namespace Website.Pages.Endpoints
+namespace Website.Pages.homefolder.content.endpoints.paymentmethod
 {
     [IgnoreAntiforgeryToken]
-    public class EditPaymentMethodModel : PageModel
+    public class EditModel : PageModel
     {
         public class EditPaymentInput
         {
