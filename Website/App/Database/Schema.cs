@@ -32,9 +32,13 @@
                 internal const string Roles = $"{Name}.roles";
                 internal const string UserRoles = $"{Name}.user_roles";
                 internal const string Driver = $"{Name}.driver";
+                internal const string DriverLicenceEndorsements = $"{Name}.driver_licence_endorsements";
                 internal const string DriverLicenceClass = $"{Name}.driver_licence_class";
                 internal const string DriverDocuments = $"{Name}.driver_documents";
                 internal const string DriverVehicles = $"{Name}.driver_vehicles";
+
+                internal const string VehicleClass = $"{Name}.vehicle_class";
+                internal const string VehicleType = $"{Name}.vehicle_type";
 
                 internal const string UserPayment = $"{Name}.user_payment";
                 internal const string UserInvite = $"{Name}.user_invite";
@@ -46,7 +50,7 @@
             internal const string Name = "cfg";
             internal static class Tables
             {
-                internal const string DriverLicenceEndorsements = $"{Name}.driver_licence_endorsements";
+                
                 internal const string DriverLicenceEndorsementType = $"{Name}.driver_licence_endorsement_type";
                 internal const string DropoffType = $"{Name}.dropoff_type";
                 internal const string PackageSize = $"{Name}.package_size";
@@ -54,8 +58,6 @@
                 internal const string PackageTypeCategory = $"{Name}.package_type_category";
                 internal const string Modes = $"{Name}.modes";
                 internal const string RatePolicies = $"{Name}.rate_policies";
-                internal const string VehicleClass = $"{Name}.vehicle_class";
-                internal const string VehicleType = $"{Name}.vehicle_type";
 
                 internal const string AllocationStatus = $"{Name}.allocation_status";
                 internal const string JobEventCode = $"{Name}.job_event_code";
@@ -76,6 +78,10 @@
                 internal const string JobTask = $"{Name}.job_task";
                 internal const string ParticipantAssignment = $"{Name}.participant_assignment";
                 internal const string ParticipantOffer = $"{Name}.participant_offer";
+
+                internal const string DriverSession = $"{Name}.driver_session";
+
+                internal const string ZoneCapacity = $"{Name}.zone_capacity";
             }
         }
         internal static class Accounting

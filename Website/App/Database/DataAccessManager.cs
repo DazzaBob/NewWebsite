@@ -38,7 +38,40 @@ namespace Website.App.Database
                 dbPool.Release(conn);
             }
         }
+        public static object GetScalar(string schema, string Sql)
+        {
+            Database dbPool = GetConnection(schema);
+            DALConnection conn = dbPool.Acquire();
+            try
+            {
+                StringBuilder sb = new();
+                sb.Append(Sql)
+                  .Append(" LIMIT 1;"); // only need one value
+                return conn.ExecuteScalar(sb.ToString());
+            }
+            finally
+            {
+                dbPool.Release(conn);
+            }
+        }
 
+        public static void Delete(string schema, string tableName, string whereClause = "")
+        {
+            Database dbPool = GetConnection(schema);
+            DALConnection conn = dbPool.Acquire();
+            try
+            {
+                StringBuilder sql = new($"DELETE FROM {tableName}");
+                if (!string.IsNullOrWhiteSpace(whereClause))
+                    sql.Append(" WHERE ").Append(whereClause);
+                _ = conn.ExecuteNonQuery(sql.ToString());
+            }
+            finally
+            {
+                dbPool.Release(conn);
+            }
+
+        }
         /// <summary>
         /// Inserts a new row into the specified table within the given schema using the provided fields and values.
         /// Acquires a pooled database connection, executes the INSERT statement, retrieves the generated ID, 

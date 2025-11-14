@@ -1,0 +1,275 @@
+﻿@page
+@using System
+@using System.Data
+@using App.Security
+@{
+    Layout = null;
+    ViewData["Title"] = "Driver Onboarding";
+
+    // Lookups
+    DataTable endorses = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Config.Name, App.Database.Schema.Config.Tables.DriverLicenceEndorsementType, string.Empty, "sortorder ASC, code ASC");
+    DataTable classes = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.VehicleClass, string.Empty, "id ASC");
+    DataTable drvTbl = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.Driver, $"id = {User.Id()}", string.Empty);
+
+    DataRow? drv = drvTbl.Rows.Count > 0 ? drvTbl.Rows[0] : null;
+
+    // Existing saved endorsements for this driver
+    DataTable drvEndorseRows = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.DriverLicenceEndorsements, $"driver_id = {User.Id()}", string.Empty);
+
+    // Existing saved classes for this driver
+    DataTable drvClassRows = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.DriverLicenceClass, $"driver_id = {User.Id()}", string.Empty);
+    var drvClassSet = new HashSet<int>();
+    foreach (DataRow r2 in drvClassRows.Rows)
+    {
+        if (int.TryParse(r2["vehicle_class_id"]?.ToString(), out var cid)) drvClassSet.Add(cid);
+    }
+
+    // Helper: split OADATE -> (dd,mm,yyyy)
+    Func<object?, (string d, string m, string y)> splitOa = o =>
+    {
+        if (o == null || o is DBNull) return ("", "", "");
+        if (!double.TryParse(o.ToString(), out var d)) return ("", "", "");
+        try
+        {
+            var dt = DateTime.FromOADate(d);
+            return (dt.Day.ToString("00"), (dt.Month).ToString("00"), dt.Year.ToString("0000"));
+        }
+        catch { return ("", "", ""); }
+    };
+
+    // Prefill basics from ent.driver
+    string preSurname = drv?["surname"]?.ToString() ?? "";
+    string preFirstnames = drv?["firstnames"]?.ToString() ?? "";
+    string preLicNo = drv?["licence_number"]?.ToString() ?? "";
+    string preLicVer = drv?["licence_version"]?.ToString() ?? "";
+
+    var (dobD, dobM, dobY) = splitOa(drv?["dob_oad"]);
+    var (issD, issM, issY) = splitOa(drv?["issued_oad"]);
+    var (expD, expM, expY) = splitOa(drv?["expires_oad"]);
+
+    // endorsement_type_id -> issued/expires split (dd,mm,yyyy)
+    var endByType = new Dictionary<int, (string iD, string iM, string iY, string eD, string eM, string eY)>();
+    foreach (DataRow r in drvEndorseRows.Rows)
+    {
+        if (!int.TryParse(r["endorsement_type_id"]?.ToString(), out var tid)) continue;
+        var (eID, eIM, eIY) = splitOa(r["issued_date"]);
+        var (eED, eEM, eEY) = splitOa(r["expiry_date"]);
+        endByType[tid] = (eID, eIM, eIY, eED, eEM, eEY);
+    }
+}
+<div class="grid-canvas" style="width:100%;">
+    <div class="card">
+        <h3>Become a driver</h3>
+        <p>Confirm your details to get started. You can finish the rest later.</p>
+
+        <!-- Identity + Licence -->
+        <div class="card">
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr><th style="width:25%;"></th><th style="width:25%;"></th><th style="width:25%;"></th><th style="width:25%;"></th></tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="4"><h3>Driver Identity Information</h3></td></tr>
+                    <tr>
+                        <td colspan="2">
+                            <label for="drv-surname">Surname:&nbsp;</label>
+                            <input id="drv-surname" type="text" class="input" autocomplete="family-name" maxlength="50" value="@preSurname" />
+                        </td>
+                        <td colspan="2">
+                            <label for="drv-firstnames">First Names:&nbsp;</label>
+                            <input id="drv-firstnames" type="text" class="input" autocomplete="given-name" maxlength="50" value="@preFirstnames" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label>Date of birth:&nbsp;</label></td>
+                        <td colspan="3">
+                            <table style="width:100%;">
+                                <tbody>
+                                    <tr>
+                                        <td style="width:33%;"><input id="drv-dob-d" type="text" inputmode="numeric" maxlength="2" placeholder="dd" class="input small" value="@dobD" /></td>
+                                        <td style="text-align:center;">/&nbsp;</td>
+                                        <td style="width:33%;"><input id="drv-dob-m" type="text" inputmode="numeric" maxlength="2" placeholder="mm" class="input small" value="@dobM" /></td>
+                                        <td style="text-align:center;">/&nbsp;</td>
+                                        <td style="width:33%;"><input id="drv-dob-y" type="text" inputmode="numeric" maxlength="4" placeholder="yyyy" class="input small" value="@dobY" /></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <label for="drv-lic">Licence number:</label>
+                            <input id="drv-lic" type="text" class="input" maxlength="10" value="@preLicNo" />
+                        </td>
+                        <td colspan="2">
+                            <label for="drv-lic-ver">Licence version:</label>
+                            <input id="drv-lic-ver" type="text" class="input" maxlength="5" value="@preLicVer" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+                            <h3>Validity Period</h3>
+                            <table style="width:100%;">
+                                <tbody>
+                                    <tr>
+                                        <td style="width:50%;">
+                                            <div class="card">
+                                                <table style="width:100%;">
+                                                    <tbody>
+                                                        <tr><td colspan="5"><label>Issued:</label></td></tr>
+                                                        <tr>
+                                                            <td style="width:33%;"><input id="drv-issued-d" type="text" inputmode="numeric" maxlength="2" placeholder="dd" class="input small" value="@issD" /></td>
+                                                            <td style="text-align:center;">/&nbsp;</td>
+                                                            <td style="width:33%;"><input id="drv-issued-m" type="text" inputmode="numeric" maxlength="2" placeholder="mm" class="input small" value="@issM" /></td>
+                                                            <td style="text-align:center;">/&nbsp;</td>
+                                                            <td style="width:33%;"><input id="drv-issued-y" type="text" inputmode="numeric" maxlength="4" placeholder="yyyy" class="input small" value="@issY" /></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </td>
+                                        <td style="width:50%;">
+                                            <div class="card">
+                                                <table style="width:100%;">
+                                                    <tbody>
+                                                        <tr><td colspan="5"><label>Expires:</label></td></tr>
+                                                        <tr>
+                                                            <td style="width:33%;"><input id="drv-expires-d" type="text" inputmode="numeric" maxlength="2" placeholder="dd" class="input small" value="@expD" /></td>
+                                                            <td style="text-align:center;">/&nbsp;</td>
+                                                            <td style="width:33%;"><input id="drv-expires-m" type="text" inputmode="numeric" maxlength="2" placeholder="mm" class="input small" value="@expM" /></td>
+                                                            <td style="text-align:center;">/&nbsp;</td>
+                                                            <td style="width:33%;"><input id="drv-expires-y" type="text" inputmode="numeric" maxlength="4" placeholder="yyyy" class="input small" value="@expY" /></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <hr />
+
+        <!-- Classes & Endorsements -->
+        <div class="card">
+            <h3>Licence classes &amp; endorsements</h3>
+            <table style="width:100%;">
+                <tbody>
+                    <tr>
+                        <!-- Classes (ID + Name only) -->
+                        <td style="vertical-align:top; width:50%;">
+                            <div class="card">
+                                <h3>Licence classes</h3>
+                                @if (classes.Rows.Count == 0)
+                                {
+                                    <p>No licence classes configured.</p>
+                                }
+                                else
+                                {
+                                    <table style="width:100%;">
+                                        <tbody>
+                                            @foreach (DataRow r in classes.Rows)
+                                            {
+                                                var id = (int)r["id"];
+                                                var name = (r["name"]?.ToString() ?? string.Empty).Trim();
+                                                var inputId = $"vc_{id}";
+                                                var clsChecked = drvClassSet.Contains(id) ? "checked" : null;
+                                                <tr>
+                                                    <td style="padding:6px 0;">
+                                                        <label for="@inputId" title="@name">
+                                                            <input type="checkbox" id="@inputId" name="class_ids" value="@id" class="checkbox" @clsChecked />
+                                                            <strong>@name</strong>
+                                                        </label>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                }
+                            </div>
+                        </td>
+
+                        <!-- Endorsements (prefill issued/expires if present) -->
+                        <td style="vertical-align:top; width:50%;">
+                            <div class="card">
+                                <h3>Endorsements</h3>
+                                @if (endorses.Rows.Count == 0)
+                                {
+                                    <p>No endorsement types configured.</p>
+                                }
+                                else
+                                {
+                                    <table style="width:100%;">
+                                        <tbody>
+                                            @foreach (DataRow r in endorses.Rows)
+                                            {
+                                                var id = (int)r["id"];
+                                                var code = (r["code"]?.ToString() ?? "").Trim();
+                                                var name = (r["name"]?.ToString() ?? "").Trim();
+                                                var desc = (r["description"]?.ToString() ?? "").Trim();
+
+                                                var has = endByType.TryGetValue(id, out var dates);
+                                                var chk = has ? "checked" : null;
+                                                var iD = has ? dates.iD : "";
+                                                var iM = has ? dates.iM : "";
+                                                var iY = has ? dates.iY : "";
+                                                var eD = has ? dates.eD : "";
+                                                var eM = has ? dates.eM : "";
+                                                var eY = has ? dates.eY : "";
+
+                                                var inputId = $"le_{code}";
+                                                <tr>
+                                                    <td style="padding:10px 0;">
+                                                        <label for="@inputId" title="@desc">
+                                                            <input type="checkbox" id="@inputId" name="endorsement_ids" value="@id" class="checkbox" @chk />
+                                                            <strong>@code</strong>&nbsp;—&nbsp;@name
+                                                        </label>
+                                                        <div class="card" style="margin-top:6px;">
+                                                            <table style="width:100%;">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td style="width:50%;">
+                                                                            <label>Issued:&nbsp;</label>
+                                                                            <input type="text" inputmode="numeric" maxlength="2" placeholder="dd" class="input small" name="endorse_issued_d_@id" value="@iD" />
+                                                                            /
+                                                                            <input type="text" inputmode="numeric" maxlength="2" placeholder="mm" class="input small" name="endorse_issued_m_@id" value="@iM" />
+                                                                            /
+                                                                            <input type="text" inputmode="numeric" maxlength="4" placeholder="yyyy" class="input small" name="endorse_issued_y_@id" value="@iY" />
+                                                                        </td>
+                                                                        <td style="width:50%;">
+                                                                            <label>Expires:&nbsp;</label>
+                                                                            <input type="text" inputmode="numeric" maxlength="2" placeholder="dd" class="input small" name="endorse_expiry_d_@id" value="@eD" />
+                                                                            /
+                                                                            <input type="text" inputmode="numeric" maxlength="2" placeholder="mm" class="input small" name="endorse_expiry_m_@id" value="@eM" />
+                                                                            /
+                                                                            <input type="text" inputmode="numeric" maxlength="4" placeholder="yyyy" class="input small" name="endorse_expiry_y_@id" value="@eY" />
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Actions -->
+        <div class="btn-row">
+            <a href="#" class="btn btn-pill" onclick="return window.DrvOnboardSaveAndContinue();">Save &amp; continue</a>
+            <a href="#" class="btn btn-outline" onclick="return window.DrvOnboardCancel();">Cancel</a>
+        </div>
+    </div>
+</div>

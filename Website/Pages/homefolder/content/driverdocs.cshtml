@@ -1,0 +1,197 @@
+﻿@page
+@using System
+@using System.Data
+@using App.Security
+@{
+    Layout = null;
+    ViewData["Title"] = "Driver Documents";
+
+    int driverId = User.Id();
+
+    // Load all docs for this driver
+    DataTable docs = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.DriverDocuments, $"driver_id = {driverId}", "driver_document_type_code ASC, created_oad DESC");
+
+    Func<DataRow?, string> statusColorVar = row =>
+    {
+        if (row == null) return "--color-status-none";  // NOT UPLOADED -> grey
+        var s = (row["review_status_code"]?.ToString() ?? "").Trim().ToLowerInvariant();
+        return s switch
+        {
+            "approved" => "--color-status-go",
+            "declined" => "--color-status-stop",
+            _ => "--color-status-waiting" // pending / null / anything else
+        };
+    };
+
+    Func<DataRow?, string> statusText = row =>
+    {
+        if (row == null) return "Not uploaded";
+        var s = (row["review_status_code"]?.ToString() ?? "").Trim().ToLowerInvariant();
+        if (string.IsNullOrEmpty(s)) return "Pending review";
+        return char.ToUpperInvariant(s[0]) + s.Substring(1);
+    };
+
+    Func<DataRow?, string> statusDetail = row =>
+    {
+        if (row == null) return "";
+        var reason = row["review_reason"]?.ToString() ?? "";
+        reason = reason.Trim();
+        if (string.IsNullOrEmpty(reason)) return "";
+        var s = (row["review_status_code"]?.ToString() ?? "").Trim().ToLowerInvariant();
+        if (s == "declined")
+            return "Reason: " + reason;
+        return reason;
+    };
+
+    Func<DataRow?, string> uploadedWhen = row =>
+    {
+        if (row == null) return "";
+        try
+        {
+            if (row["created_oad"] == null || row["created_oad"] is DBNull) return "";
+            double d = Convert.ToDouble(row["created_oad"]);
+            var dt = DateTime.FromOADate(d).ToLocalTime();
+            return dt.ToString("yyyy-MM-dd HH:mm");
+        }
+        catch { return ""; }
+    };
+
+    Func<string, DataRow?> latestDoc = typeCode =>
+    {
+        if (docs == null || docs.Rows.Count == 0) return null;
+        var rows = docs.Select($"driver_document_type_code = '{typeCode}'", "created_oad DESC");
+        return rows.Length > 0 ? rows[0] : null;
+    };
+
+    var requiredTypes = new[]
+    {
+        new { Code = "licence_front", Label = "Driver licence (front)" },
+        new { Code = "licence_back",  Label = "Driver licence (back)"  },
+        new { Code = "secondary_id",  Label = "Secondary ID (passport / birth certificate / national ID)" },
+        new { Code = "proof_of_address", Label = "Proof of address" }
+    };
+
+    var optionalTypes = new[]
+    {
+        new { Code = "work_visa",              Label = "Right to work / visa (if required)" },
+        new { Code = "endorsement_certificate", Label = "Endorsement certificate (if applicable)" }
+    };
+}
+<div class="grid-canvas" style="width:100%;">
+    <div class="card">
+        <h3>Driver documents</h3>
+        <p>Upload clear photos or scans of your documents. You can use your phone or any device that can select a file.</p>
+
+        <div class="card">
+            <h3>Required documents</h3>
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr>
+                        <th style="width:30%; text-align:left;">Document</th>
+                        <th style="width:30%; text-align:left;">Status</th>
+                        <th style="width:40%; text-align:left;">Upload / replace</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var docType in requiredTypes)
+                    {
+                        var row = latestDoc(docType.Code);
+                        var status = statusText(row);
+                        var detail = statusDetail(row);
+                        var uploaded = uploadedWhen(row);
+                        var filename = row == null ? "" : (row["original_filename"]?.ToString() ?? "");
+                        var colorVar = statusColorVar(row);
+                        <tr>
+                            <td style="vertical-align:top; padding:8px 4px;">
+                                <strong>@docType.Label</strong>
+                                @if (!string.IsNullOrEmpty(filename))
+                                {
+                                    <div style="font-size:0.9em; color:#666;">@filename</div>
+                                }
+                                @if (!string.IsNullOrEmpty(uploaded))
+                                {
+                                    <div style="font-size:0.9em; color:#666;">Uploaded: @uploaded</div>
+                                }
+                            </td>
+                            <td style="vertical-align:top; padding:8px 4px;">
+                                <div style="font-size:0.9em; font-weight:600; color: var(@colorVar);">
+                                    @status
+                                </div>
+                                @if (!string.IsNullOrEmpty(detail))
+                                {
+                                    <div style="font-size:0.9em; color: var(--color-status-stop);">@detail</div>
+                                }
+                            </td>
+                            <td style="vertical-align:top; padding:8px 4px;">
+                                <form enctype="multipart/form-data">
+                                    <input type="hidden" name="documentType" value="@docType.Code" />
+                                    <input type="file" name="file" accept="image/*,.pdf" class="input" />
+                                    <button type="button" class="btn btn-outline" style="margin-top:4px;" onclick="return window.DrvDocsUpload(this);">Upload</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+            <h3>Optional documents</h3>
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr>
+                        <th style="width:30%; text-align:left;">Document</th>
+                        <th style="width:30%; text-align:left;">Status</th>
+                        <th style="width:40%; text-align:left;">Upload / replace</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var docType in optionalTypes)
+                    {
+                        var row = latestDoc(docType.Code);
+                        var status = statusText(row);
+                        var detail = statusDetail(row);
+                        var uploaded = uploadedWhen(row);
+                        var filename = row == null ? "" : (row["original_filename"]?.ToString() ?? "");
+                        var colorVar = statusColorVar(row);
+                        <tr>
+                            <td style="vertical-align:top; padding:8px 4px%;">
+                                <strong>@docType.Label</strong>
+                                @if (!string.IsNullOrEmpty(filename))
+                                {
+                                    <div style="font-size:0.9em; color: var(--color-text);">@filename</div>
+                                }
+                                @if (!string.IsNullOrEmpty(uploaded))
+                                {
+                                    <div style="font-size:0.9em; color: var(--color-text);">Uploaded: @uploaded</div>
+                                }
+                            </td>
+                            <td style="vertical-align:top; padding:8px 4px;">
+                                <div style="font-size:0.9em; font-weight:600; color: var(@colorVar);">
+                                    @status
+                                </div>
+                                @if (!string.IsNullOrEmpty(detail))
+                                {
+                                    <div style="font-size:0.9em; color: var(--color-status-stop);">
+                                        @detail
+                                    </div>
+                                }
+                            </td>
+                            <td style="vertical-align:top; padding:8px 4px;">
+                                <form enctype="multipart/form-data">
+                                    <input type="hidden" name="documentType" value="@docType.Code" />
+                                    <input type="file" name="file" accept="image/*,.pdf" class="input" />
+                                    <button type="button" class="btn btn-outline" style="margin-top:4px;" onclick="return window.DrvDocsUpload(this);">Upload</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="btn-row" style="margin-top:16px;">
+            <a href="#" class="btn btn-pill" onclick="return window.DrvOnboardCancel && window.DrvOnboardCancel();">Back</a>
+        </div>
+    </div>
+</div>

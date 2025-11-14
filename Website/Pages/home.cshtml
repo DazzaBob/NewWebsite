@@ -43,59 +43,6 @@
             await LoadContext();
         });
 
-        async function LoadContext() {
-            const ctx = sessionStorage.getItem("home_context");
-            sessionStorage.removeItem("home_context");
-
-            let target = ctx ? ctx.toLowerCase() : "initial";
-
-            switch (target) {
-                case "login":
-                    await loadPartial("app-content", "/homefolder/content/login");
-                    stopNotifications();
-                    break;
-
-                case "signup":
-                    await loadPartial("app-content", "/homefolder/content/signup");
-                    stopNotifications();
-                    break;
-
-                default: // "initial"
-                    await loadPartial('header-container', '/homefolder/header');
-                    await loadPartial("app-content", "/homefolder/content/initial");
-                    InitNotifications(); InitMessages();
-                    showWelcomeBack();
-                    break;
-            }
-        }
-        async function showWelcomeBack() {
-            try {
-                const res = await fetch('/homefolder/content/endpoints/WelcomeBack', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'same-origin'
-                });
-                const data = await res.json();
-                if (!data.ok || !data.html) return;
-
-                const modalContainer = document.getElementById('Modal-Container');
-                modalContainer.innerHTML = data.html;
-
-                const okBtn = document.getElementById('welcomeOk');
-                if (okBtn) {
-                    okBtn.addEventListener('click', () => {
-                        // Unlock audio + dismiss modal
-                        unlockAudioOnce();
-                        modalContainer.innerHTML = '';
-                    }, { once: true });
-                }
-                
-                openModalByType('welcomeback');
-            } catch (err) {
-                alert('Welcome modal failed: ' + (err.message || 'Unknown error'));
-            }
-        }
-
         // --------------------------------------------------------------
         // 🔊 Audio ding system
         // --------------------------------------------------------------

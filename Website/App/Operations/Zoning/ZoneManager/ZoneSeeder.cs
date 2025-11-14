@@ -61,8 +61,13 @@ namespace Website.App.Operations.Zoning
                     {DateTime.UtcNow.ToOADate()}, {DateTime.UtcNow.ToOADate()}, '{shapeJson.Replace("'", "''")}'";
 
                 string fields = "NAME, PLACE_ID, LOCALITY_ID, CENTEROID_LATITUDE, CENTEROID_LONGITUDE, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, CREATEDOADATE, UPDATEDOADATE, SHAPE_JSON";
+                int zoneId = DataAccessManager.Insert(LocationsSchema, Schema.Locations.Tables.ZonesBase, fields, values); // returns the INSERTed ID.
 
-                return DataAccessManager.Insert(LocationsSchema, Schema.Locations.Tables.ZonesBase, fields, values); // returns the INSERTed ID.
+                fields = "zone_base_id, window_code, version_oad, min_drivers, max_drivers, target_raw, target, buffer, hard_cap, method_version, computed_oad";
+                values = $"{zoneId}, 'all_day', {DateTime.UtcNow.ToOADate()}, 2, 10, 8, 10, 2, 12, '1.0', {DateTime.UtcNow.ToOADate()}";
+                _ = DataAccessManager.Insert(Schema.Operations.Name, Schema.Operations.Tables.ZoneCapacity, fields, values);
+
+                return zoneId;
             }
 
             /// <summary>
@@ -144,8 +149,13 @@ namespace Website.App.Operations.Zoning
                     {now}, {now}, '{geo.Replace("'", "''")}'";
 
                 string fields = "NAME, PLACE_ID, LOCALITY_ID, CENTEROID_LATITUDE, CENTEROID_LONGITUDE, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, CREATEDOADATE, UPDATEDOADATE, SHAPE_JSON";
+                int zoneId = DataAccessManager.Insert(LocationsSchema, Schema.Locations.Tables.ZonesBase, fields, values); // returns the INSERTed ZONE_ID
 
-                return DataAccessManager.Insert(LocationsSchema, Schema.Locations.Tables.ZonesBase, fields, values); // returns the INSERTed ZONE_ID
+                fields = "zone_base_id, window_code, version_oad, min_drivers, max_drivers, target_raw, target, buffer, hard_cap, method_version, computed_oad";
+                values = $"{zoneId}, 'all_day', {DateTime.UtcNow.ToOADate()}, 2, 10, 8, 10, 2, 12, '1.0', {DateTime.UtcNow.ToOADate()}";
+                _ = DataAccessManager.Insert(Schema.Operations.Name, Schema.Operations.Tables.ZoneCapacity, fields, values);
+
+                return zoneId;
             }
             internal static string ShapeToGeoJson(double minLat, double maxLat, double minLon, double maxLon)
             {
