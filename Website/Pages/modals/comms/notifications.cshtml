@@ -1,0 +1,46 @@
+﻿@page
+@using App.Security
+@{
+    string modalId = Guid.NewGuid().ToString("N");
+}
+<div class="custom-modal" data-modal-type="notifications" data-modal-id="@modalId">
+    <div class="custom-modal-content" role="dialog" aria-modal="true" aria-labelledby="notificationsmodaltitle_@modalId">
+        <div class="custom-modal-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <input type="hidden" class="notificationsModalId" value="@modalId" />
+            <table style="width:100%;">
+                <tr>
+                    <td style="text-align:center;width:90%;">
+                        <h5 id="notificationsmodaltitle_@modalId">
+                            <i class="fa-solid fa-bell"></i>&nbsp;Notifications
+                        </h5>
+                    </td>
+                    <td style="text-align:right;width:10%;">
+                        <button id="NMBTNCLS" class="btn btn-close" aria-label="Close">×</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="custom-modal-body" id="NMBODY_@modalId" style="display:flex;flex-direction:column;gap:0.5rem;">
+            <div class="notif-tabs" style="text-align:center;">
+                <button type="button" onclick="NotButClick(this);" class="btn btn-outline active">All</button>&nbsp;
+                <button type="button" onclick="NotButClick(this);" class="btn btn-outline">Unread</button>
+                <hr />
+            </div>
+            <div id="NM_EMPTY_@modalId" class="empty-state" style="display:none;">
+                <p>No notifications yet.</p>
+            </div>
+            <div class="notifications-panel">
+                <div class="notif-group">
+                    <h4 class="notif-group-title">New</h4>
+                </div>
+
+                <div class="notif-group">
+                    <h4 class="notif-group-title">Today</h4>
+                </div>
+            </div>
+        </div>
+        <div class="custom-modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
+            <span>&nbsp;</span>
+        </div>
+    </div>
+</div>

@@ -1,9 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Data;
+using System.Globalization;
 using Website.App.Database;
 using Website.App.Security;
 

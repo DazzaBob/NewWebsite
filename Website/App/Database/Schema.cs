@@ -36,6 +36,7 @@
                 internal const string DriverLicenceClass = $"{Name}.driver_licence_class";
                 internal const string DriverDocuments = $"{Name}.driver_documents";
                 internal const string DriverVehicles = $"{Name}.driver_vehicles";
+                internal const string DriverDevice = $"{Name}.driver_device";
 
                 internal const string VehicleClass = $"{Name}.vehicle_class";
                 internal const string VehicleType = $"{Name}.vehicle_type";
@@ -43,6 +44,8 @@
                 internal const string UserPayment = $"{Name}.user_payment";
                 internal const string UserInvite = $"{Name}.user_invite";
                 internal const string UserLink = $"{Name}.user_link";
+
+                internal const string Participant = $"{Name}.participant";
             }
         }
         internal static class Config
@@ -50,8 +53,9 @@
             internal const string Name = "cfg";
             internal static class Tables
             {
-                
+
                 internal const string DriverLicenceEndorsementType = $"{Name}.driver_licence_endorsement_type";
+                internal const string DriverStatus = $"{Name}.driver_status";
                 internal const string DropoffType = $"{Name}.dropoff_type";
                 internal const string PackageSize = $"{Name}.package_size";
                 internal const string PackageType = $"{Name}.package_type";
@@ -80,6 +84,7 @@
                 internal const string ParticipantOffer = $"{Name}.participant_offer";
 
                 internal const string DriverSession = $"{Name}.driver_session";
+                internal const string DriverShift = $"{Name}.driver_shift";
 
                 internal const string ZoneCapacity = $"{Name}.zone_capacity";
             }
@@ -119,6 +124,8 @@
                 internal const string Notification = $"{Name}.notification";
                 internal const string NotificationEvent = $"{Name}.notification_event";
                 internal const string NotificationType = $"{Name}.notification_type";
+
+                internal const string QuickNotification = $"{Name}.quick_notification";
             }
         }
     }

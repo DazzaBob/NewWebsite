@@ -1,0 +1,40 @@
+﻿@page 
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Driver – Starting…</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preload" href="/js/site.js" as="script">
+    <link rel="preload" href="/js/pwa/driver.js" as="script">
+    <link rel="preload" href="/css/pwa/driver.css" as="style">
+    <link rel="stylesheet" href="/css/site.css" asp-append-version="true" />
+
+    <style>
+        .driver-boot-shell { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--color-bg); color: var(--color-text);}
+        .driver-boot-card { width: 100%; max-width: 420px; }
+        .driver-boot-logo { margin-bottom: 1rem; font-weight: 600; font-size: 1.1rem; text-align: center; }
+        .driver-boot-message { margin-bottom: 0.75rem; font-size: 0.95rem; text-align: center; }
+        .driver-boot-progress { position: relative; width: 100%; height: 4px; border-radius: 999px; background: var(--color-bg-alt-alt); overflow: hidden; margin-bottom: 0.5rem; }
+        .driver-boot-progress__bar { position: absolute; left: -40%; top: 0; bottom: 0; width: 40%; border-radius: inherit; background: var(--color-primary); animation: driverBootSweep 1.1s linear infinite; }
+        .driver-boot-error { font-size: 0.85rem; color: var(--color-danger, #ff8080); text-align: center; display: none; }
+        .driver-boot-actions { margin-top: 1rem; display: flex; justify-content: center; }
+        
+    </style>
+</head>
+<body>
+    <div class="driver-boot-shell">
+        <div class="driver-boot-card card">
+            <div class="driver-boot-logo">Driver - Drive Now</div>
+            <div id="driver-boot-message" class="driver-boot-message">Initialising… checking your location</div>
+            <div class="driver-boot-progress"><div class="driver-boot-progress__bar"></div></div>
+            <div id="driver-boot-error" class="driver-boot-error"><!-- filled by JS on error --></div>
+            <div class="driver-boot-actions"><button id="driver-boot-exit" type="button" class="btn" style="display:none;" onclick="window.location.href='/Account/Logout?returnUrl=/'">Exit</button></div>
+        </div>
+    </div>
+    <script src="~/js/pwa/driver/splash.js" asp-append-version="true"></script>
+</body>
+</html>

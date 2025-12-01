@@ -1,0 +1,89 @@
+﻿@page
+@*
+*@
+@{
+    Layout = null; // This is a partial, let the caller handle the layout.
+}
+<div class="custom-modal"
+     data-modal-type="drivershift"
+     id="driver-shift-modal">
+    <div class="custom-modal-content"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="drivershiftmodaltitle">
+
+        <!-- Header -->
+        <div class="custom-modal-header">
+            <h5 id="drivershiftmodaltitle"><i class="fa-solid fa-car" aria-hidden="true"></i>&nbsp;<i class="fas fa-box"></i>&nbsp;DRIVE NOW&nbsp;<i class="fas fa-box"></i>&nbsp;<i class="fa-solid fa-car" aria-hidden="true"></i></h5>
+            <button id="DSBTNCLS" class="btn btn-close" aria-label="Close">×</button>
+        </div>
+
+        <!-- Body -->
+        <div class="custom-modal-body">
+            <p style="margin-bottom: 0.75rem;">
+                Set up your shift:
+            </p>
+
+            <div class="card" style="margin-bottom: 0.75rem;">
+                <div class="card-body">
+                    <div id="drivershift-schedule-summary">
+                        @* For now, simple stub text. You’ll replace this
+                           with “You’re scheduled from 14:00–18:00” vs
+                           “No scheduled shift found” once the backend is wired. *@
+                        <p style="margin: 0;">
+                            You don’t have a scheduled shift. Start an ad-hoc shift now?
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="drivershift-day-header">
+                        <div class="drivershift-day-title">
+                            Today’s drive window
+                        </div>
+                        <div class="drivershift-day-date" id="drivershift-day-label">
+                            @DateTime.Now.ToString("dddd, dd MMM yyyy")
+                        </div>
+                    </div>
+
+                    <div class="drivershift-blocksize-row">
+                        <label for="drivershift-slot-size">
+                            Block size
+                        </label>
+                        <select id="drivershift-slot-size" class="drivershift-slot-size">
+                            <option value="15">15 minutes</option>
+                            <option value="30" selected>30 minutes</option>
+                            <option value="60">60 minutes</option>
+                        </select>
+                    </div>
+
+                    <div class="drivershift-slot-list" id="drivershift-slot-list">
+                        @* JS will populate this list with today’s slots, e.g.
+                       <button class="drivershift-slot" data-start="13:00" data-end="13:30">
+                           13:00 – 13:30
+                       </button>
+                       States will be toggled by CSS classes:
+                       .drivershift-slot--selected / .drivershift-slot--locked
+                    *@
+                        <div class="drivershift-slot-list-empty">
+                            Loading today’s time slots…
+                        </div>
+                    </div>
+
+                    <div class="drivershift-summary" id="drivershift-summary">
+                        Selected today: 0h 00m / 0h 00m allowed
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <span>&nbsp;</span>
+        <div class="custom-modal-footer" style="display:flex; justify-content:center; gap: 1rem;">
+            <button type="button" class="btn btn-outline" id="driver-shift-cancel">Cancel</button>
+            <button type="button" class="btn btn-primary" id="driver-shift-confirm">Save shift</button>
+        </div>
+    </div>
+</div>

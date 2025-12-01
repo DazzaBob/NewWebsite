@@ -1,0 +1,258 @@
+﻿@*
+  Layout for the driver PWA.
+  Used by all Pages under /Pwa/Driver/*
+*@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] - Driver</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Driver PWA manifest -->
+    <link rel="manifest" href="/manifest-driver.json" />
+
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/all.min.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pwa/driver.css" asp-append-version="true" />
+</head>
+<body style="">
+    <input type="hidden" id="mapbox-token" value="@App.Settings.MapboxToken" />
+    <div class="side-menu" id="driver-side-menu">
+        <nav aria-label="Driver navigation">
+            <ul>
+                <li>
+                    <a href="/pwa/driver">
+                        <i class="fa-solid fa-house"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/pwa/driver/jobs">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Jobs</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/pwa/driver/marketplace">
+                        <i class="fa-solid fa-store"></i>
+                        <span>Marketplace</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/pwa/driver/history">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <span>Job History</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/pwa/driver/ratings">
+                        <i class="fa-solid fa-star"></i>
+                        <span>Ratings &amp; Performance</span>
+                    </a>
+                </li>
+            </ul>
+
+            <hr />
+
+            <ul>
+                <li>
+                    <a href="/pwa/driver/profile">
+                        <i class="fa-solid fa-user"></i>
+                        <span>Account Details</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/pwa/driver/documents">
+                        <i class="fa-solid fa-id-card"></i>
+                        <span>Licence &amp; Documents</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/pwa/driver/support">
+                        <i class="fa-solid fa-life-ring"></i>
+                        <span>Support &amp; Safety</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="MYNETClick();">
+                        <i class="fa-solid fa-user-group"></i>
+                        <span>My Network</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/Account/Logout?returnUrl=/pwa/driver">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+
+            @* V2 stubs – not implemented yet *@
+            @*<hr />
+            <ul>
+                <li>
+                    <a href="/pwa/driver/schedule">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <span>Schedule</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/pwa/driver/referrals">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Refer a Driver</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/pwa/driver/settings">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>*@
+        </nav>
+    </div>
+
+    <div class="menu-backdrop" id="driver-menu-backdrop"></div>
+    <table style="width: 100%; height: 100dvh; border-collapse: collapse;">
+        <!-- HEADER ROW -->
+        <tr>
+            <td>
+                <table style="width:100%; margin:0 auto; border-collapse:collapse; border-spacing:0;">
+                    <tr>
+                        <th style="width: 33%;"></th>
+                        <th style="width: 34%;"></th>
+                        <th style="width: 33%;"></th>
+                    </tr>
+                    <tr style="background: var(--color-primary); color: var(--color-text);">
+                        <td style="text-align:left; vertical-align:middle;">
+                            <button style="background:none; border:none; font-size:2rem; color:inherit; cursor:pointer;" aria-label="Open Menu" onclick="document.body.classList.toggle('menu-open')">
+                                <i class="fa-solid fa-bars"></i>
+                            </button>
+                        </td>
+                        <td style="text-align:center; vertical-align:middle; font-weight:600;">
+                            <span id="driver-status-header">
+                                <i class="fa-solid fa-signal"></i>&nbsp;
+                                <span id="driver-status-label">Offline</span>&nbsp;
+                                <i class="fa-solid fa-signal" style="transform: scaleX(-1);"></i>
+                            </span>
+                        </td>
+                        <td style="text-align:right; vertical-align:middle;">
+                            <button id="notificationButton" class="CommsButton" aria-label="Open Notifications" onclick="btnNotificationClick();">
+                                <i class="fa-solid fa-bell"></i>
+                                <span id="unreadNotifications" class="UnreadComms" aria-hidden="true"></span>
+                            </button>
+                            <button id="messageButton" class="CommsButton" aria-label="Open Messaging" onclick="btnMessagesClick();">
+                                <i class="fa-solid fa-comments"></i>
+                                <span id="unreadMessages" class="UnreadComms" aria-hidden="true"></span>
+                            </button>
+                            <button style="background:none; border:none; font-size:2rem; color:inherit; cursor:pointer;" aria-label="Settings" onclick="DriverHubPing(); ">
+                                <i class="fa-solid fa-gear"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="driver-status-bar driver-status--offline" id="driver-status-bar">
+                    <div class="driver-status-bar__scanner"></div>
+                    <span class="driver-status-bar__text" id="driver-status-text">&nbsp;</span>
+                </div>
+            </td>
+        </tr>
+
+        <!-- CONTENT ROW (fills remaining height) -->
+        <tr>
+            <td style="height: 100%;">
+                <div class="driver-main">
+                    <main class="driver-app__content">
+                        @RenderBody()
+                    </main>
+                </div>
+            </td>
+        </tr>
+
+        <!-- FOOTER ROW -->
+        <tr>
+            <td>
+                <div class="driver-nav">
+                    <button class="btn btn-nav">
+                        <i class="fa-solid fa-house"></i>
+                        <span><b>Home</b></span>
+                    </button>
+                    <button class="btn btn-nav" id="driver-jobs-button" type="button">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span><b>JOBS</b></span>
+                    </button>
+                    <button class="btn btn-nav">
+                        <i class="fa-solid fa-user"></i>
+                        <span><b>Profile</b></span>
+                    </button>
+                    <button class="btn btn-nav" id="driver-status-button" type="button">
+                        <i class="fa-solid fa-circle driver-status-dot driver-status-dot--offline" id="driver-status-dot"></i>
+                        <span><b>OFFLINE</b></span>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </table>
+    
+    <div id="Modal-Container"></div>
+
+    <div id="driver-status-menu" class="driver-status-menu">
+        <div id="driver-status-menu-backdrop" class="driver-status-menu__backdrop"></div>
+        <div class="driver-status-menu__body">
+            <button type="button"
+                    class="driver-status-option"
+                    data-driver-status-option="true"
+                    data-status-id="25"
+                    data-status-code="ACTIVE_OFFLINE"
+                    data-status-name="OFFLINE">
+                OFFLINE
+            </button>
+
+            <button type="button"
+                    class="driver-status-option"
+                    data-driver-status-option="true"
+                    data-status-id="26"
+                    data-status-code="ACTIVE_READY"
+                    data-status-name="READY">
+                READY
+            </button>
+
+            <button type="button"
+                    class="driver-status-option"
+                    data-driver-status-option="true"
+                    data-status-id="28"
+                    data-status-code="ACTIVE_BREAK"
+                    data-status-name="BREAK">
+                BREAK
+            </button>
+
+            <button type="button"
+                    class="driver-status-option"
+                    data-driver-status-option="true"
+                    data-status-id="29"
+                    data-status-code="ACTIVE_SNOOZED"
+                    data-status-name="SNOOZED">
+                SNOOZED
+            </button>
+        </div>
+    </div>
+
+    <div id="driver-jobs-menu" class="driver-jobs-menu" style="display:none;">
+        <div id="driver-jobs-menu-backdrop" class="driver-jobs-menu__backdrop"></div>
+        <div class="driver-jobs-menu__body">
+            <h5 class="driver-jobs-menu__title">Active jobs</h5>
+            <div id="driver-jobs-list" class="driver-jobs-menu__list"></div>
+        </div>
+    </div>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.js"></script>
+    <script src="~/js/signalr.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/pwa/driver.js" asp-append-version="true"></script>
+    <script src="/js/modals/comms.js" defer></script>
+    <script>document.addEventListener("DOMContentLoaded", () => { showMWB(); });</script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

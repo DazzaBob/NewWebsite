@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.StaticFiles;
 using System.Diagnostics;
+using Website.App.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +55,8 @@ builder.Services.AddRazorPages().AddRazorPagesOptions(o =>
     o.Conventions.AuthorizePage("/User/Logout");
     o.Conventions.AuthorizeFolder("/User/Dashboard");
 });
+
+builder.Services.AddSignalR();
 
 builder.Services.AddAuthentication("Cookies").AddCookie(o =>
 {
@@ -145,6 +148,11 @@ app.Use(async (ctx, next) =>
     app.UseMiddleware<Website.App.StringBuilders.HtmlMinifyMiddleware>(); // this will minify all HTML responses
 #endif
 app.MapRazorPages();
+
+app.MapHub<DriverHub>("/hubs/driver");
+app.MapHub<NotificationsHub>("/hubs/notifications");
+app.MapHub<MessagesHub>("/hubs/messages");
+
 app.Lifetime.ApplicationStopping.Register(() =>
 { // Graceful shutdown of DB pools
     Website.App.Database.DataAccessManager.ShutdownPools();

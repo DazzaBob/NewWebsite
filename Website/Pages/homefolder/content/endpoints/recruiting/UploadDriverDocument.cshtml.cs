@@ -1,9 +1,6 @@
-using System;
-using System.Globalization;
-using System.IO;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Globalization;
 using Website.App.Database;
 using Website.App.Security;
 

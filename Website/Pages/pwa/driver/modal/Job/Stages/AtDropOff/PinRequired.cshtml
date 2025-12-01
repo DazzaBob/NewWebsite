@@ -1,0 +1,41 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!-- AT_DROPOFF – PIN_REQUIRED -->
+<section class="driver-job__stage driver-job__stage--AT_DROPOFF-PIN_REQUIRED"
+         data-stage="AT_DROPOFF"
+         data-dropoff="PIN_REQUIRED">
+    <header class="driver-job__stage-header">
+        <h6>At dropoff – PIN required</h6>
+        <p>
+            Ask the customer for their delivery PIN and enter it below
+            before handing over the package.
+        </p>
+    </header>
+
+    <div class="driver-job__dropoff-instructions">
+        <strong>PIN required</strong>
+        <p>
+            Enter the PIN the customer provides.
+        </p>
+    </div>
+
+    <div class="driver-job__pin-row">
+        <label for="driver-job-dropoff-pin">Delivery PIN</label>
+        <input type="text"
+               id="driver-job-dropoff-pin"
+               class="input-text driver-job__pin-input"
+               inputmode="numeric"
+               autocomplete="one-time-code"
+               placeholder="Enter PIN" />
+    </div>
+
+    <div class="driver-job__stage-actions">
+        <button type="button"
+                class="btn btn-primary driver-job__btn-primary js-driver-job-confirm-pin-complete">
+            Confirm PIN &amp; complete
+        </button>
+    </div>
+</section>

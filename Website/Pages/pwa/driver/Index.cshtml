@@ -1,0 +1,92 @@
+﻿@page
+@model Website.Pages.pwa.driver.IndexModel
+@{
+    ViewData["Title"] = "Driver";
+    Layout = "_Layout";
+}
+
+<div class="driver-map-wrapper">
+    <div id="driver-map" class="driver-map"></div>
+
+    <div class="driver-map-badges">
+        <div class="btn-pill btn-outline" id="offer-pay">
+            Offer: $0.00
+        </div>
+        <div class="btn-pill btn-outline" id="driver-shift-badge">
+            Shift: $0.00
+        </div>
+    </div>
+    <button id="driver-drive-now-button" class="driver-drive-now" style="font-size: 2rem;" onclick="DriverShiftCtaClick();">
+        <i class="fa-solid fa-car" aria-hidden="true"></i>&nbsp;<i class="fas fa-box"></i>&nbsp;<span>SCHEDULE</span>&nbsp;<i class="fas fa-box"></i>&nbsp;<i class="fa-solid fa-car" aria-hidden="true"></i>
+    </button>
+</div>
+
+<div class="custom-modal" id="driver-offer-modal">
+    <div class="custom-modal-content" role="dialog" aria-modal="true" aria-labelledby="driveroffermodaltitle">
+
+        <!-- Modal header -->
+        <div class="custom-modal-header">
+            <h5 id="driveroffermodaltitle">New delivery offer</h5>
+            <button type="button" class="btn btn-outline" aria-label="Close" id="btn-decline-offer">Decline</button>
+            <button id="btn-close-offer" class="btn btn-close" aria-label="Close" style="display: none;">×</button>
+        </div>
+
+        <!-- Modal body -->
+        <div class="custom-modal-body">
+            <div class="card driver-offer-card">
+                <table style="width: 100%">
+                    <tr><th style="width: 33%;"></th><th style="width: 33%;"></th><th style="width: 33%;"></th></tr>
+                    <tr>
+                        <td>
+                            <span id="offer-value_label" style="font-size: 1.75rem;">Offer: </span>
+                            <span id="offer-value" style="font-size: 1.75rem;">$8.00</span>
+                        </td>
+                        <td colspan="2">
+                            <table>
+                                <tr><td><span id="offer-distance" style="font-size: 1rem;">Distance: – km</span></td></tr>
+                                <tr><td><span id="offer-time" style="font-size: 1rem;">Est: – min</span></td></tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="text-align: center; font-size: 1.75rem;"><div id="offer-deadline">Deliver by: – </div></td>
+                    </tr>
+                    <tr><td colspan="3"><hr /></td></tr>
+                    <tr>
+                        <td style="font-size: 1.75rem;"><span>Pickup</span></td>
+                        <td colspan="2">
+                            <table>
+                                <tr><td><span id="pickup-label" style="font-size: 1.5rem;">KFC – Levin</span></td></tr>
+                                <tr><td><span id="pickup-area" style="font-size: 1rem;">Area: Levin Central (example)</span></td></tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 1.75rem;"><span>Dropoff</span></td>
+                        <td colspan="2"><div class="driver-offer-card__line driver-offer-card__line--muted" id="dropoff-area">Gardener St, Levin 5510</div></td>
+                    </tr>
+                    <tr><td colspan="3"><hr /></td></tr>
+                    <tr>
+                        <td style="font-size: 1.75rem;"><span>Order Size</span></td>
+                        <td colspan="2" id="order-summary"><span>3 items · 1 medium package</span></td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 1.75rem;"><span>Notes:</span></td>
+                        <td colspan="2" id="offer-notes"><span>Leave at door. Ring once.</span></td>
+                    </tr>
+                </table>
+                <footer class="driver-offer-card__footer">
+                    <div class="driver-offer-card__buttons" id="offer-buttons">
+                        <button type="button" class="btn btn-primary" id="btn-accept-offer"><span class="offer-accept-label">Accept&nbsp;</span>(<span id="offer-countdown" class="offer-countdown-pill" data-remaining="0">0</span>)</button>
+                        <button type="button" class="btn btn-outline" id="btn-navigate" style="display: none;">Navigate / Directions</button>
+                    </div>
+                </footer>
+            </div>
+        </div>
+
+        <!-- Modal footer (empty spacer for now) -->
+        <div class="custom-modal-footer">
+            <span>&nbsp;</span>
+        </div>
+    </div>
+</div>

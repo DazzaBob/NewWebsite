@@ -1,0 +1,149 @@
+﻿@page
+@using App;
+@using System.Data;
+@using App.Security;
+@{
+    Layout = null;
+    var jobIdValue = HttpContext.Request.Query["jobId"];
+    long jobStatusId = 0;
+    long jobId = 0;
+    long.TryParse(jobIdValue, out jobId);
+    if (jobId == 0) return;
+
+    int userId = User.Id();
+    if (userId > 0) { Redirect("/AccessDenied"); }
+
+    DataTable dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Operations.Name, App.Database.Schema.Operations.Tables.Job, $"id = {jobId}");
+    var jobRef = "JOB-XXXX";
+    string customerId = Convert.ToString(dt.Rows[0]["user_id"]) ?? string.Empty;
+
+    if (dt != null && dt.Rows.Count > 0 && dt.Columns.Contains("job_ref"))
+    { 
+        jobRef = dt.Rows[0]["job_ref"] as string ?? jobRef; 
+        jobStatusId = Convert.ToInt64(dt.Rows[0]["job_status_id"] ?? "0");
+    }
+    // Stage
+    var jobStatus = jobStatusId > 0 && Enum.IsDefined(typeof(App.Helper.Enums.JobStatus), (int)jobStatusId) ? (App.Helper.Enums.JobStatus)jobStatusId : App.Helper.Enums.JobStatus.Created;
+
+    // Collapse DB status → a simple stage code the JS understands
+    var driverStageCode = jobStatus switch
+    {
+        App.Helper.Enums.JobStatus.Assigned => "ASSIGNED",
+        App.Helper.Enums.JobStatus.EnRoute => "EN_ROUTE",
+        App.Helper.Enums.JobStatus.AtPickup => "AT_PICKUP",
+        App.Helper.Enums.JobStatus.AtDropoff => "AT_DROPOFF",
+        App.Helper.Enums.JobStatus.PickedUp => "PICKED_UP",
+        App.Helper.Enums.JobStatus.Delivered => "DELIVERED",
+        App.Helper.Enums.JobStatus.Cancelled => "CANCELLED",
+        App.Helper.Enums.JobStatus.Failed => "FAILED",
+        _ => "UNKNOWN"
+    };
+    dt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Entities.Name, App.Database.Schema.Entities.Tables.Users, $"id = {customerId}");
+    string CustomerName = dt.Rows[0]["fullname"] as string ?? "";
+
+    DataTable taskDt = App.Database.DataAccessManager.GetDataTable(App.Database.Schema.Operations.Name, App.Database.Schema.Operations.Tables.JobTask, $"job_id = {jobId}");
+}
+
+<div class="custom-modal" id="driver-job-modal" data-modal-type="driverjob">
+    <div class="custom-modal-content" role="dialog" aria-modal="true" aria-labelledby="driverjobmodaltitle">
+        <input type="hidden" id="driver-job-id" value="@jobId" />
+        <input type="hidden" id="driver-job-stage" value="@driverStageCode" />
+        <div id="DJContent"></div>
+        <div id="DJMain">
+            <div id="JMNHeader" class="custom-modal-header">
+                <h5 id="driverjobmodaltitle">Job #&nbsp;<span id="driver-job-display-id">@jobRef</span></h5>
+                <button id="NButton" class="CommsButton" aria-label="Open Notifications" onclick="DNClick();">
+                    <i class="fa-solid fa-bell"></i>
+                    <span id="unreadNotifications" class="UnreadComms" aria-hidden="true"></span>
+                </button>
+                <button id="MButton" class="CommsButton" aria-label="Open Messaging" onclick="DMClick();">
+                    <i class="fa-solid fa-comments"></i>
+                    <span id="unreadMessages" class="UnreadComms" aria-hidden="true"></span>
+                </button>
+                <button id="DJOBBTNCLS" class="btn btn-close" type="button" aria-label="Close">×</button>
+            </div>
+            <div id="JMNJBody" class="custom-modal-body">
+                <!-- JOB SUMMARY -->
+                <section class="driver-job__summary">
+                    <div class="driver-job__summary-main">
+                        <div class="driver-job__customer"><strong id="driver-job-customer-name" style="font-size: 2.25rem;">@CustomerName</strong><br /></div>
+                        <hr style="border: 0; border-top: 1px solid #666; margin: 0.5rem 0;" />
+                        <!-- Everything below here (route + meta) becomes collapsible -->
+                        <!-- These are the TASKs for each job. -->
+                        <div id="driver-job-summary-details">
+                            @if (taskDt != null && taskDt.Rows.Count > 0)
+                            {
+                                <ul class="driver-job__tasks">
+                                    @for (int i = 0; i < taskDt.Rows.Count; i++)
+                                    {
+                                        DataRow row = taskDt.Rows[i];
+                                        string? recipient = row["recipient"] as string ?? string.Empty;
+                                        string? taskRef = row["reference"] as string ?? string.Empty;
+                                        string? pickupNotes = row["pickup_notes"] as string ?? string.Empty;
+                                        string? dropoffNotes = row["dropoff_notes"] as string ?? string.Empty;
+
+                                        <li class="driver-job__task">
+                                            <div class="driver-job__task-header">
+                                                <span class="driver-job__task-title">
+                                                    Task @(i + 1)
+                                                    @if (!string.IsNullOrWhiteSpace(recipient)) { @(": " + recipient) }
+                                                </span>
+
+                                                @if (!string.IsNullOrWhiteSpace(taskRef)) 
+                                                { 
+                                                    <span class="driver-job__task-ref">
+                                                        (@taskRef)
+                                                    </span> 
+                                                }
+                                            </div>
+
+                                            <div class="driver-job__task-body">
+                                                @if (!string.IsNullOrWhiteSpace(pickupNotes))
+                                                {
+                                                    <div class="driver-job__task-line">
+                                                        <strong>Pickup:</strong> @pickupNotes
+                                                    </div>
+                                                }
+
+                                                @if (!string.IsNullOrWhiteSpace(dropoffNotes))
+                                                {
+                                                    <div class="driver-job__task-line">
+                                                        <strong>Dropoff:</strong> @dropoffNotes
+                                                    </div>
+                                                }
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            { <p>No tasks found for this job.</p> }
+                        </div>
+                    </div>
+
+                    @if (jobStatusId != (int)App.Helper.Enums.JobStatus.AtPickup)
+                    {
+                        <!-- Hidden while picking picking up -->
+                        <div class="driver-job__summary-meta"
+                             id="driver-job-summary-meta">
+                            @if (jobStatusId != (int)App.Helper.Enums.JobStatus.AtDropoff
+                                                && jobStatusId != (int)App.Helper.Enums.JobStatus.Delivered)
+                            {
+                                <!-- Shown until the driver arrives at the dropoff address -->
+                                <div class="driver-job__meta-item">
+                                    <span class="driver-job__meta-label" style="font-size: 1.25rem;">Distance</span>
+                                    <span class="driver-job__meta-value" id="driver-job-distance" style="font-size: 1rem;">0.0 km</span>
+                                </div>
+                                <div class="driver-job__meta-item">
+                                    <span class="driver-job__meta-label" style="font-size: 1.25rem;">ETA</span>
+                                    <span class="driver-job__meta-value" id="driver-job-eta" style="font-size: 1rem;">0 min</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </section>
+                <hr style="border: 0; border-top: 1px solid #666; margin: 0.5rem 0;" />
+            </div>
+        </div>
+    </div>
+</div>
